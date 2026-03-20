@@ -60,7 +60,7 @@
         .chat-avatar{width:60px;height:60px;background:#333;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;}
         .chat-avatar img{width:100%;height:100%;object-fit:cover;}
         .chat-info{min-width:0;}
-        .chat-name{font-size:16px;margin-bottom:5px;letter-spacing:-0.5px;}
+        .chat-name{font-size:16px;margin-bottom:3px;letter-spacing:-0.5px;}
         .chat-preview{font-size:14px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .bottom-nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:3px solid #fff;height:70px;flex-shrink:0;}
         .nav-btn{background:#000;border-right:3px solid #fff;border-top:none;border-bottom:none;border-left:none;color:#fff;font-size:24px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}
@@ -78,7 +78,7 @@
         .menu-option:last-child{border-bottom:none;}
         .menu-option:hover{background:#fff;color:#000;}
         .accounts-list{display:flex;flex-direction:column;gap:10px;}
-        .account-item{display:grid;grid-template-columns:60px 1fr 80px;gap:10px;align-items:center;padding:15px;border:3px solid #fff;background:#000;}
+        .account-item{display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:center;padding:15px;border:3px solid #fff;background:#000;}
         .post-textarea{width:100%;background:#000;border:3px solid #fff;padding:15px;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;min-height:100px;margin-bottom:15px;}
         .upload-btn{width:100%;padding:15px;background:#000;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;transition:all 0.3s;letter-spacing:-0.5px;}
         .upload-btn:hover{background:#fff;color:#000;}
@@ -96,10 +96,7 @@
     </style>
 </head>
 <body>
-<div id="loadingPage" class="page active">
-    <div class="spinner"></div>
-    <div style="letter-spacing:-1px;font-size:20px;">Usen</div>
-</div>
+<div id="loadingPage" class="page active"><div class="spinner"></div><div style="letter-spacing:-1px;font-size:20px;">Usen</div></div>
 <div id="loginPage" class="page">
     <div class="login-container">
         <div class="login-header"><span>Usen</span><span style="font-size:48px;">44</span></div>
@@ -130,14 +127,8 @@
             </div>
         </div>
         <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload()"/>
-        <div style="margin-bottom:25px;">
-            <div class="setup-label">Display Name *</div>
-            <input type="text" class="setup-input" id="setupDisplayName" placeholder="Your Display Name" oninput="updateProfilePreview()"/>
-        </div>
-        <div style="margin-bottom:25px;">
-            <div class="setup-label">Bio <span style="color:#666;font-size:14px;">(Optional)</span></div>
-            <textarea class="setup-textarea" id="setupBio" placeholder="Tell us about yourself..."></textarea>
-        </div>
+        <div style="margin-bottom:25px;"><div class="setup-label">Display Name *</div><input type="text" class="setup-input" id="setupDisplayName" placeholder="Your Display Name" oninput="updateProfilePreview()"/></div>
+        <div style="margin-bottom:25px;"><div class="setup-label">Bio <span style="color:#666;font-size:14px;">(Optional)</span></div><textarea class="setup-textarea" id="setupBio" placeholder="Tell us about yourself..."></textarea></div>
         <button class="setup-done-btn" id="setupDoneBtn" onclick="completeSetup()">Done!</button>
     </div>
 </div>
@@ -151,19 +142,11 @@
     </div>
     <div class="chat-list" id="chatList"></div>
     <div class="bottom-nav">
-        <button class="nav-btn active" title="Home">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </button>
-        <button class="nav-btn" onclick="openSettings()" title="Settings">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m6.08 0l4.24-4.24M1 12h6m6 0h6m-1.78 7.78l-4.24-4.24m-6.08 0l-4.24 4.24"></path></svg>
-        </button>
+        <button class="nav-btn active" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></button>
+        <button class="nav-btn" onclick="openSettings()" title="Settings"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m6.08 0l4.24-4.24M1 12h6m6 0h6m-1.78 7.78l-4.24-4.24m-6.08 0l-4.24 4.24"></path></svg></button>
         <button class="nav-btn" onclick="openMenuModal()" style="background:#fff;color:#000;font-size:36px;">+</button>
-        <button class="nav-btn" onclick="openSocialFeed()" title="Feed">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><polyline points="8 21 16 21"></polyline><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-        </button>
-        <button class="nav-btn" onclick="openAccountsModal()" title="Friends">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        </button>
+        <button class="nav-btn" onclick="openSocialFeed()" title="Feed"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><polyline points="8 21 16 21"></polyline><line x1="12" y1="17" x2="12" y2="21"></line></svg></button>
+        <button class="nav-btn" onclick="openAccountsModal()" title="Friends"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></button>
     </div>
 </div>
 <div class="menu-modal" id="menuModal">
@@ -199,151 +182,135 @@
 <div class="modal" id="settingsModal">
     <div class="modal-header"><span>Settings</span><button class="modal-close" onclick="closeModal('settingsModal')">X</button></div>
     <div class="modal-content">
-        <div class="settings-option">
-            <div class="settings-label">Display Name</div>
-            <input type="text" class="settings-input" id="settingsDisplayName" onchange="updateDisplayName()"/>
-        </div>
-        <div class="settings-option">
-            <div class="settings-label">Change Avatar</div>
-            <button class="btn" onclick="document.getElementById('settingsAvatarInput').click()" style="width:200px;">Upload</button>
-        </div>
-        <div class="settings-option">
-            <div class="settings-label" style="color:#f55;">Logout</div>
-            <button class="btn" onclick="handleLogout()" style="width:200px;border-color:#f55;color:#f55;">Logout</button>
-        </div>
+        <div class="settings-option"><div class="settings-label">Display Name</div><input type="text" class="settings-input" id="settingsDisplayName" onchange="updateDisplayName()"/></div>
+        <div class="settings-option"><div class="settings-label">Change Avatar</div><button class="btn" onclick="document.getElementById('settingsAvatarInput').click()" style="width:200px;">Upload</button></div>
+        <div class="settings-option"><div class="settings-label" style="color:#f55;">Logout</div><button class="btn" onclick="handleLogout()" style="width:200px;border-color:#f55;color:#f55;">Logout</button></div>
         <input type="file" id="settingsAvatarInput" accept="image/*" style="display:none;" onchange="handleSettingsAvatar()"/>
     </div>
 </div>
 <script>
-firebase.initializeApp({
-    apiKey:"AIzaSyBRFwLZLhLXVY6EtrZiLOI-wnHijtvke_g",
-    authDomain:"usen-28a88.firebaseapp.com",
-    projectId:"usen-28a88",
-    storageBucket:"usen-28a88.firebasestorage.app",
-    messagingSenderId:"1015677012887",
-    appId:"1:1015677012887:web:719fa0962f92ac5309d2d2"
-});
-var auth=firebase.auth(), db=firebase.firestore();
-var currentUser=null, currentProfile=null;
-var friendsUnsub=null, chatUnsub=null, callDocUnsub=null;
-var activeFriend=null, activeChatId=null;
-var localStream=null, peerConnection=null;
-var callStartTime=null, callTimerInterval=null;
-var isRecording=false, mediaRecorder=null, audioChunks=[];
-var pinStates={}, pinVisible=false;
+firebase.initializeApp({apiKey:"AIzaSyBRFwLZLhLXVY6EtrZiLOI-wnHijtvke_g",authDomain:"usen-28a88.firebaseapp.com",projectId:"usen-28a88",storageBucket:"usen-28a88.firebasestorage.app",messagingSenderId:"1015677012887",appId:"1:1015677012887:web:719fa0962f92ac5309d2d2"});
+var auth=firebase.auth(),db=firebase.firestore();
+var currentUser=null,currentProfile=null;
+var friendsUnsub=null,chatUnsub=null,callDocUnsub=null;
+var activeFriend=null,activeChatId=null;
+var localStream=null,peerConnection=null;
+var callStartTime=null,callTimerInterval=null;
+var isRecording=false,mediaRecorder=null,audioChunks=[];
+var pinStates={},pinVisible=false;
 var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 
+// ── TAGS ─────────────────────────────────────────────────
+var SPECIAL_TAGS={
+    'nico':    ['[Dev]','[Verified]'],
+    'cat':     ['[Dev]','[Verified]','[OG-Media]'],
+    '44devs':  ['[Dev]','[Verified]'],
+    'milan':   ['[IDev]']
+};
+var OG_START=new Date('2025-03-20T00:00:00Z').getTime();
+var OG_END=new Date('2025-04-02T00:00:00Z').getTime();
+
+// One-time admin function - call adminSeedTags() from browser console while logged in as nico/44devs
+window.adminSeedTags = async function(){
+    var adminUsers=['nico','44devs'];
+    if(!currentProfile||adminUsers.indexOf(currentProfile.username)===-1){console.log('Not an admin');return;}
+    console.log('Seeding tags for all special users...');
+    var targets=Object.keys(SPECIAL_TAGS);
+    for(var i=0;i<targets.length;i++){
+        var uname=targets[i];
+        var udoc=await db.collection('usernames').doc(uname).get();
+        if(!udoc.exists){console.log(uname+' not registered yet, skipping');continue;}
+        var uid=udoc.data().uid;
+        var userDoc=await db.collection('users').doc(uid).get();
+        if(!userDoc.exists)continue;
+        var data=userDoc.data();
+        var tags=data.tags||[];
+        var special=SPECIAL_TAGS[uname]||[];
+        special.forEach(function(t){if(tags.indexOf(t)===-1)tags.push(t);});
+        // OG: check createdAt
+        if(data.createdAt){
+            var ct=data.createdAt.toDate?data.createdAt.toDate().getTime():new Date(data.createdAt).getTime();
+            if(ct>=OG_START&&ct<OG_END&&tags.indexOf('[OG]')===-1)tags.push('[OG]');
+        }
+        await db.collection('users').doc(uid).update({tags:tags});
+        console.log('Tagged '+uname+': '+tags.join(', '));
+    }
+    // Also OG-tag ALL users created in the window
+    console.log('Checking all users for OG tag...');
+    var allUsers=await db.collection('users').get();
+    var ogCount=0;
+    for(var j=0;j<allUsers.docs.length;j++){
+        var doc=allUsers.docs[j];
+        var d=doc.data();
+        if(!d.createdAt)continue;
+        var ct2=d.createdAt.toDate?d.createdAt.toDate().getTime():new Date(d.createdAt).getTime();
+        if(ct2>=OG_START&&ct2<OG_END){
+            var t2=d.tags||[];
+            if(t2.indexOf('[OG]')===-1){
+                t2.push('[OG]');
+                await db.collection('users').doc(doc.id).update({tags:t2});
+                ogCount++;
+                console.log('OG tag added to '+d.username);
+            }
+        }
+    }
+    console.log('Done. OG tags added to '+ogCount+' users.');
+    showNotification('Tags seeded!');
+};
+function renderTags(tags){
+    if(!tags||tags.length===0) return '<span style="color:#666;font-size:13px;">No tags yet</span>';
+    var colors={'[Dev]':'background:#fff;color:#000;','[IDev]':'background:#aaa;color:#000;','[Verified]':'background:#00f;color:#fff;','[OG]':'background:#ff0;color:#000;','[OG-Media]':'background:#f0f;color:#fff;'};
+    return tags.map(function(t){var s=colors[t]||'background:#333;color:#fff;';return '<span style="display:inline-block;'+s+'padding:2px 8px;margin:2px;font-size:12px;border:2px solid #fff;">'+t+'</span>';}).join('');
+}
+async function applyTags(){
+    if(!currentUser||!currentProfile) return;
+    var username=(currentProfile.username||'').toLowerCase();
+    // Always reload fresh from Firestore to avoid stale cache
+    var freshDoc=await db.collection('users').doc(currentUser.uid).get();
+    var freshData=freshDoc.data()||{};
+    var existing=freshData.tags||[];
+    var tags=existing.slice();
+    var now=Date.now();
+    // OG: active window OR retroactive via createdAt
+    if(now>=OG_START&&now<OG_END&&tags.indexOf('[OG]')===-1) tags.push('[OG]');
+    var createdAt=freshData.createdAt||currentProfile.createdAt;
+    if(createdAt){
+        var ct=createdAt.toDate?createdAt.toDate().getTime():new Date(createdAt).getTime();
+        if(ct>=OG_START&&ct<OG_END&&tags.indexOf('[OG]')===-1) tags.push('[OG]');
+    }
+    // Special hardcoded tags
+    (SPECIAL_TAGS[username]||[]).forEach(function(t){if(tags.indexOf(t)===-1)tags.push(t);});
+    // OG-Media: 500+ posts
+    var postSnap=await db.collection('posts').where('uid','==',currentUser.uid).get();
+    if(postSnap.size>=500&&tags.indexOf('[OG-Media]')===-1) tags.push('[OG-Media]');
+    var changed=JSON.stringify(tags.slice().sort())!==JSON.stringify(existing.slice().sort());
+    if(changed) await db.collection('users').doc(currentUser.uid).update({tags:tags});
+    currentProfile.tags=tags;
+}
+
+// ── AUTH ─────────────────────────────────────────────────
 auth.onAuthStateChanged(async function(user){
     if(user){
         currentUser=user;
         var doc=await db.collection('users').doc(user.uid).get();
         if(doc.exists&&doc.data().displayName){
             currentProfile=doc.data();
-            showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); applyTags(); applyTags();
+            showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); applyTags();
         } else {
             document.getElementById('profileUsernameDisplay').textContent='@'+user.email.replace('@usen.app','');
             showPage('setupPage');
         }
-    } else { currentUser=null; currentProfile=null; showPage('loginPage'); }
+    } else {currentUser=null;currentProfile=null;showPage('loginPage');}
 });
-
 function showPage(id){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});document.getElementById(id).classList.add('active');}
 
-function handlePinInput(e,dId,rId){
-    var d=document.getElementById(dId),r=document.getElementById(rId),raw=d.value,state=pinStates[dId]||'',ns='';
-    for(var i=0;i<raw.length;i++) ns+=(raw[i]==='\u2022')?(state[i]||''):raw[i];
-    pinStates[dId]=ns; r.value=ns;
-    if(!pinVisible) d.value='\u2022'.repeat(ns.length);
-}
-function handlePinKey(e,dId,rId){
-    if(e.key==='Backspace'){
-        e.preventDefault();
-        var d=document.getElementById(dId),r=document.getElementById(rId);
-        pinStates[dId]=(pinStates[dId]||'').slice(0,-1); r.value=pinStates[dId];
-        d.value=pinVisible?pinStates[dId]:'\u2022'.repeat(pinStates[dId].length);
-    }
-}
-function togglePin(dId,rId,btn){
-    pinVisible=!pinVisible;
-    var d=document.getElementById(dId),s=pinStates[dId]||'';
-    d.value=pinVisible?s:'\u2022'.repeat(s.length);
-    btn.innerHTML=pinVisible?'<i class="fas fa-eye-slash"></i>':'<i class="fas fa-eye"></i>';
-}
+// ── PIN ──────────────────────────────────────────────────
+function handlePinInput(e,dId,rId){var d=document.getElementById(dId),r=document.getElementById(rId),raw=d.value,state=pinStates[dId]||'',ns='';for(var i=0;i<raw.length;i++)ns+=(raw[i]==='\u2022')?(state[i]||''):raw[i];pinStates[dId]=ns;r.value=ns;if(!pinVisible)d.value='\u2022'.repeat(ns.length);}
+function handlePinKey(e,dId,rId){if(e.key==='Backspace'){e.preventDefault();var d=document.getElementById(dId),r=document.getElementById(rId);pinStates[dId]=(pinStates[dId]||'').slice(0,-1);r.value=pinStates[dId];d.value=pinVisible?pinStates[dId]:'\u2022'.repeat(pinStates[dId].length);}}
+function togglePin(dId,rId,btn){pinVisible=!pinVisible;var d=document.getElementById(dId),s=pinStates[dId]||'';d.value=pinVisible?s:'\u2022'.repeat(s.length);btn.innerHTML=pinVisible?'<i class="fas fa-eye-slash"></i>':'<i class="fas fa-eye"></i>';}
 function toEmail(u){return u.replace('@','').toLowerCase()+'@usen.app';}
 
-// ── TAG SYSTEM ────────────────────────────────────────────
-// Hardcoded special tags per username
-var SPECIAL_TAGS = {
-    'nico':    ['[Dev]','[Verified]'],
-    'cat':     ['[Dev]','[Verified]','[OG-Media]'],
-    '44devs':  ['[Dev]','[Verified]'],
-    'milan':   ['[IDev]']
-};
-
-// OG window: March 20 2025 - April 1 2025
-var OG_START = new Date('2025-03-20T00:00:00Z').getTime();
-var OG_END   = new Date('2025-04-02T00:00:00Z').getTime(); // exclusive
-
-function isOGPeriod(){
-    var now = Date.now();
-    return now >= OG_START && now < OG_END;
-}
-
-async function applyTags(){
-    if(!currentUser || !currentProfile) return;
-    var username = (currentProfile.username || '').toLowerCase();
-    var existingTags = currentProfile.tags || [];
-    var newTags = existingTags.slice(); // copy
-
-    // OG tag: assigned if account was created in the window OR they log in during the window
-    if(isOGPeriod() && newTags.indexOf('[OG]') === -1){
-        newTags.push('[OG]');
-    }
-    // Also assign OG if createdAt is within window (for future logins after April 1)
-    if(currentProfile.createdAt){
-        var created = currentProfile.createdAt.toDate ? currentProfile.createdAt.toDate().getTime() : new Date(currentProfile.createdAt).getTime();
-        if(created >= OG_START && created < OG_END && newTags.indexOf('[OG]') === -1){
-            newTags.push('[OG]');
-        }
-    }
-
-    // Special hardcoded tags
-    var special = SPECIAL_TAGS[username] || [];
-    special.forEach(function(t){ if(newTags.indexOf(t) === -1) newTags.push(t); });
-
-    // OG-Media: 500+ posts
-    var postSnap = await db.collection('posts').where('uid','==',currentUser.uid).get();
-    if(postSnap.size >= 500 && newTags.indexOf('[OG-Media]') === -1){
-        newTags.push('[OG-Media]');
-    }
-
-    // Save if changed
-    var changed = JSON.stringify(newTags.sort()) !== JSON.stringify(existingTags.sort());
-    if(changed){
-        await db.collection('users').doc(currentUser.uid).update({tags: newTags});
-        currentProfile.tags = newTags;
-    } else {
-        currentProfile.tags = newTags;
-    }
-}
-
-function renderTags(tags){
-    if(!tags || tags.length === 0) return '';
-    var colors = {
-        '[Dev]':      'background:#fff;color:#000;',
-        '[IDev]':     'background:#aaa;color:#000;',
-        '[Verified]': 'background:#00f;color:#fff;',
-        '[OG]':       'background:#ff0;color:#000;',
-        '[OG-Media]': 'background:#f0f;color:#fff;'
-    };
-    return tags.map(function(t){
-        var style = colors[t] || 'background:#333;color:#fff;';
-        return '<span style="display:inline-block;'+style+'padding:2px 8px;margin:2px;font-size:12px;letter-spacing:-0.5px;border:2px solid #fff;">'+t+'</span>';
-    }).join('');
-}
-
-
-
+// ── REGISTER / LOGIN ──────────────────────────────────────
 async function handleRegister(){
     var u=document.getElementById('loginUsername').value.trim().replace('@','');
     var p=document.getElementById('loginPinReal').value.trim();
@@ -356,7 +323,7 @@ async function handleRegister(){
     try{
         var cred=await auth.createUserWithEmailAndPassword(toEmail(u),p);
         await db.collection('usernames').doc(u.toLowerCase()).set({uid:cred.user.uid});
-        await db.collection('users').doc(cred.user.uid).set({username:u.toLowerCase(),displayName:'',bio:'',avatar:'',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+        await db.collection('users').doc(cred.user.uid).set({username:u.toLowerCase(),displayName:'',bio:'',avatar:'',tags:[],createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     }catch(e){showNotification(fbErr(e));}
     setBtn('registerBtn',false);
 }
@@ -369,24 +336,15 @@ async function handleLogin(){
     catch(e){showNotification(fbErr(e));setBtn('loginBtn',false);}
 }
 async function handleLogout(){
-    if(friendsUnsub) friendsUnsub();
-    if(chatUnsub) chatUnsub();
-    closeModal('settingsModal');
-    await auth.signOut();
-    pinStates['loginPin']='';
-    document.getElementById('loginPin').value='';
-    document.getElementById('loginPinReal').value='';
+    if(friendsUnsub)friendsUnsub();if(chatUnsub)chatUnsub();
+    closeModal('settingsModal');await auth.signOut();
+    pinStates['loginPin']='';document.getElementById('loginPin').value='';document.getElementById('loginPinReal').value='';
 }
 
+// ── SETUP ─────────────────────────────────────────────────
 var pendingAvatar='';
 function updateProfilePreview(){document.getElementById('profileNameDisplay').textContent=document.getElementById('setupDisplayName').value||'Your Name';}
-function handleAvatarUpload(){
-    var file=document.getElementById('avatarInput').files[0];
-    if(!file) return;
-    var r=new FileReader();
-    r.onload=function(e){document.getElementById('avatarImg').src=e.target.result;pendingAvatar=e.target.result;};
-    r.readAsDataURL(file);
-}
+function handleAvatarUpload(){var file=document.getElementById('avatarInput').files[0];if(!file)return;var r=new FileReader();r.onload=function(e){document.getElementById('avatarImg').src=e.target.result;pendingAvatar=e.target.result;};r.readAsDataURL(file);}
 async function completeSetup(){
     var dn=document.getElementById('setupDisplayName').value.trim();
     var bio=document.getElementById('setupBio').value.trim();
@@ -394,141 +352,162 @@ async function completeSetup(){
     setBtn('setupDoneBtn',true);
     try{
         await db.collection('users').doc(currentUser.uid).update({displayName:dn,bio:bio,avatar:pendingAvatar||''});
-        currentProfile={displayName:dn,bio:bio,avatar:pendingAvatar||'',username:currentUser.email.replace('@usen.app','')};
-        showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); applyTags();
+        currentProfile={displayName:dn,bio:bio,avatar:pendingAvatar||'',username:currentUser.email.replace('@usen.app',''),tags:[]};
+        showPage('homePage');loadFriends();listenForCall();listenForFriendRequests();applyTags();
         showNotification('Welcome, '+dn+'!');
     }catch(e){showNotification(e.message);}
     setBtn('setupDoneBtn',false);
 }
 
+// ── FRIENDS / CHAT LIST ───────────────────────────────────
 function loadFriends(){
-    if(friendsUnsub) friendsUnsub();
+    if(friendsUnsub)friendsUnsub();
     friendsUnsub=db.collection('users').doc(currentUser.uid).collection('friends')
         .onSnapshot(function(snap){renderChatList(snap.docs.map(function(d){return d.data();}));});
 }
 function renderChatList(friends){
-    var list=document.getElementById('chatList'); list.innerHTML='';
+    var list=document.getElementById('chatList');list.innerHTML='';
     if(friends.length===0){list.innerHTML='<div style="padding:40px 20px;text-align:center;color:#666;font-size:18px;border-bottom:3px solid #fff;">No friends yet. Add them!</div>';return;}
     friends.forEach(function(f){
-        var item=document.createElement('div'); item.className='chat-item';
-        var av=f.avatar?'<img src="'+f.avatar+'" />'+'':'&#128100;';
-        var ftags=f.tags&&f.tags.length?'<div style="margin-top:2px;">'+renderTags(f.tags)+'</div>':'';
-        item.innerHTML='<div class="chat-avatar">'+av+'</div><div class="chat-info"><div class="chat-name">'+f.displayName+'</div>'+ftags+'<div class="chat-preview">'+(f.lastMsg||'No messages yet')+'</div></div>';
-        item.onclick=function(){openChat(f);}; list.appendChild(item);
+        var item=document.createElement('div');item.className='chat-item';
+        // Render placeholder first, then load live avatar from Firestore
+        var avDiv=document.createElement('div');avDiv.className='chat-avatar';avDiv.id='av_'+f.uid;avDiv.textContent='?';
+        var info=document.createElement('div');info.className='chat-info';
+        var nameDiv=document.createElement('div');nameDiv.className='chat-name';nameDiv.textContent=f.displayName;
+        var tagsDiv=document.createElement('div');tagsDiv.id='tags_'+f.uid;tagsDiv.style.marginBottom='2px';
+        var prevDiv=document.createElement('div');prevDiv.className='chat-preview';prevDiv.textContent=f.lastMsg||'No messages yet';
+        info.appendChild(nameDiv);info.appendChild(tagsDiv);info.appendChild(prevDiv);
+        item.appendChild(avDiv);item.appendChild(info);
+        item.onclick=function(){openChat(f);};
+        list.appendChild(item);
+        // Fetch live data from user doc
+        db.collection('users').doc(f.uid).get().then(function(doc){
+            if(!doc.exists)return;
+            var data=doc.data();
+            // Update avatar in DOM
+            var avEl=document.getElementById('av_'+f.uid);
+            if(avEl){
+                if(data.avatar){var img=document.createElement('img');img.src=data.avatar;img.style.cssText='width:100%;height:100%;object-fit:cover;';avEl.innerHTML='';avEl.appendChild(img);}
+                else avEl.textContent='?';
+            }
+            // Update tags in DOM
+            var tEl=document.getElementById('tags_'+f.uid);
+            if(tEl&&data.tags&&data.tags.length)tEl.innerHTML=renderTags(data.tags);
+            // Sync avatar+tags into friend doc cache if changed
+            if(data.avatar&&data.avatar!==f.avatar){
+                db.collection('users').doc(currentUser.uid).collection('friends').doc(f.uid)
+                    .update({avatar:data.avatar,tags:data.tags||[]}).catch(function(){});
+                f.avatar=data.avatar;
+            }
+        }).catch(function(){});
     });
 }
 function filterChats(){
     var s=document.getElementById('searchInput').value.toLowerCase();
     document.querySelectorAll('#chatList .chat-item').forEach(function(i){i.style.display=i.querySelector('.chat-name').textContent.toLowerCase().includes(s)?'':'none';});
 }
+
 // ── SMART SEARCH ─────────────────────────────────────────
-var searchTimeout = null;
+var searchTimeout=null;
 async function searchUsers(){
-    var q = document.getElementById('addFriendInput').value.trim().replace('@','').toLowerCase();
-    var resultsEl = document.getElementById('userSearchResults');
-    if(!q){ resultsEl.style.display='none'; resultsEl.innerHTML=''; return; }
+    var q=document.getElementById('addFriendInput').value.trim().replace('@','').toLowerCase();
+    var el=document.getElementById('userSearchResults');
+    if(!q){el.style.display='none';el.innerHTML='';return;}
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(async function(){
-        var snap = await db.collection('usernames')
-            .orderBy(firebase.firestore.FieldPath.documentId())
-            .startAt(q).endAt(q+'').limit(6).get();
-        resultsEl.innerHTML = '';
-        if(snap.empty){ resultsEl.style.display='none'; return; }
-        resultsEl.style.display = 'block';
+    searchTimeout=setTimeout(async function(){
+        var snap=await db.collection('usernames').orderBy(firebase.firestore.FieldPath.documentId()).startAt(q).endAt(q+'\uf8ff').limit(6).get();
+        el.innerHTML='';
+        if(snap.empty){el.style.display='none';return;}
+        el.style.display='block';
         snap.forEach(function(doc){
-            var uname = doc.id;
-            if(uname === (currentProfile.username||'')) return;
-            var row = document.createElement('div');
-            row.style.cssText = "padding:10px 14px;border-top:3px solid #fff;cursor:pointer;font-family:'Courier Prime',monospace;font-size:15px;background:#000;color:#fff;";
-            row.textContent = '@' + uname;
-            row.onmousedown = function(e){ e.preventDefault(); document.getElementById('addFriendInput').value = uname; resultsEl.style.display='none'; };
-            resultsEl.appendChild(row);
+            var uname=doc.id;
+            if(uname===(currentProfile.username||''))return;
+            var row=document.createElement('div');
+            row.style.cssText="padding:10px 14px;border-top:3px solid #fff;cursor:pointer;font-family:'Courier Prime',monospace;font-size:15px;background:#000;color:#fff;";
+            row.textContent='@'+uname;
+            row.onmousedown=function(e){e.preventDefault();document.getElementById('addFriendInput').value=uname;el.style.display='none';};
+            el.appendChild(row);
         });
-    }, 200);
+    },200);
 }
 
+// ── ADD FRIEND ────────────────────────────────────────────
 async function addFriend(){
-    var username = document.getElementById('addFriendInput').value.trim().replace('@','').toLowerCase();
-    var resultsEl = document.getElementById('userSearchResults');
-    if(resultsEl) resultsEl.style.display = 'none';
+    var username=document.getElementById('addFriendInput').value.trim().replace('@','').toLowerCase();
+    var el=document.getElementById('userSearchResults');if(el)el.style.display='none';
     if(!username){showNotification('Enter a username!');return;}
     if(username===(currentProfile.username||'')){showNotification("That's you lol");return;}
-    var udoc = await db.collection('usernames').doc(username).get();
+    var udoc=await db.collection('usernames').doc(username).get();
     if(!udoc.exists){showNotification("User doesn't exist!");return;}
-    var theirUid = udoc.data().uid;
-    var blockedSnap = await db.collection('users').doc(theirUid).collection('blocked').doc(currentUser.uid).get();
-    if(blockedSnap.exists){showNotification("Can't add that user.");return;}
-    var ex = await db.collection('users').doc(currentUser.uid).collection('friends').doc(theirUid).get();
+    var theirUid=udoc.data().uid;
+    var blocked=await db.collection('users').doc(theirUid).collection('blocked').doc(currentUser.uid).get();
+    if(blocked.exists){showNotification("Can't add that user.");return;}
+    var ex=await db.collection('users').doc(currentUser.uid).collection('friends').doc(theirUid).get();
     if(ex.exists){showNotification('Already friends!');return;}
-    var already = await db.collection('users').doc(theirUid).collection('friendRequests').doc(currentUser.uid).get();
+    var already=await db.collection('users').doc(theirUid).collection('friendRequests').doc(currentUser.uid).get();
     if(already.exists){showNotification('Request already sent!');return;}
     await db.collection('users').doc(theirUid).collection('friendRequests').doc(currentUser.uid).set({
-        fromUid: currentUser.uid, fromUsername: currentProfile.username,
-        fromDisplayName: currentProfile.displayName, fromAvatar: currentProfile.avatar||'',
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        fromUid:currentUser.uid,fromUsername:currentProfile.username,
+        fromDisplayName:currentProfile.displayName,fromAvatar:currentProfile.avatar||'',
+        timestamp:firebase.firestore.FieldValue.serverTimestamp()
     });
-    document.getElementById('addFriendInput').value = '';
+    document.getElementById('addFriendInput').value='';
     showNotification('Friend request sent to @'+username+'!');
 }
 
+// ── FRIEND LIST ───────────────────────────────────────────
 async function generateAccountsList(){
-    var list = document.getElementById('accountsList');
-    list.innerHTML = '<div style="color:#666;padding:10px;">Loading...</div>';
-    var snap = await db.collection('users').doc(currentUser.uid).collection('friends').get();
-    list.innerHTML = '';
+    var list=document.getElementById('accountsList');list.innerHTML='<div style="color:#666;padding:10px;">Loading...</div>';
+    var snap=await db.collection('users').doc(currentUser.uid).collection('friends').get();
+    list.innerHTML='';
     if(snap.empty){list.innerHTML='<div style="padding:40px;text-align:center;color:#666;">No friends yet!</div>';return;}
     snap.forEach(function(doc){
-        var f = doc.data(); var item = document.createElement('div'); item.className = 'account-item';
-        var av = f.avatar?'<img src="'+f.avatar+'" style="width:100%;height:100%;object-fit:cover;"/>':'&#128100;';
-        item.innerHTML = '<div class="chat-avatar">'+av+'</div>'
-            +'<div><div style="letter-spacing:-0.5px;">'+f.displayName+'</div><div style="color:#aaa;font-size:12px;">@'+f.username+'</div></div>'
-            +'<div style="display:flex;flex-direction:column;gap:4px;">'
-            +'<button class="btn" style="padding:6px;font-size:12px;" onclick="removeFriend(\''+doc.id+'\')">Remove</button>'
-            +'<button class="btn" style="padding:6px;font-size:12px;border-color:#f55;color:#f55;" onclick="blockUser(\''+doc.id+'\',\''+f.username+'\')">Block</button>'
-            +'</div>';
+        var f=doc.data();var item=document.createElement('div');item.className='account-item';
+        var avEl=document.createElement('div');avEl.className='chat-avatar';avEl.textContent='?';
+        var info=document.createElement('div');
+        info.innerHTML='<div style="letter-spacing:-0.5px;">'+f.displayName+'</div><div style="color:#aaa;font-size:12px;">@'+f.username+'</div>';
+        var btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;flex-direction:column;gap:4px;';
+        var remBtn=document.createElement('button');remBtn.className='btn';remBtn.style.cssText='padding:6px;font-size:12px;';remBtn.textContent='Remove';remBtn.onclick=function(){removeFriend(doc.id);};
+        var blkBtn=document.createElement('button');blkBtn.className='btn';blkBtn.style.cssText='padding:6px;font-size:12px;border-color:#f55;color:#f55;';blkBtn.textContent='Block';blkBtn.onclick=function(){blockUser(doc.id,f.username);};
+        btnWrap.appendChild(remBtn);btnWrap.appendChild(blkBtn);
+        item.appendChild(avEl);item.appendChild(info);item.appendChild(btnWrap);
         list.appendChild(item);
+        // Load live avatar
+        db.collection('users').doc(f.uid).get().then(function(d){
+            if(!d.exists)return;
+            var data=d.data();
+            if(data.avatar){var img=document.createElement('img');img.src=data.avatar;img.style.cssText='width:100%;height:100%;object-fit:cover;';avEl.innerHTML='';avEl.appendChild(img);}
+        }).catch(function(){});
     });
 }
-async function removeFriend(uid){
-    await db.collection('users').doc(currentUser.uid).collection('friends').doc(uid).delete();
-    generateAccountsList(); showNotification('Removed.');
-}
-async function blockUser(uid, username){
+async function removeFriend(uid){await db.collection('users').doc(currentUser.uid).collection('friends').doc(uid).delete();generateAccountsList();showNotification('Removed.');}
+async function blockUser(uid,username){
     await db.collection('users').doc(currentUser.uid).collection('blocked').doc(uid).set({uid:uid,username:username,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
     await db.collection('users').doc(currentUser.uid).collection('friends').doc(uid).delete().catch(function(){});
     await db.collection('users').doc(uid).collection('friends').doc(currentUser.uid).delete().catch(function(){});
-    generateAccountsList(); showNotification('@'+username+' blocked.');
+    generateAccountsList();showNotification('@'+username+' blocked.');
 }
+
+// ── FRIEND REQUESTS ───────────────────────────────────────
 function listenForFriendRequests(){
     db.collection('users').doc(currentUser.uid).collection('friendRequests')
-        .onSnapshot(function(snap){
-            snap.docChanges().forEach(function(change){
-                if(change.type === 'added') showFriendRequestNotif(change.doc.data());
-            });
-        });
+        .onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type==='added')showFriendRequestNotif(ch.doc.data());});});
 }
 function showFriendRequestNotif(req){
-    if(document.getElementById('friendReqNotif_'+req.fromUid)) return;
-    var notif = document.createElement('div');
-    notif.id = 'friendReqNotif_'+req.fromUid;
-    notif.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#000;border:3px solid #fff;padding:16px 20px;z-index:99998;font-family:'Courier Prime',monospace;font-size:14px;min-width:280px;max-width:90vw;";
-    var top = document.createElement('div');
-    top.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;';
-    var avEl = document.createElement('div');
-    avEl.style.cssText = 'width:40px;height:40px;border:3px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;background:#333;flex-shrink:0;';
-    avEl.innerHTML = req.fromAvatar?'<img src="'+req.fromAvatar+'" style="width:100%;height:100%;object-fit:cover;"/>':'&#128100;';
-    var txt = document.createElement('div');
-    txt.style.cssText = 'letter-spacing:-0.5px;line-height:1.4;';
-    txt.textContent = '@'+req.fromUsername+' wants to add you!';
-    top.appendChild(avEl); top.appendChild(txt); notif.appendChild(top);
-    var btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:8px;';
-    var acc = document.createElement('button'); acc.textContent = 'Add Back';
-    acc.style.cssText = "flex:1;padding:10px;background:#fff;border:3px solid #fff;color:#000;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";
-    acc.onclick = async function(){ await acceptFriendRequest(req); notif.remove(); };
-    var dec = document.createElement('button'); dec.textContent = 'Decline';
-    dec.style.cssText = "flex:1;padding:10px;background:#000;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";
-    dec.onclick = async function(){ await db.collection('users').doc(currentUser.uid).collection('friendRequests').doc(req.fromUid).delete(); notif.remove(); showNotification('Request declined.'); };
-    btns.appendChild(acc); btns.appendChild(dec); notif.appendChild(btns);
+    if(document.getElementById('freq_'+req.fromUid))return;
+    var notif=document.createElement('div');notif.id='freq_'+req.fromUid;
+    notif.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#000;border:3px solid #fff;padding:16px 20px;z-index:99998;font-family:'Courier Prime',monospace;font-size:14px;min-width:280px;max-width:90vw;";
+    var top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px;';
+    var avEl=document.createElement('div');avEl.style.cssText='width:40px;height:40px;border:3px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;background:#333;flex-shrink:0;';
+    if(req.fromAvatar){var img=document.createElement('img');img.src=req.fromAvatar;img.style.cssText='width:100%;height:100%;object-fit:cover;';avEl.appendChild(img);}else{avEl.textContent='?';}
+    var txt=document.createElement('div');txt.style.cssText='letter-spacing:-0.5px;line-height:1.4;';txt.textContent='@'+req.fromUsername+' wants to add you!';
+    top.appendChild(avEl);top.appendChild(txt);notif.appendChild(top);
+    var btns=document.createElement('div');btns.style.cssText='display:flex;gap:8px;';
+    var acc=document.createElement('button');acc.textContent='Add Back';acc.style.cssText="flex:1;padding:10px;background:#fff;border:3px solid #fff;color:#000;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";
+    acc.onclick=async function(){await acceptFriendRequest(req);notif.remove();};
+    var dec=document.createElement('button');dec.textContent='Decline';dec.style.cssText="flex:1;padding:10px;background:#000;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";
+    dec.onclick=async function(){await db.collection('users').doc(currentUser.uid).collection('friendRequests').doc(req.fromUid).delete();notif.remove();showNotification('Request declined.');};
+    btns.appendChild(acc);btns.appendChild(dec);notif.appendChild(btns);
     document.body.appendChild(notif);
 }
 async function acceptFriendRequest(req){
@@ -538,179 +517,87 @@ async function acceptFriendRequest(req){
     showNotification('@'+req.fromUsername+' added!');
 }
 
+// ── CHAT ──────────────────────────────────────────────────
 function openChat(friend){
-    if(chatUnsub) chatUnsub();
-    activeFriend=friend; activeChatId=[currentUser.uid,friend.uid].sort().join('_');
+    if(chatUnsub)chatUnsub();
+    activeFriend=friend;activeChatId=[currentUser.uid,friend.uid].sort().join('_');
     var cm=document.getElementById('chatModal');
     if(!cm){cm=document.createElement('div');cm.id='chatModal';cm.className='modal';document.body.appendChild(cm);}
-    cm.innerHTML=''; cm.classList.add('active');
-
-    var hd=document.createElement('div');
-    hd.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:3px solid #fff;flex-shrink:0;';
-    var backBtn=document.createElement('button');
-    backBtn.textContent='\u2190';
-    backBtn.style.cssText="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;font-family:'Courier Prime',monospace;padding:0 8px 0 0;";
-    backBtn.onclick=function(){cm.classList.remove('active');if(chatUnsub)chatUnsub();};
-    hd.appendChild(backBtn);
-    var av=document.createElement('div');
-    av.style.cssText='width:44px;height:44px;border:3px solid #fff;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:20px;background:#333;cursor:pointer;';
-    av.innerHTML=friend.avatar?'<img src="'+friend.avatar+'" style="width:100%;height:100%;object-fit:cover;"/>'+'':'&#128100;';
-    av.onclick=function(){viewProfile(friend);};
-    hd.appendChild(av);
-    var nameEl=document.createElement('div');
-    nameEl.style.cssText='flex:1;font-size:18px;letter-spacing:-0.5px;cursor:pointer;';
-    nameEl.textContent=friend.displayName;
-    nameEl.onclick=function(){viewProfile(friend);};
-    hd.appendChild(nameEl);
-    var vBtn=document.createElement('button');
-    vBtn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 5.59 5.59l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"></path></svg>';
-    vBtn.style.cssText='background:none;border:3px solid #fff;color:#fff;padding:6px 10px;cursor:pointer;margin-left:4px;';
-    vBtn.onclick=function(){startCall(friend,false);}; hd.appendChild(vBtn);
-    var vidBtn=document.createElement('button');
-    vidBtn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>';
-    vidBtn.style.cssText='background:none;border:3px solid #fff;color:#fff;padding:6px 10px;cursor:pointer;margin-left:4px;';
-    vidBtn.onclick=function(){startCall(friend,true);}; hd.appendChild(vidBtn);
+    cm.innerHTML='';cm.classList.add('active');
+    // Header
+    var hd=document.createElement('div');hd.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:3px solid #fff;flex-shrink:0;';
+    var backBtn=document.createElement('button');backBtn.textContent='\u2190';backBtn.style.cssText="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;font-family:'Courier Prime',monospace;padding:0 8px 0 0;";backBtn.onclick=function(){cm.classList.remove('active');if(chatUnsub)chatUnsub();};hd.appendChild(backBtn);
+    var avDiv=document.createElement('div');avDiv.style.cssText='width:44px;height:44px;border:3px solid #fff;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:20px;background:#333;cursor:pointer;';
+    avDiv.textContent='?';avDiv.onclick=function(){viewProfile(friend);};hd.appendChild(avDiv);
+    // Load live avatar for chat header
+    db.collection('users').doc(friend.uid).get().then(function(doc){if(doc.exists&&doc.data().avatar){var img=document.createElement('img');img.src=doc.data().avatar;img.style.cssText='width:100%;height:100%;object-fit:cover;';avDiv.innerHTML='';avDiv.appendChild(img);}}).catch(function(){});
+    var nameEl=document.createElement('div');nameEl.style.cssText='flex:1;font-size:18px;letter-spacing:-0.5px;cursor:pointer;';nameEl.textContent=friend.displayName;nameEl.onclick=function(){viewProfile(friend);};hd.appendChild(nameEl);
+    var vBtn=document.createElement('button');vBtn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 5.59 5.59l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"></path></svg>';vBtn.style.cssText='background:none;border:3px solid #fff;color:#fff;padding:6px 10px;cursor:pointer;margin-left:4px;';vBtn.onclick=function(){startCall(friend,false);};hd.appendChild(vBtn);
+    var vidBtn=document.createElement('button');vidBtn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>';vidBtn.style.cssText='background:none;border:3px solid #fff;color:#fff;padding:6px 10px;cursor:pointer;margin-left:4px;';vidBtn.onclick=function(){startCall(friend,true);};hd.appendChild(vidBtn);
     cm.appendChild(hd);
-
-    var msgBox=document.createElement('div'); msgBox.id='chatMsgs'; msgBox.className='modal-content';
-    msgBox.style.cssText='display:flex;flex-direction:column;padding:16px;'; cm.appendChild(msgBox);
-
-    var bar=document.createElement('div');
-    bar.style.cssText='display:flex;align-items:center;border-top:3px solid #fff;flex-shrink:0;min-height:56px;';
-    var fileBtn=document.createElement('button'); fileBtn.textContent='+';
-    fileBtn.style.cssText="background:#000;border:none;border-right:3px solid #fff;color:#fff;padding:0 16px;font-size:24px;cursor:pointer;height:56px;font-family:'Courier Prime',monospace;";
-    fileBtn.onclick=function(){document.getElementById('chatFileInput').click();}; bar.appendChild(fileBtn);
-    var fi=document.createElement('input'); fi.type='file'; fi.id='chatFileInput';
-    fi.accept='image/*,video/*,audio/*,.pdf,.doc,.docx,.txt'; fi.style.display='none';
-    fi.onchange=function(){sendFile(activeChatId,activeFriend,fi.files[0]);fi.value=''}; bar.appendChild(fi);
-    var inp=document.createElement('input'); inp.type='text'; inp.id='chatInput'; inp.placeholder='Type something...';
-    inp.style.cssText="flex:1;background:#000;border:none;padding:15px;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;outline:none;height:56px;";
-    inp.onkeydown=function(e){if(e.key==='Enter')sendMsg(activeChatId,activeFriend);}; bar.appendChild(inp);
-    var micBtn=document.createElement('button'); micBtn.id='voiceRecBtn';
-    micBtn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
-    micBtn.style.cssText='background:#000;border:none;border-left:3px solid #fff;color:#fff;padding:0 14px;cursor:pointer;height:56px;';
-    micBtn.onmousedown=startRecording; micBtn.onmouseup=function(){stopRecording(activeChatId,activeFriend);};
-    micBtn.ontouchstart=function(e){e.preventDefault();startRecording();}; micBtn.ontouchend=function(e){e.preventDefault();stopRecording(activeChatId,activeFriend);}; bar.appendChild(micBtn);
-    var sendBtn=document.createElement('button'); sendBtn.textContent='\u27A4';
-    sendBtn.style.cssText="background:#fff;color:#000;border:none;border-left:3px solid #fff;padding:0 18px;font-family:'Courier Prime',monospace;font-size:18px;cursor:pointer;height:56px;";
-    sendBtn.onclick=function(){sendMsg(activeChatId,activeFriend);}; bar.appendChild(sendBtn); cm.appendChild(bar);
-
+    var msgBox=document.createElement('div');msgBox.id='chatMsgs';msgBox.className='modal-content';msgBox.style.cssText='display:flex;flex-direction:column;padding:16px;';cm.appendChild(msgBox);
+    // Input bar
+    var bar=document.createElement('div');bar.style.cssText='display:flex;align-items:center;border-top:3px solid #fff;flex-shrink:0;min-height:56px;';
+    var fileBtn=document.createElement('button');fileBtn.textContent='+';fileBtn.style.cssText="background:#000;border:none;border-right:3px solid #fff;color:#fff;padding:0 16px;font-size:24px;cursor:pointer;height:56px;font-family:'Courier Prime',monospace;";fileBtn.onclick=function(){document.getElementById('chatFileInput').click();};bar.appendChild(fileBtn);
+    var fi=document.createElement('input');fi.type='file';fi.id='chatFileInput';fi.accept='image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';fi.style.display='none';fi.onchange=function(){sendFile(activeChatId,activeFriend,fi.files[0]);fi.value='';};bar.appendChild(fi);
+    var inp=document.createElement('input');inp.type='text';inp.id='chatInput';inp.placeholder='Type something...';inp.style.cssText="flex:1;background:#000;border:none;padding:15px;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;outline:none;height:56px;";inp.onkeydown=function(e){if(e.key==='Enter')sendMsg(activeChatId,activeFriend);};bar.appendChild(inp);
+    var micBtn=document.createElement('button');micBtn.id='voiceRecBtn';micBtn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';micBtn.style.cssText='background:#000;border:none;border-left:3px solid #fff;color:#fff;padding:0 14px;cursor:pointer;height:56px;';micBtn.onmousedown=startRecording;micBtn.onmouseup=function(){stopRecording(activeChatId,activeFriend);};micBtn.ontouchstart=function(e){e.preventDefault();startRecording();};micBtn.ontouchend=function(e){e.preventDefault();stopRecording(activeChatId,activeFriend);};bar.appendChild(micBtn);
+    var sendBtn=document.createElement('button');sendBtn.textContent='\u27A4';sendBtn.style.cssText="background:#fff;color:#000;border:none;border-left:3px solid #fff;padding:0 18px;font-family:'Courier Prime',monospace;font-size:18px;cursor:pointer;height:56px;";sendBtn.onclick=function(){sendMsg(activeChatId,activeFriend);};bar.appendChild(sendBtn);cm.appendChild(bar);
     chatUnsub=db.collection('chats').doc(activeChatId).collection('messages').orderBy('timestamp')
-        .onSnapshot(function(snap){
-            msgBox.innerHTML='';
-            if(snap.empty){var e=document.createElement('div');e.style.cssText='text-align:center;color:#666;padding:40px;';e.textContent='No messages yet. Say something.';msgBox.appendChild(e);return;}
-            snap.forEach(function(doc){msgBox.appendChild(buildMsgEl(doc.data()));});
-            msgBox.scrollTop=msgBox.scrollHeight;
-        });
+        .onSnapshot(function(snap){msgBox.innerHTML='';if(snap.empty){var e=document.createElement('div');e.style.cssText='text-align:center;color:#666;padding:40px;';e.textContent='No messages yet. Say something.';msgBox.appendChild(e);return;}snap.forEach(function(doc){msgBox.appendChild(buildMsgEl(doc.data()));});msgBox.scrollTop=msgBox.scrollHeight;});
     setTimeout(function(){inp.focus();},100);
 }
-
 function buildMsgEl(m){
     var mine=m.fromUid===currentUser.uid;
-    var wrap=document.createElement('div');
-    wrap.style.cssText='display:flex;flex-direction:column;align-items:'+(mine?'flex-end':'flex-start')+';margin-bottom:14px;';
-    var bubble=document.createElement('div');
-    bubble.style.cssText='max-width:75%;border:3px solid #fff;padding:10px 14px;background:'+(mine?'#fff':'#000')+';color:'+(mine?'#000':'#fff')+";font-family:'Courier Prime',monospace;font-size:15px;word-break:break-word;";
-    if(m.type==='image'){
-        var img=document.createElement('img'); img.src=m.data; img.style.cssText='max-width:220px;max-height:220px;display:block;cursor:pointer;';
-        img.onclick=function(){window.open(m.data);}; bubble.style.padding='4px'; bubble.appendChild(img);
-    } else if(m.type==='video'){
-        var vid=document.createElement('video'); vid.src=m.data; vid.controls=true; vid.style.cssText='max-width:220px;display:block;';
-        bubble.style.padding='4px'; bubble.appendChild(vid);
-    } else if(m.type==='audio'){
-        var aud=document.createElement('audio'); aud.src=m.data; aud.controls=true; aud.style.cssText='max-width:220px;'; bubble.appendChild(aud);
-    } else if(m.type==='file'){
-        var link=document.createElement('a'); link.href=m.data; link.download=m.fileName||'file';
-        link.style.cssText='color:'+(mine?'#000':'#fff')+';text-decoration:underline;'; link.textContent='[file] '+(m.fileName||'File'); bubble.appendChild(link);
-    } else if(m.type==='callLog'){
-        var icon=m.withVideo?'[video call]':'[voice call]';
-        var statusMark=m.callStatus==='rejected'?' x':m.callStatus==='calling'?' ...':' ok';
-        var dur=(m.callStatus==='ended'&&m.callDuration!==undefined)?' - '+m.callDuration+'s':'';
-        bubble.textContent=icon+statusMark+dur;
-    } else { bubble.textContent=m.text||''; }
-    var time=document.createElement('div'); time.style.cssText='font-size:11px;color:#666;margin-top:4px;';
-    time.textContent=m.timestamp?new Date(m.timestamp.toDate()).toLocaleTimeString():'';
-    wrap.appendChild(bubble); wrap.appendChild(time); return wrap;
+    var wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:'+(mine?'flex-end':'flex-start')+';margin-bottom:14px;';
+    var bubble=document.createElement('div');bubble.style.cssText='max-width:75%;border:3px solid #fff;padding:10px 14px;background:'+(mine?'#fff':'#000')+';color:'+(mine?'#000':'#fff')+";font-family:'Courier Prime',monospace;font-size:15px;word-break:break-word;";
+    if(m.type==='image'){var img=document.createElement('img');img.src=m.data;img.style.cssText='max-width:220px;max-height:220px;display:block;cursor:pointer;';img.onclick=function(){window.open(m.data);};bubble.style.padding='4px';bubble.appendChild(img);}
+    else if(m.type==='video'){var vid=document.createElement('video');vid.src=m.data;vid.controls=true;vid.style.cssText='max-width:220px;display:block;';bubble.style.padding='4px';bubble.appendChild(vid);}
+    else if(m.type==='audio'){var aud=document.createElement('audio');aud.src=m.data;aud.controls=true;aud.style.cssText='max-width:220px;';bubble.appendChild(aud);}
+    else if(m.type==='file'){var link=document.createElement('a');link.href=m.data;link.download=m.fileName||'file';link.style.cssText='color:'+(mine?'#000':'#fff')+';text-decoration:underline;';link.textContent='[file] '+(m.fileName||'File');bubble.appendChild(link);}
+    else if(m.type==='callLog'){var icon=m.withVideo?'[video call]':'[voice call]';var sm=m.callStatus==='rejected'?' x':m.callStatus==='calling'?' ...':' ok';var dur=(m.callStatus==='ended'&&m.callDuration!==undefined)?' - '+m.callDuration+'s':'';bubble.textContent=icon+sm+dur;}
+    else{bubble.textContent=m.text||'';}
+    var time=document.createElement('div');time.style.cssText='font-size:11px;color:#666;margin-top:4px;';time.textContent=m.timestamp?new Date(m.timestamp.toDate()).toLocaleTimeString():'';
+    wrap.appendChild(bubble);wrap.appendChild(time);return wrap;
 }
+async function sendMsg(chatId,friend){var inp=document.getElementById('chatInput');if(!inp)return;var text=inp.value.trim();if(!text)return;inp.value='';await db.collection('chats').doc(chatId).collection('messages').add({type:'text',text:text,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});updateLastMsg(friend,text);}
+async function sendFile(chatId,friend,file){if(!file)return;if(file.size>900000){showNotification('File too big (max ~900KB)');return;}showNotification('Sending...');var reader=new FileReader();reader.onload=async function(e){var type=file.type.startsWith('image')?'image':file.type.startsWith('video')?'video':file.type.startsWith('audio')?'audio':'file';await db.collection('chats').doc(chatId).collection('messages').add({type:type,data:e.target.result,fileName:file.name,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});updateLastMsg(friend,type==='image'?'[image]':type==='video'?'[video]':type==='audio'?'[voice]':'[file] '+file.name);};reader.readAsDataURL(file);}
+function startRecording(){if(isRecording)return;navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){isRecording=true;audioChunks=[];mediaRecorder=new MediaRecorder(stream);mediaRecorder.ondataavailable=function(e){audioChunks.push(e.data);};mediaRecorder.start();var btn=document.getElementById('voiceRecBtn');if(btn)btn.style.background='#f00';showNotification('Recording... release to send');}).catch(function(){showNotification('Mic access denied');});}
+function stopRecording(chatId,friend){if(!isRecording||!mediaRecorder)return;isRecording=false;mediaRecorder.stop();mediaRecorder.onstop=function(){var blob=new Blob(audioChunks,{type:'audio/webm'});mediaRecorder.stream.getTracks().forEach(function(t){t.stop();});var btn=document.getElementById('voiceRecBtn');if(btn)btn.style.background='#000';if(blob.size>900000){showNotification('Voice message too long');return;}var reader=new FileReader();reader.onload=async function(e){await db.collection('chats').doc(chatId).collection('messages').add({type:'audio',data:e.target.result,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});updateLastMsg(friend,'[voice]');};reader.readAsDataURL(blob);};}
+function updateLastMsg(friend,preview){var p={lastMsg:preview};db.collection('users').doc(currentUser.uid).collection('friends').doc(friend.uid).update(p);db.collection('users').doc(friend.uid).collection('friends').doc(currentUser.uid).update(p).catch(function(){});}
 
-async function sendMsg(chatId,friend){
-    var inp=document.getElementById('chatInput'); if(!inp) return;
-    var text=inp.value.trim(); if(!text) return; inp.value='';
-    await db.collection('chats').doc(chatId).collection('messages').add({type:'text',text:text,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-    updateLastMsg(friend,text);
-}
-async function sendFile(chatId,friend,file){
-    if(!file) return;
-    if(file.size>900000){showNotification('File too big (max ~900KB)');return;}
-    showNotification('Sending...');
-    var reader=new FileReader();
-    reader.onload=async function(e){
-        var type=file.type.startsWith('image')?'image':file.type.startsWith('video')?'video':file.type.startsWith('audio')?'audio':'file';
-        await db.collection('chats').doc(chatId).collection('messages').add({type:type,data:e.target.result,fileName:file.name,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-        updateLastMsg(friend,type==='image'?'[image]':type==='video'?'[video]':type==='audio'?'[voice]':'[file] '+file.name);
-    };
-    reader.readAsDataURL(file);
-}
-function startRecording(){
-    if(isRecording) return;
-    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-        isRecording=true; audioChunks=[]; mediaRecorder=new MediaRecorder(stream);
-        mediaRecorder.ondataavailable=function(e){audioChunks.push(e.data);}; mediaRecorder.start();
-        var btn=document.getElementById('voiceRecBtn'); if(btn) btn.style.background='#f00';
-        showNotification('Recording... release to send');
-    }).catch(function(){showNotification('Mic access denied');});
-}
-function stopRecording(chatId,friend){
-    if(!isRecording||!mediaRecorder) return; isRecording=false; mediaRecorder.stop();
-    mediaRecorder.onstop=function(){
-        var blob=new Blob(audioChunks,{type:'audio/webm'});
-        mediaRecorder.stream.getTracks().forEach(function(t){t.stop();});
-        var btn=document.getElementById('voiceRecBtn'); if(btn) btn.style.background='#000';
-        if(blob.size>900000){showNotification('Voice message too long');return;}
-        var reader=new FileReader();
-        reader.onload=async function(e){
-            await db.collection('chats').doc(chatId).collection('messages').add({type:'audio',data:e.target.result,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-            updateLastMsg(friend,'[voice]');
-        };
-        reader.readAsDataURL(blob);
-    };
-}
-function updateLastMsg(friend,preview){
-    var p={lastMsg:preview};
-    db.collection('users').doc(currentUser.uid).collection('friends').doc(friend.uid).update(p);
-    db.collection('users').doc(friend.uid).collection('friends').doc(currentUser.uid).update(p).catch(function(){});
-}
-
+// ── PROFILE VIEW ─────────────────────────────────────────
 async function viewProfile(friend){
-    var doc=await db.collection('users').doc(friend.uid).get(); var data=doc.data();
+    var doc=await db.collection('users').doc(friend.uid).get();var data=doc.data();
     var modal=document.getElementById('profileViewModal');
     if(!modal){modal=document.createElement('div');modal.id='profileViewModal';modal.className='modal';document.body.appendChild(modal);}
-    modal.innerHTML=''; modal.classList.add('active');
-    var header=document.createElement('div'); header.className='modal-header'; header.innerHTML='<span>Profile</span>';
-    var cb=document.createElement('button'); cb.className='modal-close'; cb.textContent='X'; cb.onclick=function(){modal.classList.remove('active');}; header.appendChild(cb); modal.appendChild(header);
-    var content=document.createElement('div'); content.className='modal-content'; content.style.cssText='display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:20px;';
-    var av=document.createElement('div'); av.style.cssText='width:100px;height:100px;border:3px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:48px;background:#333;';
-    av.innerHTML=data.avatar?'<img src="'+data.avatar+'" style="width:100%;height:100%;object-fit:cover;"/>'+'':'&#128100;'; content.appendChild(av);
+    modal.innerHTML='';modal.classList.add('active');
+    var header=document.createElement('div');header.className='modal-header';header.innerHTML='<span>Profile</span>';
+    var cb=document.createElement('button');cb.className='modal-close';cb.textContent='X';cb.onclick=function(){modal.classList.remove('active');};header.appendChild(cb);modal.appendChild(header);
+    var content=document.createElement('div');content.className='modal-content';content.style.cssText='display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:16px;';
+    // Avatar
+    var av=document.createElement('div');av.style.cssText='width:100px;height:100px;border:3px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:48px;background:#333;';
+    if(data.avatar){var avImg=document.createElement('img');avImg.src=data.avatar;avImg.style.cssText='width:100%;height:100%;object-fit:cover;';av.appendChild(avImg);}else{av.textContent='?';}
+    content.appendChild(av);
+    // Fields
     [['Display Name',data.displayName||'-'],['Username','@'+(data.username||'-')],['Bio',data.bio||'No bio yet']].forEach(function(row){
-        var wrap=document.createElement('div'); wrap.style.cssText='width:100%;border:3px solid #fff;padding:15px;';
-        var label=document.createElement('div'); label.style.cssText='font-size:12px;color:#666;margin-bottom:6px;'; label.textContent=row[0];
-        var val=document.createElement('div'); val.style.cssText='font-size:16px;letter-spacing:-0.5px;word-break:break-word;'; val.textContent=row[1];
-        wrap.appendChild(label); wrap.appendChild(val); content.appendChild(wrap);
+        var wrap=document.createElement('div');wrap.style.cssText='width:100%;border:3px solid #fff;padding:15px;';
+        var label=document.createElement('div');label.style.cssText='font-size:12px;color:#666;margin-bottom:6px;';label.textContent=row[0];
+        var val=document.createElement('div');val.style.cssText='font-size:16px;letter-spacing:-0.5px;word-break:break-word;';val.textContent=row[1];
+        wrap.appendChild(label);wrap.appendChild(val);content.appendChild(wrap);
     });
-    // Tags
-    if(data.tags && data.tags.length > 0){
-        var tagWrap=document.createElement('div'); tagWrap.style.cssText='width:100%;border:3px solid #fff;padding:15px;';
-        var tagLabel=document.createElement('div'); tagLabel.style.cssText='font-size:12px;color:#666;margin-bottom:8px;'; tagLabel.textContent='Tags';
-        var tagVal=document.createElement('div'); tagVal.innerHTML=renderTags(data.tags);
-        tagWrap.appendChild(tagLabel); tagWrap.appendChild(tagVal); content.appendChild(tagWrap);
-    }
+    // Tags - always shown
+    var tagWrap=document.createElement('div');tagWrap.style.cssText='width:100%;border:3px solid #fff;padding:15px;';
+    var tagLabel=document.createElement('div');tagLabel.style.cssText='font-size:12px;color:#666;margin-bottom:8px;';tagLabel.textContent='Tags';
+    var tagVal=document.createElement('div');tagVal.innerHTML=renderTags(data.tags||[]);
+    tagWrap.appendChild(tagLabel);tagWrap.appendChild(tagVal);content.appendChild(tagWrap);
     modal.appendChild(content);
 }
 
 // ── CALLS ────────────────────────────────────────────────
 async function startCall(friend,withVideo){
     localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo}).catch(function(){showNotification('Camera/mic denied');return null;});
-    if(!localStream) return;
+    if(!localStream)return;
     peerConnection=new RTCPeerConnection(ICE);
     localStream.getTracks().forEach(function(t){peerConnection.addTrack(t,localStream);});
     openCallModal(friend.displayName,withVideo);
@@ -721,153 +608,98 @@ async function startCall(friend,withVideo){
     await peerConnection.setLocalDescription(offer);
     await db.collection('calls').doc(activeChatId).set({offer:{type:offer.type,sdp:offer.sdp},callerId:currentUser.uid,calleeId:friend.uid,callerName:currentProfile.displayName,withVideo:withVideo,status:'calling'});
     var callMsgRef=await db.collection('chats').doc(activeChatId).collection('messages').add({type:'callLog',callStatus:'calling',withVideo:withVideo,fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-    if(callDocUnsub) callDocUnsub();
+    if(callDocUnsub)callDocUnsub();
     callDocUnsub=db.collection('calls').doc(activeChatId).onSnapshot(async function(snap){
-        var data=snap.data(); if(!data) return;
-        if(data.answer&&peerConnection&&!peerConnection.currentRemoteDescription){
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-            callStartTime=Date.now(); startCallTimer();
-            callMsgRef.update({callStatus:'accepted'});
-            var t=document.getElementById('callTimer'); if(t) t.textContent='00:00';
-        }
+        var data=snap.data();if(!data)return;
+        if(data.answer&&peerConnection&&!peerConnection.currentRemoteDescription){await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));callStartTime=Date.now();startCallTimer();callMsgRef.update({callStatus:'accepted'});var t=document.getElementById('callTimer');if(t)t.textContent='00:00';}
         if(data.status==='rejected'){callMsgRef.update({callStatus:'rejected'});endCallCleanup();}
-        if(data.status==='ended'){
-            var dur=callStartTime?Math.floor((Date.now()-callStartTime)/1000):0;
-            callMsgRef.update({callStatus:'ended',callDuration:dur}); endCallCleanup();
-        }
+        if(data.status==='ended'){var dur=callStartTime?Math.floor((Date.now()-callStartTime)/1000):0;callMsgRef.update({callStatus:'ended',callDuration:dur});endCallCleanup();}
     });
-    db.collection('calls').doc(activeChatId).collection('calleeCandidates').onSnapshot(function(snap){
-        snap.docChanges().forEach(async function(ch){if(ch.type==='added'&&peerConnection)await peerConnection.addIceCandidate(new RTCIceCandidate(ch.doc.data())).catch(function(){});});
-    });
+    db.collection('calls').doc(activeChatId).collection('calleeCandidates').onSnapshot(function(snap){snap.docChanges().forEach(async function(ch){if(ch.type==='added'&&peerConnection)await peerConnection.addIceCandidate(new RTCIceCandidate(ch.doc.data())).catch(function(){});});});
     db.collection('users').doc(friend.uid).update({incomingCall:{callId:activeChatId,callerName:currentProfile.displayName,withVideo:withVideo}});
 }
-
 function listenForCall(){
-    db.collection('users').doc(currentUser.uid).onSnapshot(function(snap){
-        var data=snap.data(); if(!data||!data.incomingCall) return;
-        var call=data.incomingCall;
-        db.collection('users').doc(currentUser.uid).update({incomingCall:firebase.firestore.FieldValue.delete()});
-        if(peerConnection) return;
-        showIncomingCall(call);
-    });
+    db.collection('users').doc(currentUser.uid).onSnapshot(function(snap){var data=snap.data();if(!data||!data.incomingCall)return;var call=data.incomingCall;db.collection('users').doc(currentUser.uid).update({incomingCall:firebase.firestore.FieldValue.delete()});if(peerConnection)return;showIncomingCall(call);});
 }
 function showIncomingCall(call){
-    var existing=document.getElementById('incomingCallModal'); if(existing) existing.remove();
-    var modal=document.createElement('div'); modal.id='incomingCallModal';
-    modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#000;border:3px solid #fff;z-index:3000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;';
-    var nameEl=document.createElement('div'); nameEl.style.cssText='font-size:28px;letter-spacing:-1px;'; nameEl.textContent=call.callerName; modal.appendChild(nameEl);
-    var sub=document.createElement('div'); sub.style.cssText='color:#aaa;font-size:16px;'; sub.textContent='Incoming '+(call.withVideo?'video':'voice')+' call...'; modal.appendChild(sub);
-    var row=document.createElement('div'); row.style.cssText='display:flex;gap:20px;';
-    var acc=document.createElement('button'); acc.textContent='Accept';
-    acc.style.cssText="padding:15px 30px;background:#0f0;border:3px solid #fff;color:#000;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;";
-    acc.onclick=function(){modal.remove();acceptCall(call.callId,call.withVideo);};
-    var rej=document.createElement('button'); rej.textContent='Reject';
-    rej.style.cssText="padding:15px 30px;background:#f00;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;";
-    rej.onclick=function(){modal.remove();db.collection('calls').doc(call.callId).update({status:'rejected'}).catch(function(){});};
-    row.appendChild(acc); row.appendChild(rej); modal.appendChild(row);
-    // Auto dismiss when caller cancels
-    var watcher=db.collection('calls').doc(call.callId).onSnapshot(function(snap){
-        var d=snap.data(); if(d&&(d.status==='ended'||d.status==='rejected')){modal.remove();watcher();}
-    });
+    var ex=document.getElementById('incomingCallModal');if(ex)ex.remove();
+    var modal=document.createElement('div');modal.id='incomingCallModal';modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#000;border:3px solid #fff;z-index:3000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;';
+    var ne=document.createElement('div');ne.style.cssText='font-size:28px;letter-spacing:-1px;';ne.textContent=call.callerName;modal.appendChild(ne);
+    var sub=document.createElement('div');sub.style.cssText='color:#aaa;font-size:16px;';sub.textContent='Incoming '+(call.withVideo?'video':'voice')+' call...';modal.appendChild(sub);
+    var row=document.createElement('div');row.style.cssText='display:flex;gap:20px;';
+    var acc=document.createElement('button');acc.textContent='Accept';acc.style.cssText="padding:15px 30px;background:#0f0;border:3px solid #fff;color:#000;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;";acc.onclick=function(){modal.remove();acceptCall(call.callId,call.withVideo);};
+    var rej=document.createElement('button');rej.textContent='Reject';rej.style.cssText="padding:15px 30px;background:#f00;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;";rej.onclick=function(){modal.remove();db.collection('calls').doc(call.callId).update({status:'rejected'}).catch(function(){});};
+    row.appendChild(acc);row.appendChild(rej);modal.appendChild(row);
+    var watcher=db.collection('calls').doc(call.callId).onSnapshot(function(snap){var d=snap.data();if(d&&(d.status==='ended'||d.status==='rejected')){modal.remove();watcher();}});
     document.body.appendChild(modal);
 }
 async function acceptCall(callId,withVideo){
-    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo}).catch(function(){return null;});
-    if(!localStream) return;
-    peerConnection=new RTCPeerConnection(ICE);
-    localStream.getTracks().forEach(function(t){peerConnection.addTrack(t,localStream);});
-    var callDoc=await db.collection('calls').doc(callId).get(); var callData=callDoc.data();
+    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo}).catch(function(){return null;});if(!localStream)return;
+    peerConnection=new RTCPeerConnection(ICE);localStream.getTracks().forEach(function(t){peerConnection.addTrack(t,localStream);});
+    var callDoc=await db.collection('calls').doc(callId).get();var callData=callDoc.data();
     openCallModal(callData.callerName||'Call',withVideo);
     if(withVideo){var lv=document.getElementById('localVideo');if(lv)lv.srcObject=localStream;}
     peerConnection.ontrack=function(e){var rv=document.getElementById('remoteVideo');if(rv)rv.srcObject=e.streams[0];};
     peerConnection.onicecandidate=function(e){if(e.candidate)db.collection('calls').doc(callId).collection('calleeCandidates').add(e.candidate.toJSON());};
     await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.offer));
-    var answer=await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
+    var answer=await peerConnection.createAnswer();await peerConnection.setLocalDescription(answer);
     await db.collection('calls').doc(callId).update({answer:{type:answer.type,sdp:answer.sdp}});
-    callStartTime=Date.now(); startCallTimer();
-    var t=document.getElementById('callTimer'); if(t) t.textContent='00:00';
-    if(callDocUnsub) callDocUnsub();
-    // Listen for caller hanging up
-    callDocUnsub=db.collection('calls').doc(callId).onSnapshot(function(snap){
-        var d=snap.data(); if(d&&d.status==='ended') endCallCleanup();
-    });
-    db.collection('calls').doc(callId).collection('callerCandidates').onSnapshot(function(snap){
-        snap.docChanges().forEach(async function(ch){if(ch.type==='added'&&peerConnection)await peerConnection.addIceCandidate(new RTCIceCandidate(ch.doc.data())).catch(function(){});});
-    });
+    callStartTime=Date.now();startCallTimer();var t=document.getElementById('callTimer');if(t)t.textContent='00:00';
+    if(callDocUnsub)callDocUnsub();
+    callDocUnsub=db.collection('calls').doc(callId).onSnapshot(function(snap){var d=snap.data();if(d&&d.status==='ended')endCallCleanup();});
+    db.collection('calls').doc(callId).collection('callerCandidates').onSnapshot(function(snap){snap.docChanges().forEach(async function(ch){if(ch.type==='added'&&peerConnection)await peerConnection.addIceCandidate(new RTCIceCandidate(ch.doc.data())).catch(function(){});});});
 }
-function startCallTimer(){
-    if(callTimerInterval) clearInterval(callTimerInterval);
-    callTimerInterval=setInterval(function(){
-        var el=document.getElementById('callTimer'); if(!el){clearInterval(callTimerInterval);return;}
-        var s=Math.floor((Date.now()-callStartTime)/1000),m=Math.floor(s/60); s=s%60;
-        el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
-    },1000);
-}
-function endCall(){
-    // Setting status to 'ended' triggers onSnapshot on both sides
-    if(activeChatId) db.collection('calls').doc(activeChatId).update({status:'ended'}).catch(function(){});
-    // Update duration on the call log message for the person who hung up
-    var dur=callStartTime?Math.floor((Date.now()-callStartTime)/1000):0;
-    if(activeChatId){
-        db.collection('chats').doc(activeChatId).collection('messages')
-            .where('type','==','callLog').where('fromUid','==',currentUser.uid)
-            .orderBy('timestamp','desc').limit(1).get()
-            .then(function(snap){if(!snap.empty)snap.docs[0].ref.update({callStatus:'ended',callDuration:dur});})
-            .catch(function(){});
-    }
-    endCallCleanup();
-}
-function endCallCleanup(){
-    if(callDocUnsub){callDocUnsub();callDocUnsub=null;}
-    if(callTimerInterval){clearInterval(callTimerInterval);callTimerInterval=null;}
-    if(peerConnection){peerConnection.close();peerConnection=null;}
-    if(localStream){localStream.getTracks().forEach(function(t){t.stop();});localStream=null;}
-    callStartTime=null;
-    var modal=document.getElementById('callModal'); if(modal) modal.remove();
-}
+function startCallTimer(){if(callTimerInterval)clearInterval(callTimerInterval);callTimerInterval=setInterval(function(){var el=document.getElementById('callTimer');if(!el){clearInterval(callTimerInterval);return;}var s=Math.floor((Date.now()-callStartTime)/1000),m=Math.floor(s/60);s=s%60;el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;},1000);}
+function endCall(){if(activeChatId)db.collection('calls').doc(activeChatId).update({status:'ended'}).catch(function(){});var dur=callStartTime?Math.floor((Date.now()-callStartTime)/1000):0;if(activeChatId){db.collection('chats').doc(activeChatId).collection('messages').where('type','==','callLog').where('fromUid','==',currentUser.uid).orderBy('timestamp','desc').limit(1).get().then(function(snap){if(!snap.empty)snap.docs[0].ref.update({callStatus:'ended',callDuration:dur});}).catch(function(){});}endCallCleanup();}
+function endCallCleanup(){if(callDocUnsub){callDocUnsub();callDocUnsub=null;}if(callTimerInterval){clearInterval(callTimerInterval);callTimerInterval=null;}if(peerConnection){peerConnection.close();peerConnection=null;}if(localStream){localStream.getTracks().forEach(function(t){t.stop();});localStream=null;}callStartTime=null;var modal=document.getElementById('callModal');if(modal)modal.remove();}
 function openCallModal(name,withVideo){
-    var existing=document.getElementById('callModal'); if(existing) existing.remove();
-    var modal=document.createElement('div'); modal.id='callModal';
-    modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#000;border:3px solid #fff;z-index:2000;display:flex;flex-direction:column;';
-    var hd=document.createElement('div');
-    hd.style.cssText='padding:16px 20px;border-bottom:3px solid #fff;font-size:20px;letter-spacing:-0.5px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;';
-    var ns=document.createElement('span'); ns.textContent=name;
-    var ts=document.createElement('span'); ts.id='callTimer'; ts.style.cssText='font-size:16px;color:#aaa;letter-spacing:0;'; ts.textContent='Calling...';
-    hd.appendChild(ns); hd.appendChild(ts); modal.appendChild(hd);
-    var area=document.createElement('div'); area.style.cssText='flex:1;position:relative;background:#111;display:flex;align-items:center;justify-content:center;';
-    if(withVideo){
-        var rv=document.createElement('video'); rv.id='remoteVideo'; rv.autoplay=true; rv.playsinline=true; rv.style.cssText='width:100%;height:100%;object-fit:cover;'; area.appendChild(rv);
-        var lv=document.createElement('video'); lv.id='localVideo'; lv.autoplay=true; lv.playsinline=true; lv.muted=true; lv.style.cssText='position:absolute;bottom:20px;right:20px;width:120px;height:90px;border:3px solid #fff;object-fit:cover;background:#000;'; area.appendChild(lv);
-    } else {
-        var icon=document.createElement('div'); icon.style.cssText='font-size:60px;color:#fff;'; icon.textContent='[call]'; area.appendChild(icon);
-        var ra=document.createElement('audio'); ra.id='remoteVideo'; ra.autoplay=true; area.appendChild(ra);
-    }
+    var ex=document.getElementById('callModal');if(ex)ex.remove();
+    var modal=document.createElement('div');modal.id='callModal';modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#000;border:3px solid #fff;z-index:2000;display:flex;flex-direction:column;';
+    var hd=document.createElement('div');hd.style.cssText='padding:16px 20px;border-bottom:3px solid #fff;font-size:20px;letter-spacing:-0.5px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;';
+    var ns=document.createElement('span');ns.textContent=name;var ts=document.createElement('span');ts.id='callTimer';ts.style.cssText='font-size:16px;color:#aaa;letter-spacing:0;';ts.textContent='Calling...';hd.appendChild(ns);hd.appendChild(ts);modal.appendChild(hd);
+    var area=document.createElement('div');area.style.cssText='flex:1;position:relative;background:#111;display:flex;align-items:center;justify-content:center;';
+    if(withVideo){var rv=document.createElement('video');rv.id='remoteVideo';rv.autoplay=true;rv.playsinline=true;rv.style.cssText='width:100%;height:100%;object-fit:cover;';area.appendChild(rv);var lv=document.createElement('video');lv.id='localVideo';lv.autoplay=true;lv.playsinline=true;lv.muted=true;lv.style.cssText='position:absolute;bottom:20px;right:20px;width:120px;height:90px;border:3px solid #fff;object-fit:cover;background:#000;';area.appendChild(lv);}
+    else{var icon=document.createElement('div');icon.style.cssText='font-size:60px;color:#fff;';icon.textContent='[call]';area.appendChild(icon);var ra=document.createElement('audio');ra.id='remoteVideo';ra.autoplay=true;area.appendChild(ra);}
     modal.appendChild(area);
-    var ctrl=document.createElement('div'); ctrl.style.cssText='display:flex;justify-content:center;padding:20px;border-top:3px solid #fff;flex-shrink:0;';
-    var endBtn=document.createElement('button'); endBtn.textContent='End Call';
-    endBtn.style.cssText="padding:15px 30px;background:#f00;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;letter-spacing:-0.5px;";
-    endBtn.onclick=function(){endCall();}; ctrl.appendChild(endBtn); modal.appendChild(ctrl);
+    var ctrl=document.createElement('div');ctrl.style.cssText='display:flex;justify-content:center;padding:20px;border-top:3px solid #fff;flex-shrink:0;';
+    var endBtn=document.createElement('button');endBtn.textContent='End Call';endBtn.style.cssText="padding:15px 30px;background:#f00;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;letter-spacing:-0.5px;";endBtn.onclick=function(){endCall();};ctrl.appendChild(endBtn);modal.appendChild(ctrl);
     document.body.appendChild(modal);
 }
 
+// ── FEED ──────────────────────────────────────────────────
 async function openSocialFeed(){
     document.getElementById('feedModal').classList.add('active');
-    var fc=document.getElementById('feedContent'); fc.innerHTML='<div style="color:#666;padding:20px;text-align:center;">Loading...</div>';
-    var snap=await db.collection('posts').orderBy('timestamp','desc').limit(30).get(); fc.innerHTML='';
+    var fc=document.getElementById('feedContent');fc.innerHTML='<div style="color:#666;padding:20px;text-align:center;">Loading...</div>';
+    var snap=await db.collection('posts').orderBy('timestamp','desc').limit(30).get();fc.innerHTML='';
     if(snap.empty){fc.innerHTML='<div style="padding:20px;text-align:center;color:#666;">No posts yet!</div>';return;}
     snap.forEach(function(doc){var p=doc.data();var item=document.createElement('div');item.className='feed-item';item.innerHTML='<div class="feed-user">'+p.displayName+'</div><div style="font-size:12px;color:#666;margin-bottom:8px;">@'+p.username+'</div><div class="feed-content">'+p.text+'</div>';fc.appendChild(item);});
 }
 async function uploadPost(){
-    var text=document.getElementById('postText').value.trim(); if(!text){showNotification('Write something first!');return;}
+    var text=document.getElementById('postText').value.trim();if(!text){showNotification('Write something first!');return;}
     setBtn('postBtn',true);
     await db.collection('posts').add({text:text,displayName:currentProfile.displayName,username:currentProfile.username,uid:currentUser.uid,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-    document.getElementById('postText').value=''; setBtn('postBtn',false); closeModal('socialModal'); showNotification('Posted!');
+    document.getElementById('postText').value='';setBtn('postBtn',false);closeModal('socialModal');showNotification('Posted!');
 }
+
+// ── SETTINGS ─────────────────────────────────────────────
 function openSettings(){document.getElementById('settingsDisplayName').value=currentProfile.displayName||'';document.getElementById('settingsModal').classList.add('active');}
 async function updateDisplayName(){var name=document.getElementById('settingsDisplayName').value.trim();if(!name)return;await db.collection('users').doc(currentUser.uid).update({displayName:name});currentProfile.displayName=name;showNotification('Name updated!');}
-function handleSettingsAvatar(){var file=document.getElementById('settingsAvatarInput').files[0];if(!file)return;var r=new FileReader();r.onload=async function(e){await db.collection('users').doc(currentUser.uid).update({avatar:e.target.result});currentProfile.avatar=e.target.result;showNotification('Avatar updated!');};r.readAsDataURL(file);}
+async function handleSettingsAvatar(){
+    var file=document.getElementById('settingsAvatarInput').files[0];if(!file)return;
+    var r=new FileReader();
+    r.onload=async function(e){
+        var avatar=e.target.result;
+        await db.collection('users').doc(currentUser.uid).update({avatar:avatar});
+        currentProfile.avatar=avatar;
+        // Push to all friends so their chat list updates immediately
+        var fsnap=await db.collection('users').doc(currentUser.uid).collection('friends').get();
+        fsnap.forEach(function(doc){db.collection('users').doc(doc.id).collection('friends').doc(currentUser.uid).update({avatar:avatar}).catch(function(){});});
+        showNotification('Avatar updated!');
+    };
+    r.readAsDataURL(file);
+}
 
+// ── HELPERS ───────────────────────────────────────────────
 function openMenuModal(){document.getElementById('menuModal').classList.add('active');}
 function closeMenuModal(){document.getElementById('menuModal').classList.remove('active');}
 function openAccountsModal(){closeMenuModal();generateAccountsList();document.getElementById('accountsModal').classList.add('active');}
