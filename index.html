@@ -665,7 +665,8 @@ async function viewProfile(friend){
     var isPrivate=data.privateAccount===true;
     if(isPrivate){data={displayName:'Private Owl44',username:'private_owl44',bio:'',avatar:'',tags:data.tags||[]};}
     var modal=document.getElementById('profileViewModal');
-    if(!modal){modal=document.createElement('div');modal.id='profileViewModal';modal.className='modal';document.body.appendChild(modal);}
+    if(!modal){modal=document.createElement('div');modal.id='profileViewModal';modal.className='modal';modal.style.zIndex='2500';document.body.appendChild(modal);}
+    modal.style.zIndex='2500';
     modal.innerHTML='';modal.classList.add('active');
     var header=document.createElement('div');header.className='modal-header';header.innerHTML='<span>Profile</span>';
     var cb=document.createElement('button');cb.className='modal-close';cb.textContent='X';cb.onclick=function(){modal.classList.remove('active');};header.appendChild(cb);modal.appendChild(header);
