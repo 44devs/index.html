@@ -239,7 +239,7 @@ auth.onAuthStateChanged(async function(user){
         var doc=await db.collection('users').doc(user.uid).get();
         if(doc.exists&&doc.data().displayName){
             currentProfile=doc.data();
-            showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); listenForFriendRequests();
+            showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); applyTags(); applyTags();
         } else {
             document.getElementById('profileUsernameDisplay').textContent='@'+user.email.replace('@usen.app','');
             showPage('setupPage');
@@ -270,6 +270,79 @@ function togglePin(dId,rId,btn){
     btn.innerHTML=pinVisible?'<i class="fas fa-eye-slash"></i>':'<i class="fas fa-eye"></i>';
 }
 function toEmail(u){return u.replace('@','').toLowerCase()+'@usen.app';}
+
+// ── TAG SYSTEM ────────────────────────────────────────────
+// Hardcoded special tags per username
+var SPECIAL_TAGS = {
+    'nico':    ['[Dev]','[Verified]'],
+    'cat':     ['[Dev]','[Verified]','[OG-Media]'],
+    '44devs':  ['[Dev]','[Verified]'],
+    'milan':   ['[IDev]']
+};
+
+// OG window: March 20 2025 - April 1 2025
+var OG_START = new Date('2025-03-20T00:00:00Z').getTime();
+var OG_END   = new Date('2025-04-02T00:00:00Z').getTime(); // exclusive
+
+function isOGPeriod(){
+    var now = Date.now();
+    return now >= OG_START && now < OG_END;
+}
+
+async function applyTags(){
+    if(!currentUser || !currentProfile) return;
+    var username = (currentProfile.username || '').toLowerCase();
+    var existingTags = currentProfile.tags || [];
+    var newTags = existingTags.slice(); // copy
+
+    // OG tag: assigned if account was created in the window OR they log in during the window
+    if(isOGPeriod() && newTags.indexOf('[OG]') === -1){
+        newTags.push('[OG]');
+    }
+    // Also assign OG if createdAt is within window (for future logins after April 1)
+    if(currentProfile.createdAt){
+        var created = currentProfile.createdAt.toDate ? currentProfile.createdAt.toDate().getTime() : new Date(currentProfile.createdAt).getTime();
+        if(created >= OG_START && created < OG_END && newTags.indexOf('[OG]') === -1){
+            newTags.push('[OG]');
+        }
+    }
+
+    // Special hardcoded tags
+    var special = SPECIAL_TAGS[username] || [];
+    special.forEach(function(t){ if(newTags.indexOf(t) === -1) newTags.push(t); });
+
+    // OG-Media: 500+ posts
+    var postSnap = await db.collection('posts').where('uid','==',currentUser.uid).get();
+    if(postSnap.size >= 500 && newTags.indexOf('[OG-Media]') === -1){
+        newTags.push('[OG-Media]');
+    }
+
+    // Save if changed
+    var changed = JSON.stringify(newTags.sort()) !== JSON.stringify(existingTags.sort());
+    if(changed){
+        await db.collection('users').doc(currentUser.uid).update({tags: newTags});
+        currentProfile.tags = newTags;
+    } else {
+        currentProfile.tags = newTags;
+    }
+}
+
+function renderTags(tags){
+    if(!tags || tags.length === 0) return '';
+    var colors = {
+        '[Dev]':      'background:#fff;color:#000;',
+        '[IDev]':     'background:#aaa;color:#000;',
+        '[Verified]': 'background:#00f;color:#fff;',
+        '[OG]':       'background:#ff0;color:#000;',
+        '[OG-Media]': 'background:#f0f;color:#fff;'
+    };
+    return tags.map(function(t){
+        var style = colors[t] || 'background:#333;color:#fff;';
+        return '<span style="display:inline-block;'+style+'padding:2px 8px;margin:2px;font-size:12px;letter-spacing:-0.5px;border:2px solid #fff;">'+t+'</span>';
+    }).join('');
+}
+
+
 
 async function handleRegister(){
     var u=document.getElementById('loginUsername').value.trim().replace('@','');
@@ -322,7 +395,7 @@ async function completeSetup(){
     try{
         await db.collection('users').doc(currentUser.uid).update({displayName:dn,bio:bio,avatar:pendingAvatar||''});
         currentProfile={displayName:dn,bio:bio,avatar:pendingAvatar||'',username:currentUser.email.replace('@usen.app','')};
-        showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); listenForFriendRequests();
+        showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); applyTags();
         showNotification('Welcome, '+dn+'!');
     }catch(e){showNotification(e.message);}
     setBtn('setupDoneBtn',false);
@@ -339,7 +412,8 @@ function renderChatList(friends){
     friends.forEach(function(f){
         var item=document.createElement('div'); item.className='chat-item';
         var av=f.avatar?'<img src="'+f.avatar+'" />'+'':'&#128100;';
-        item.innerHTML='<div class="chat-avatar">'+av+'</div><div class="chat-info"><div class="chat-name">'+f.displayName+'</div><div class="chat-preview">'+(f.lastMsg||'No messages yet')+'</div></div>';
+        var ftags=f.tags&&f.tags.length?'<div style="margin-top:2px;">'+renderTags(f.tags)+'</div>':'';
+        item.innerHTML='<div class="chat-avatar">'+av+'</div><div class="chat-info"><div class="chat-name">'+f.displayName+'</div>'+ftags+'<div class="chat-preview">'+(f.lastMsg||'No messages yet')+'</div></div>';
         item.onclick=function(){openChat(f);}; list.appendChild(item);
     });
 }
@@ -623,6 +697,13 @@ async function viewProfile(friend){
         var val=document.createElement('div'); val.style.cssText='font-size:16px;letter-spacing:-0.5px;word-break:break-word;'; val.textContent=row[1];
         wrap.appendChild(label); wrap.appendChild(val); content.appendChild(wrap);
     });
+    // Tags
+    if(data.tags && data.tags.length > 0){
+        var tagWrap=document.createElement('div'); tagWrap.style.cssText='width:100%;border:3px solid #fff;padding:15px;';
+        var tagLabel=document.createElement('div'); tagLabel.style.cssText='font-size:12px;color:#666;margin-bottom:8px;'; tagLabel.textContent='Tags';
+        var tagVal=document.createElement('div'); tagVal.innerHTML=renderTags(data.tags);
+        tagWrap.appendChild(tagLabel); tagWrap.appendChild(tagVal); content.appendChild(tagWrap);
+    }
     modal.appendChild(content);
 }
 
