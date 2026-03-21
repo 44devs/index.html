@@ -411,7 +411,11 @@ function showPage(id){
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
     document.getElementById(id).classList.add('active');
     if(id==='loginPage'){setBtn('loginBtn',false);setBtn('registerBtn',false);}
-    if(id==='homePage'){requestFullscreenIfNeeded();}
+    if(id==='homePage'){
+        // Only try fullscreen on desktop — mobile blocks it without direct gesture
+        var isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if(!isMobile) requestFullscreenIfNeeded();
+    }
 }
 
 // ── PIN ──────────────────────────────────────────────────
@@ -427,7 +431,6 @@ async function handleRegister(){
     if(!u||!p){showNotification('Enter username and PIN!');return;}
     if(!/^[a-zA-Z0-9_]+$/.test(u)){showNotification('Username: letters, numbers, _ only');return;}
     if(p.length<6){showNotification('PIN needs at least 6 characters');return;}
-    requestFullscreenIfNeeded();
     setBtn('registerBtn',true);
     var taken=await db.collection('usernames').doc(u.toLowerCase()).get();
     if(taken.exists){showNotification('Username taken!');setBtn('registerBtn',false);return;}
@@ -449,7 +452,6 @@ async function handleLogin(){
     var u=document.getElementById('loginUsername').value.trim().replace('@','');
     var p=document.getElementById('loginPinReal').value.trim();
     if(!u||!p){showNotification('Enter username and PIN!');return;}
-    requestFullscreenIfNeeded();
     setBtn('loginBtn',true);
     try{await auth.signInWithEmailAndPassword(toEmail(u),p);}
     catch(e){showNotification(fbErr(e));setBtn('loginBtn',false);}
@@ -3103,7 +3105,6 @@ function requestFullscreenIfNeeded(){
         document.documentElement.requestFullscreen().catch(function(){});
     }
 }
-
 // ── VID SLIDE-UP COMMENTS ─────────────────────────────────
 async function openVidComments(postId,p){
     var existing=document.getElementById('vidCmtOverlay');if(existing){existing.remove();return;}
