@@ -216,6 +216,12 @@
         <div class="settings-option"><div class="settings-label">Username<div id="settingsUsernameDisplay" style="font-size:14px;color:#aaa;margin-top:2px;">@username</div></div><button class="btn" onclick="viewOwnProfile()" style="width:160px;">View Profile</button></div>
         <div class="settings-option"><div class="settings-label">Display Name</div><input type="text" class="settings-input" id="settingsDisplayName" onchange="updateDisplayName()"/></div>
         <div class="settings-option"><div class="settings-label">Change Avatar</div><button class="btn" onclick="document.getElementById('settingsAvatarInput').click()" style="width:160px;">Upload</button></div>
+        <div class="settings-option">
+            <div class="settings-label">Change Password (PIN)
+                <div style="font-size:12px;color:#666;">Enter current then new PIN</div>
+            </div>
+            <button class="btn" onclick="openChangePinModal()" style="width:160px;">Change</button>
+        </div>
         <div class="settings-option"><div class="settings-label">Private Account<div style="font-size:12px;color:#666;">Hides avatar, bio, shows as @Private Owl44</div></div><button class="btn s-toggle" id="tog_privateAccount" onclick="toggleSetting('privateAccount')" style="width:80px;">OFF</button></div>
         <div class="settings-option"><div class="settings-label">Friend Requests</div><button class="btn s-toggle" id="tog_friendRequests" onclick="toggleSetting('friendRequests')" style="width:80px;">ON</button></div>
         <div class="settings-option"><div class="settings-label">Friends List Private<div style="font-size:12px;color:#666;">Hide your friends from your profile</div></div><button class="btn s-toggle" id="tog_friendsListPrivate" onclick="toggleSetting('friendsListPrivate')" style="width:80px;">OFF</button></div>
@@ -818,6 +824,34 @@ async function blockUser(uid,username){
 function listenForFriendRequests(){
     db.collection('users').doc(currentUser.uid).collection('friendRequests')
         .onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type==='added')showFriendRequestNotif(ch.doc.data());});});
+    // Also listen for active group calls in joined groups
+    db.collection('groups').where('memberUids','array-contains',currentUser.uid).get().then(function(snap){
+        snap.forEach(function(doc){
+            db.collection('groups').doc(doc.id).onSnapshot(function(gsnap){
+                var gdata=gsnap.data();
+                if(!gdata||!gdata.activeCall)return;
+                var call=gdata.activeCall;
+                if(call.callerId===currentUser.uid)return; // I started it
+                var notifId='gcallnotif_'+doc.id;
+                if(document.getElementById(notifId))return;
+                var notif=document.createElement('div');notif.id=notifId;
+                notif.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#000;border:3px solid #fff;padding:16px 20px;z-index:99998;font-family:'Courier Prime',monospace;font-size:14px;min-width:280px;max-width:90vw;";
+                var txt=document.createElement('div');txt.style.cssText='margin-bottom:10px;';txt.textContent=call.callerName+' started a '+(call.withVideo?'video':'voice')+' call in "'+gdata.name+'"';
+                var row=document.createElement('div');row.style.cssText='display:flex;gap:8px;';
+                var joinBtn=document.createElement('button');joinBtn.className='btn';joinBtn.style.cssText="flex:1;padding:10px;background:#0f0;border:3px solid #fff;color:#000;font-family:'Courier Prime',monospace;font-size:13px;cursor:pointer;";joinBtn.textContent='Join';
+                joinBtn.onclick=async function(){notif.remove();openGroupCallModal(gdata,call.withVideo);
+                    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:call.withVideo}).catch(function(){return null;});
+                    if(localStream){var lv=document.getElementById('localVideo');if(lv&&call.withVideo)lv.srcObject=localStream;}
+                };
+                var ignBtn=document.createElement('button');ignBtn.className='btn';ignBtn.style.cssText="flex:1;padding:10px;font-family:'Courier Prime',monospace;font-size:13px;cursor:pointer;";ignBtn.textContent='Ignore';
+                ignBtn.onclick=function(){notif.remove();};
+                row.appendChild(joinBtn);row.appendChild(ignBtn);notif.appendChild(txt);notif.appendChild(row);
+                document.body.appendChild(notif);
+                // Auto dismiss if call ends
+                var watcher=db.collection('groups').doc(doc.id).onSnapshot(function(s){if(!s.data()||!s.data().activeCall){notif.remove();watcher();}});
+            });
+        });
+    });
 }
 function showFriendRequestNotif(req){
     if(document.getElementById('freq_'+req.fromUid))return;
@@ -868,7 +902,11 @@ function openChat(friend){
     var fi=document.createElement('input');fi.type='file';fi.id='chatFileInput';fi.accept='image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';fi.style.display='none';fi.onchange=function(){sendFile(activeChatId,activeFriend,fi.files[0]);fi.value='';};bar.appendChild(fi);
     var inp=document.createElement('input');inp.type='text';inp.id='chatInput';inp.placeholder='Type something...';inp.style.cssText="flex:1;background:#000;border:none;padding:15px;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;outline:none;height:56px;";inp.onkeydown=function(e){if(e.key==='Enter')sendMsg(activeChatId,activeFriend);};bar.appendChild(inp);
     var micBtn=document.createElement('button');micBtn.id='voiceRecBtn';micBtn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';micBtn.style.cssText='background:#000;border:none;border-left:3px solid #fff;color:#fff;padding:0 14px;cursor:pointer;height:56px;';micBtn.onmousedown=startRecording;micBtn.onmouseup=function(){stopRecording(activeChatId,activeFriend);};micBtn.ontouchstart=function(e){e.preventDefault();startRecording();};micBtn.ontouchend=function(e){e.preventDefault();stopRecording(activeChatId,activeFriend);};bar.appendChild(micBtn);
-    var sendBtn=document.createElement('button');sendBtn.textContent='\u27A4';sendBtn.style.cssText="background:#fff;color:#000;border:none;border-left:3px solid #fff;padding:0 18px;font-family:'Courier Prime',monospace;font-size:18px;cursor:pointer;height:56px;";sendBtn.onclick=function(){sendMsg(activeChatId,activeFriend);};bar.appendChild(sendBtn);cm.appendChild(bar);
+    var sendBtn=document.createElement('button');sendBtn.textContent='\u27A4';sendBtn.style.cssText="background:#fff;color:#000;border:none;border-left:3px solid #fff;padding:0 18px;font-family:'Courier Prime',monospace;font-size:18px;cursor:pointer;height:56px;";sendBtn.onclick=function(){sendMsg(activeChatId,activeFriend);};
+    // Sticker/GIF button
+    var stickerBtn=document.createElement('button');stickerBtn.textContent='\uD83D\uDE04';stickerBtn.style.cssText="background:#000;border:none;border-left:3px solid #fff;color:#fff;padding:0 14px;font-size:20px;cursor:pointer;height:56px;";
+    stickerBtn.onclick=function(){openStickerPicker(function(item){sendSticker(activeChatId,activeFriend,item);});};
+    bar.appendChild(stickerBtn);bar.appendChild(sendBtn);cm.appendChild(bar);
     chatUnsub=db.collection('chats').doc(activeChatId).collection('messages').orderBy('timestamp')
         .onSnapshot(function(snap){msgBox.innerHTML='';if(snap.empty){var e=document.createElement('div');e.style.cssText='text-align:center;color:#666;padding:40px;';e.textContent='No messages yet. Say something.';msgBox.appendChild(e);return;}snap.forEach(function(doc){msgBox.appendChild(buildMsgEl(doc.data()));});msgBox.scrollTop=msgBox.scrollHeight;});
     setTimeout(function(){inp.focus();},100);
@@ -882,7 +920,12 @@ function buildMsgEl(m){
     else if(m.type==='audio'){var aud=document.createElement('audio');aud.src=m.data;aud.controls=true;aud.style.cssText='max-width:220px;';bubble.appendChild(aud);}
     else if(m.type==='file'){var link=document.createElement('a');link.href=m.data;link.download=m.fileName||'file';link.style.cssText='color:'+(mine?'#000':'#fff')+';text-decoration:underline;';link.textContent='[file] '+(m.fileName||'File');bubble.appendChild(link);}
     else if(m.type==='callLog'){var icon=m.withVideo?'[video call]':'[voice call]';var sm=m.callStatus==='rejected'?' x':m.callStatus==='calling'?' ...':' ok';var dur=(m.callStatus==='ended'&&m.callDuration!==undefined)?' - '+m.callDuration+'s':'';bubble.textContent=icon+sm+dur;}
-    else{bubble.textContent=m.text||'';}
+    else if(m.type==='sticker'){
+        var sEl=document.createElement('div');sEl.style.cssText='font-size:52px;line-height:1;padding:4px;';sEl.textContent=m.sticker||'';bubble.style.cssText='background:transparent;border:none;padding:0;';bubble.appendChild(sEl);
+    } else if(m.type==='gif'){
+        var gImg=document.createElement('img');gImg.src=m.gifUrl;gImg.style.cssText='max-width:220px;max-height:180px;display:block;border-radius:4px;';
+        bubble.style.padding='4px';bubble.appendChild(gImg);
+    } else{bubble.textContent=m.text||'';}
     var time=document.createElement('div');time.style.cssText='font-size:11px;color:#666;margin-top:4px;';time.textContent=m.timestamp?new Date(m.timestamp.toDate()).toLocaleTimeString():'';
     wrap.appendChild(bubble);wrap.appendChild(time);return wrap;
 }
@@ -1395,11 +1438,11 @@ async function openComments(postId,postEl,isStatus){
         snap.forEach(function(doc){sec.appendChild(buildCommentEl(postId,doc.id,doc.data()));});
     }
 
-    // Comment input
-    var row=document.createElement('div');row.style.cssText='display:flex;gap:8px;margin-top:12px;';
+    var row=document.createElement('div');row.style.cssText='display:flex;gap:8px;margin-top:12px;align-items:center;';
     var cinp=document.createElement('input');cinp.type='text';cinp.placeholder='Add a comment...';
     cinp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px 12px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
     var cBtn=document.createElement('button');cBtn.className='btn';cBtn.style.cssText='padding:8px 14px;font-size:13px;';cBtn.textContent='Post';
+    var voiceCmtBtn=buildVoiceCommentBtn(postId,sec,row);
     cBtn.onclick=async function(){
         var txt=cinp.value.trim();if(!txt)return;
         cinp.value='';
@@ -1411,7 +1454,7 @@ async function openComments(postId,postEl,isStatus){
         var empty2=sec.querySelector('[data-empty]');if(empty2)empty2.remove();
         sec.insertBefore(buildCommentEl(postId,ref.id,{text:txt,uid:currentUser.uid,username:currentProfile.username,displayName:currentProfile.displayName,likes:[]}),row);
     };
-    row.appendChild(cinp);row.appendChild(cBtn);sec.appendChild(row);
+    row.appendChild(cinp);row.appendChild(voiceCmtBtn);row.appendChild(cBtn);sec.appendChild(row);
 }
 
 function buildCommentEl(postId,cmtId,c){
@@ -1421,7 +1464,14 @@ function buildCommentEl(postId,cmtId,c){
     uname.textContent='@'+(c.username||'?');
     uname.onclick=function(){if(c.uid)viewProfile({uid:c.uid,displayName:c.displayName||c.username});};
     top.appendChild(uname);
-    var txt=document.createElement('div');txt.style.cssText='font-size:14px;margin-bottom:4px;word-break:break-word;';txt.textContent=c.text||'';
+    var contentEl;
+    if(c.type==='voice'&&c.audioData){
+        contentEl=document.createElement('div');contentEl.style.cssText='margin-bottom:4px;';
+        var audEl=document.createElement('audio');audEl.src=c.audioData;audEl.controls=true;audEl.style.cssText='max-width:200px;';
+        contentEl.appendChild(audEl);
+    } else {
+        contentEl=document.createElement('div');contentEl.style.cssText='font-size:14px;margin-bottom:4px;word-break:break-word;';contentEl.textContent=c.text||'';
+    }
     var acts=document.createElement('div');acts.style.cssText='display:flex;gap:8px;';
     var lBtn=document.createElement('button');lBtn.style.cssText='background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;font-family:"Courier Prime",monospace;';
     lBtn.textContent='like ('+(c.likes?c.likes.length:0)+')';
@@ -1456,7 +1506,7 @@ function buildCommentEl(postId,cmtId,c){
         replyRow.appendChild(ri);replyRow.appendChild(rb);wrap.appendChild(replyRow);ri.focus();
     };
     acts.appendChild(lBtn);acts.appendChild(rBtn);
-    wrap.appendChild(top);wrap.appendChild(txt);wrap.appendChild(acts);
+    wrap.appendChild(top);wrap.appendChild(contentEl);wrap.appendChild(acts);
     return wrap;
 }
 
@@ -2227,6 +2277,18 @@ function openGroupChat(g){
     // Settings button
     var settBtn=document.createElement('button');settBtn.style.cssText='background:none;border:2px solid #fff;color:#fff;padding:6px 10px;cursor:pointer;font-size:13px;font-family:"Courier Prime",monospace;';settBtn.textContent='...';
     settBtn.onclick=function(){openGroupSettings(g,cm);};hd.appendChild(settBtn);
+    // Voice call button
+    var gVoiceBtn=document.createElement('button');
+    gVoiceBtn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 5.59 5.59l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"></path></svg>';
+    gVoiceBtn.style.cssText='background:none;border:2px solid #fff;color:#fff;padding:6px 8px;cursor:pointer;margin-left:4px;';
+    gVoiceBtn.title='Voice Call';
+    gVoiceBtn.onclick=function(){startGroupCall(g,false);};hd.appendChild(gVoiceBtn);
+    // Video call button
+    var gVideoBtn=document.createElement('button');
+    gVideoBtn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>';
+    gVideoBtn.style.cssText='background:none;border:2px solid #fff;color:#fff;padding:6px 8px;cursor:pointer;margin-left:4px;';
+    gVideoBtn.title='Video Call';
+    gVideoBtn.onclick=function(){startGroupCall(g,true);};hd.appendChild(gVideoBtn);
     cm.appendChild(hd);
 
     // Messages
@@ -2234,21 +2296,40 @@ function openGroupChat(g){
 
     // Input bar
     var bar=document.createElement('div');bar.style.cssText='display:flex;align-items:center;border-top:3px solid #fff;flex-shrink:0;min-height:56px;';
-    // Color indicator
-    var colorDot=document.createElement('div');colorDot.style.cssText='width:12px;height:12px;border-radius:50%;background:'+myColor+';margin:0 10px;flex-shrink:0;';bar.appendChild(colorDot);
+    // Color indicator dot
+    var colorDot=document.createElement('div');colorDot.style.cssText='width:12px;height:12px;border-radius:50%;background:'+myColor+';margin:0 8px;flex-shrink:0;';bar.appendChild(colorDot);
+    // File attach button
+    var gFileBtn=document.createElement('button');gFileBtn.textContent='+';
+    gFileBtn.style.cssText="background:#000;border:none;border-right:3px solid #fff;color:#fff;padding:0 14px;font-size:22px;cursor:pointer;height:56px;font-family:'Courier Prime',monospace;";
+    gFileBtn.onclick=function(){document.getElementById('groupFileInput_'+g._id).click();};bar.appendChild(gFileBtn);
+    var gFileInput=document.createElement('input');gFileInput.type='file';gFileInput.id='groupFileInput_'+g._id;
+    gFileInput.accept='image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';gFileInput.style.display='none';
+    gFileInput.onchange=function(){sendGroupFile(g._id,myColor,g,gFileInput.files[0]);gFileInput.value='';};bar.appendChild(gFileInput);
     // Poll button (owner only)
     if(isOwner){
-        var pollBtn=document.createElement('button');pollBtn.style.cssText="background:#000;border:none;border-right:3px solid #fff;color:#fff;padding:0 14px;font-size:18px;cursor:pointer;height:56px;font-family:'Courier Prime',monospace;";pollBtn.textContent='\uD83D\uDCCA';
+        var pollBtn=document.createElement('button');pollBtn.style.cssText="background:#000;border:none;border-right:3px solid #fff;color:#fff;padding:0 12px;font-size:16px;cursor:pointer;height:56px;font-family:'Courier Prime',monospace;";pollBtn.textContent='\uD83D\uDCCA';
         pollBtn.title='Create Poll';
         pollBtn.onclick=function(){openCreatePoll(g._id);};bar.appendChild(pollBtn);
     }
     var inp=document.createElement('input');inp.type='text';inp.id='groupChatInput';inp.placeholder='Message '+g.name+'...';
     inp.style.cssText="flex:1;background:#000;border:none;padding:15px;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;outline:none;height:56px;";
-    inp.onkeydown=function(e){if(e.key==='Enter'){document.getElementById('atSuggest_'+g._id);var sug=document.getElementById('atSuggest_'+g._id);if(sug)sug.remove();sendGroupMsg(g._id,myColor,g);}};
+    inp.onkeydown=function(e){if(e.key==='Enter'){var sug=document.getElementById('atSuggest_'+g._id);if(sug)sug.remove();sendGroupMsg(g._id,myColor,g);}};
     inp.oninput=function(){showAtSuggest(inp,g);};
     bar.appendChild(inp);
-    var sendBtn=document.createElement('button');sendBtn.textContent='\u27A4';sendBtn.style.cssText="background:#fff;color:#000;border:none;border-left:3px solid #fff;padding:0 18px;font-family:'Courier Prime',monospace;font-size:18px;cursor:pointer;height:56px;";
-    sendBtn.onclick=function(){sendGroupMsg(g._id,myColor,g);};bar.appendChild(sendBtn);cm.appendChild(bar);
+    // Mic button
+    var gMicBtn=document.createElement('button');gMicBtn.id='groupMicBtn';
+    gMicBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+    gMicBtn.style.cssText='background:#000;border:none;border-left:3px solid #fff;color:#fff;padding:0 12px;cursor:pointer;height:56px;';
+    gMicBtn.onmousedown=function(){startGroupRecording(g._id,myColor,g);};
+    gMicBtn.onmouseup=function(){stopGroupRecording(g._id,myColor,g);};
+    gMicBtn.ontouchstart=function(e){e.preventDefault();startGroupRecording(g._id,myColor,g);};
+    gMicBtn.ontouchend=function(e){e.preventDefault();stopGroupRecording(g._id,myColor,g);};
+    bar.appendChild(gMicBtn);
+    var sendBtn=document.createElement('button');sendBtn.textContent='\u27A4';sendBtn.style.cssText="background:#fff;color:#000;border:none;border-left:3px solid #fff;padding:0 16px;font-family:'Courier Prime',monospace;font-size:18px;cursor:pointer;height:56px;";
+    sendBtn.onclick=function(){sendGroupMsg(g._id,myColor,g);};
+    var gStickerBtn=document.createElement('button');gStickerBtn.textContent='\uD83D\uDE04';gStickerBtn.style.cssText="background:#000;border:none;border-left:3px solid #fff;color:#fff;padding:0 14px;font-size:20px;cursor:pointer;height:56px;";
+    gStickerBtn.onclick=function(){openStickerPicker(function(item){sendGroupSticker(g._id,myColor,g,item);});};
+    bar.appendChild(gStickerBtn);bar.appendChild(sendBtn);cm.appendChild(bar);
 
     // Real-time messages
     groupChatUnsub=db.collection('groups').doc(g._id).collection('messages').orderBy('timestamp')
@@ -2282,16 +2363,35 @@ function buildGroupMsgEl(m){
     var bubble=document.createElement('div');
     bubble.style.cssText='max-width:75%;border:3px solid '+(m.color||'#fff')+';padding:10px 14px;background:'+(mine?m.color||'#fff':'#000')+";font-family:'Courier Prime',monospace;font-size:15px;word-break:break-word;";
     if(mine) bubble.style.color='#000'; else bubble.style.color=m.color||'#fff';
-    // Highlight @mentions
     var isMentioned=(m.mentions||[]).indexOf(currentUser.uid)!==-1;
     if(isMentioned) bubble.style.boxShadow='0 0 0 2px #ff0';
-    var rawText=m.text||'';
-    var parts=rawText.split(/(@\w+)/g);
-    parts.forEach(function(part){
-        if(/^@\w+/.test(part)){
-            var span=document.createElement('span');span.style.color=mine?'#000':'#ff0';span.style.fontWeight='bold';span.textContent=part;bubble.appendChild(span);
-        } else { bubble.appendChild(document.createTextNode(part)); }
-    });
+
+    if(m.type==='image'){
+        var img=document.createElement('img');img.src=m.data;img.style.cssText='max-width:220px;max-height:220px;display:block;cursor:pointer;';
+        img.onclick=function(){window.open(m.data);};bubble.style.padding='4px';bubble.appendChild(img);
+    } else if(m.type==='video'){
+        var vid2=document.createElement('video');vid2.src=m.data;vid2.controls=true;vid2.style.cssText='max-width:220px;display:block;';
+        bubble.style.padding='4px';bubble.appendChild(vid2);
+    } else if(m.type==='audio'){
+        var aud2=document.createElement('audio');aud2.src=m.data;aud2.controls=true;aud2.style.cssText='max-width:220px;';bubble.appendChild(aud2);
+    } else if(m.type==='file'){
+        var link2=document.createElement('a');link2.href=m.data;link2.download=m.fileName||'file';
+        link2.style.cssText='color:'+(mine?'#000':m.color||'#fff')+';text-decoration:underline;';link2.textContent='[file] '+(m.fileName||'File');bubble.appendChild(link2);
+    } else if(m.type==='sticker'){
+        var sEl2=document.createElement('div');sEl2.style.cssText='font-size:52px;line-height:1;padding:4px;';sEl2.textContent=m.sticker||'';
+        bubble.style.cssText='background:transparent;border:none;padding:0;';bubble.appendChild(sEl2);
+    } else if(m.type==='gif'){
+        var gImg2=document.createElement('img');gImg2.src=m.gifUrl;gImg2.style.cssText='max-width:220px;max-height:180px;display:block;border-radius:4px;';
+        bubble.style.padding='4px';bubble.appendChild(gImg2);
+    } else {
+        var rawText=m.text||'';
+        var parts=rawText.split(/(@\w+)/g);
+        parts.forEach(function(part){
+            if(/^@\w+/.test(part)){
+                var span=document.createElement('span');span.style.color=mine?'#000':'#ff0';span.style.fontWeight='bold';span.textContent=part;bubble.appendChild(span);
+            } else { bubble.appendChild(document.createTextNode(part)); }
+        });
+    }
     var time=document.createElement('div');time.style.cssText='font-size:11px;color:#555;margin-top:3px;';time.textContent=m.timestamp?new Date(m.timestamp.toDate()).toLocaleTimeString():'';
     wrap.appendChild(bubble);wrap.appendChild(time);
     return wrap;
@@ -2300,22 +2400,113 @@ function buildGroupMsgEl(m){
 async function sendGroupMsg(gid,myColor,g){
     var inp=document.getElementById('groupChatInput');
     if(!inp)return;var text=inp.value.trim();if(!text)return;inp.value='';
-    // Handle @all mention
     var mentions=[];
-    var isAtAll=text.toLowerCase().includes('@all');
-    if(isAtAll)(g.members||[]).forEach(function(m){if(m.uid!==currentUser.uid)mentions.push(m.uid);});
-    // Handle @username mentions
-    (g.members||[]).forEach(function(m){
-        if(text.toLowerCase().includes('@'+m.username.toLowerCase())&&m.uid!==currentUser.uid)mentions.push(m.uid);
-    });
+    if(text.toLowerCase().includes('@all'))(g.members||[]).forEach(function(m){if(m.uid!==currentUser.uid)mentions.push(m.uid);});
+    (g.members||[]).forEach(function(m){if(text.toLowerCase().includes('@'+m.username.toLowerCase())&&m.uid!==currentUser.uid)mentions.push(m.uid);});
     await db.collection('groups').doc(gid).collection('messages').add({
         type:'text',text:text,fromUid:currentUser.uid,
         fromUsername:currentProfile.username,fromDisplayName:currentProfile.displayName,
         color:myColor,mentions:mentions,timestamp:firebase.firestore.FieldValue.serverTimestamp()
     });
     db.collection('groups').doc(gid).update({lastMsg:text,lastMsgTime:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
-    // Streak
     updateGroupStreak(gid,(g.memberUids||[]));
+}
+
+async function sendGroupFile(gid,myColor,g,file){
+    if(!file)return;
+    if(file.size>10000000){showNotification('File too big (max 10MB)');return;}
+    showNotification('Sending...');
+    var reader=new FileReader();
+    reader.onload=async function(e){
+        var type=file.type.startsWith('image')?'image':file.type.startsWith('video')?'video':file.type.startsWith('audio')?'audio':'file';
+        await db.collection('groups').doc(gid).collection('messages').add({
+            type:type,data:e.target.result,fileName:file.name,
+            fromUid:currentUser.uid,fromUsername:currentProfile.username,fromDisplayName:currentProfile.displayName,
+            color:myColor,timestamp:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        var preview=type==='image'?'[image]':type==='video'?'[video]':type==='audio'?'[voice]':'[file] '+file.name;
+        db.collection('groups').doc(gid).update({lastMsg:preview,lastMsgTime:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+    };
+    reader.readAsDataURL(file);
+}
+
+var groupRecording=false,groupMediaRecorder=null,groupAudioChunks=[];
+function startGroupRecording(gid,myColor,g){
+    if(groupRecording)return;
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+        groupRecording=true;groupAudioChunks=[];
+        groupMediaRecorder=new MediaRecorder(stream);
+        groupMediaRecorder.ondataavailable=function(e){groupAudioChunks.push(e.data);};
+        groupMediaRecorder.start();
+        var btn=document.getElementById('groupMicBtn');if(btn)btn.style.background='#f00';
+        showNotification('Recording... release to send');
+    }).catch(function(){showNotification('Mic access denied');});
+}
+function stopGroupRecording(gid,myColor,g){
+    if(!groupRecording||!groupMediaRecorder)return;
+    groupRecording=false;groupMediaRecorder.stop();
+    groupMediaRecorder.onstop=function(){
+        var blob=new Blob(groupAudioChunks,{type:'audio/webm'});
+        groupMediaRecorder.stream.getTracks().forEach(function(t){t.stop();});
+        var btn=document.getElementById('groupMicBtn');if(btn)btn.style.background='#000';
+        var reader=new FileReader();
+        reader.onload=async function(e){
+            await db.collection('groups').doc(gid).collection('messages').add({
+                type:'audio',data:e.target.result,
+                fromUid:currentUser.uid,fromUsername:currentProfile.username,fromDisplayName:currentProfile.displayName,
+                color:myColor,timestamp:firebase.firestore.FieldValue.serverTimestamp()
+            });
+            db.collection('groups').doc(gid).update({lastMsg:'[voice]',lastMsgTime:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+        };
+        reader.readAsDataURL(blob);
+    };
+}
+
+// ── GROUP CALLS ───────────────────────────────────────────
+var groupCallUnsubs=[];
+async function startGroupCall(g,withVideo){
+    var callRoomId='gcall_'+g._id;
+    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo}).catch(function(){showNotification('Camera/mic denied');return null;});
+    if(!localStream)return;
+    openGroupCallModal(g,withVideo);
+    if(withVideo){var lv=document.getElementById('localVideo');if(lv)lv.srcObject=localStream;}
+    // Signal to group members
+    await db.collection('groups').doc(g._id).update({
+        activeCall:{callerId:currentUser.uid,callerName:currentProfile.displayName,withVideo:withVideo,callRoomId:callRoomId,startedAt:firebase.firestore.FieldValue.serverTimestamp()}
+    });
+    // Notify in chat
+    await db.collection('groups').doc(g._id).collection('messages').add({
+        type:'system',text:currentProfile.displayName+' started a '+(withVideo?'video':'voice')+' call. Join in group settings.',
+        timestamp:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showNotification('Group call started — others can join via the group!');
+}
+
+function openGroupCallModal(g,withVideo){
+    var existing=document.getElementById('groupCallModal');if(existing)existing.remove();
+    var modal=document.createElement('div');modal.id='groupCallModal';
+    modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#000;border:3px solid #fff;z-index:2000;display:flex;flex-direction:column;';
+    var hd2=document.createElement('div');hd2.style.cssText='padding:16px 20px;border-bottom:3px solid #fff;font-size:18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;';
+    var ns2=document.createElement('span');ns2.textContent=g.name+' — '+(withVideo?'Video':'Voice')+' Call';
+    var ts2=document.createElement('span');ts2.id='callTimer';ts2.style.cssText='font-size:16px;color:#aaa;';ts2.textContent='00:00';
+    hd2.appendChild(ns2);hd2.appendChild(ts2);modal.appendChild(hd2);
+    var area2=document.createElement('div');area2.style.cssText='flex:1;position:relative;background:#111;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;padding:10px;';
+    if(withVideo){
+        var lv=document.createElement('video');lv.id='localVideo';lv.autoplay=true;lv.playsinline=true;lv.muted=true;lv.style.cssText='width:160px;height:120px;border:3px solid #fff;object-fit:cover;background:#000;';area2.appendChild(lv);
+    } else {
+        var ico=document.createElement('div');ico.style.cssText='font-size:60px;color:#fff;';ico.textContent='[group call]';area2.appendChild(ico);
+    }
+    modal.appendChild(area2);
+    var ctrl2=document.createElement('div');ctrl2.style.cssText='display:flex;justify-content:center;padding:20px;border-top:3px solid #fff;flex-shrink:0;';
+    var endBtn2=document.createElement('button');endBtn2.textContent='Leave Call';
+    endBtn2.style.cssText="padding:15px 30px;background:#f00;border:3px solid #fff;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;cursor:pointer;";
+    endBtn2.onclick=function(){
+        if(localStream)localStream.getTracks().forEach(function(t){t.stop();});localStream=null;
+        modal.remove();
+        db.collection('groups').doc(g._id).update({activeCall:firebase.firestore.FieldValue.delete()}).catch(function(){});
+    };
+    ctrl2.appendChild(endBtn2);modal.appendChild(ctrl2);document.body.appendChild(modal);
+    callStartTime=Date.now();startCallTimer();
 }
 
 // ── POLLS ─────────────────────────────────────────────────
@@ -2512,6 +2703,165 @@ function openGroupSettings(g,parentModal){
     box.appendChild(content);overlay.appendChild(box);document.body.appendChild(overlay);
 }
 
+// ── PASSWORD (PIN) CHANGE ─────────────────────────────────
+function openChangePinModal(){
+    var overlay=document.createElement('div');overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:4000;display:flex;align-items:center;justify-content:center;';
+    var box=document.createElement('div');box.style.cssText="background:#000;border:3px solid #fff;padding:30px;width:90%;max-width:420px;display:flex;flex-direction:column;gap:14px;font-family:'Courier Prime',monospace;";
+    var title=document.createElement('div');title.style.cssText='font-size:20px;letter-spacing:-0.5px;';title.textContent='Change PIN';
+    function makeField(ph){
+        var wrap=document.createElement('div');wrap.style.cssText='position:relative;';
+        var inp=document.createElement('input');inp.type='text';inp.placeholder=ph;
+        inp.style.cssText="width:100%;background:#000;border:3px solid #fff;padding:12px 44px 12px 12px;color:#fff;font-family:'Courier Prime',monospace;font-size:16px;letter-spacing:4px;";
+        inp.setAttribute('data-real','');
+        var ps=[],pv=false;
+        inp.oninput=function(){var raw=inp.value,ns='';for(var i=0;i<raw.length;i++)ns+=(raw[i]==='\u2022')?(ps[i]||''):raw[i];ps=ns.split('');inp.setAttribute('data-real',ns);if(!pv)inp.value='\u2022'.repeat(ns.length);};
+        inp.onkeydown=function(e){if(e.key==='Backspace'){e.preventDefault();ps.pop();inp.setAttribute('data-real',ps.join(''));inp.value=pv?ps.join(''):'\u2022'.repeat(ps.length);}};
+        var eye=document.createElement('button');eye.type='button';eye.style.cssText='position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;font-size:16px;';
+        eye.innerHTML='<i class="fas fa-eye"></i>';
+        eye.onclick=function(){pv=!pv;inp.value=pv?ps.join(''):'\u2022'.repeat(ps.length);eye.innerHTML=pv?'<i class="fas fa-eye-slash"></i>':'<i class="fas fa-eye"></i>';};
+        wrap.appendChild(inp);wrap.appendChild(eye);return{wrap:wrap,inp:inp};
+    }
+    var cur=makeField('Current PIN'),nw=makeField('New PIN (min 6 chars)'),conf=makeField('Confirm New PIN');
+    var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:10px;';
+    var cancelBtn=document.createElement('button');cancelBtn.className='btn';cancelBtn.style.cssText='flex:1;padding:12px;border-color:#f55;color:#f55;';cancelBtn.textContent='Cancel';cancelBtn.onclick=function(){overlay.remove();};
+    var saveBtn=document.createElement('button');saveBtn.className='btn';saveBtn.style.cssText='flex:1;padding:12px;';saveBtn.textContent='Save';
+    saveBtn.onclick=async function(){
+        var curPin=cur.inp.getAttribute('data-real'),newPin=nw.inp.getAttribute('data-real'),confPin=conf.inp.getAttribute('data-real');
+        if(!curPin||!newPin||!confPin){showNotification('Fill all fields!');return;}
+        if(newPin.length<6){showNotification('New PIN must be at least 6 chars');return;}
+        if(newPin!==confPin){showNotification('New PINs do not match!');return;}
+        saveBtn.disabled=true;
+        try{
+            var credential=firebase.auth.EmailAuthProvider.credential(currentUser.email,curPin);
+            await currentUser.reauthenticateWithCredential(credential);
+            await currentUser.updatePassword(newPin);
+            overlay.remove();showNotification('PIN changed!');
+        }catch(e){showNotification(e.code==='auth/wrong-password'?'Wrong current PIN!':e.message);}
+        saveBtn.disabled=false;
+    };
+    btnRow.appendChild(cancelBtn);btnRow.appendChild(saveBtn);
+    box.appendChild(title);box.appendChild(cur.wrap);box.appendChild(nw.wrap);box.appendChild(conf.wrap);box.appendChild(btnRow);
+    overlay.appendChild(box);document.body.appendChild(overlay);
+}
+
+// ── STICKER / GIF PICKER ──────────────────────────────────
+var STICKER_PACKS={'Faces':['😀','😂','😍','😎','😭','😡','🤔','😴','🥳','😏','😤','🥺','😇','🤩','😈','💀','🫡','🥸','🤯','😱'],'Hands':['👍','👎','🤙','👌','✌️','🤞','🤝','🙏','🤜','👏','🫶','💪','🤌','🫵','👀','💅'],'Hearts':['❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💕','💞','💓','💗','💖','💝','🫀'],'Animals':['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐙','🦋'],'Food':['🍕','🍔','🌮','🍜','🍣','🍦','🍩','🎂','🍎','🍓','🫐','🥑','🧋','☕','🍺','🧁'],'Nature':['🌸','🌺','🌻','🌹','🍀','🌊','🔥','⭐','🌙','☀️','🌈','❄️','🌴','🍄','🌵','🪴'],'Objects':['🎮','🎵','🎨','📸','🎯','🏆','💎','🔑','📱','💻','🎁','🚀','⚡','🎪','🎭','🪄'],'Symbols':['💯','✅','❌','⚠️','🔥','💥','✨','🌟','💫','🎉','🎊','🎈','🚫','❓','‼️','🆘']};
+
+function openStickerPicker(onSelect){
+    var existing=document.getElementById('stickerPickerOverlay');if(existing){existing.remove();return;}
+    var overlay=document.createElement('div');overlay.id='stickerPickerOverlay';
+    overlay.style.cssText='position:fixed;bottom:70px;left:0;right:0;background:#000;border-top:3px solid #fff;z-index:3000;max-height:350px;display:flex;flex-direction:column;';
+    var tabBar=document.createElement('div');tabBar.style.cssText='display:flex;border-bottom:3px solid #fff;flex-shrink:0;';
+    var stickerTab=document.createElement('button');stickerTab.style.cssText="flex:1;padding:10px;background:#fff;color:#000;border:none;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;border-right:3px solid #fff;";stickerTab.textContent='Stickers';
+    var gifTab=document.createElement('button');gifTab.style.cssText="flex:1;padding:10px;background:#000;color:#fff;border:none;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";gifTab.textContent='GIF';
+    var packBar=document.createElement('div');packBar.style.cssText='display:flex;overflow-x:auto;border-bottom:2px solid #333;flex-shrink:0;background:#000;';
+    var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:10px;overflow-y:auto;flex:1;';
+
+    function renderPack(packName){
+        packBar.querySelectorAll('button').forEach(function(b){b.style.background=b.dataset.pack===packName?'#fff':'#000';b.style.color=b.dataset.pack===packName?'#000':'#fff';});
+        grid.style.display='grid';grid.style.padding='10px';grid.innerHTML='';
+        (STICKER_PACKS[packName]||[]).forEach(function(emoji){
+            var btn=document.createElement('button');btn.style.cssText='background:none;border:none;font-size:28px;cursor:pointer;padding:6px;';
+            btn.textContent=emoji;
+            btn.onmouseenter=function(){btn.style.background='#222';};btn.onmouseleave=function(){btn.style.background='none';};
+            btn.onclick=function(){overlay.remove();onSelect({type:'sticker',sticker:emoji});};
+            grid.appendChild(btn);
+        });
+        packBar.style.display='flex';stickerTab.style.background='#fff';stickerTab.style.color='#000';gifTab.style.background='#000';gifTab.style.color='#fff';
+    }
+
+    function renderGIF(){
+        grid.style.display='block';grid.style.padding='0';grid.innerHTML='';packBar.style.display='none';
+        stickerTab.style.background='#000';stickerTab.style.color='#fff';gifTab.style.background='#fff';gifTab.style.color='#000';
+        var sw=document.createElement('div');sw.style.cssText='padding:10px;display:flex;gap:8px;';
+        var ginp=document.createElement('input');ginp.type='text';ginp.placeholder='Search GIFs...';
+        ginp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
+        var gBtn=document.createElement('button');gBtn.className='btn';gBtn.style.cssText='padding:8px 14px;font-size:13px;';gBtn.textContent='Search';
+        var gGrid=document.createElement('div');gGrid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;overflow-y:auto;max-height:220px;';
+        async function searchGifs(){
+            var q=ginp.value.trim()||'meme';gGrid.innerHTML='<div style="color:#666;padding:20px;text-align:center;font-size:13px;">Loading...</div>';
+            try{
+                var res=await fetch('https://tenor.googleapis.com/v2/search?q='+encodeURIComponent(q)+'&key=AIzaSyAyimkuYQYF_FXVALexPYGclZCsJZgrM9Y&limit=12&media_filter=gif');
+                var data=await res.json();gGrid.innerHTML='';
+                (data.results||[]).forEach(function(r){
+                    var url=(r.media_formats&&r.media_formats.tinygif&&r.media_formats.tinygif.url)||'';if(!url)return;
+                    var img=document.createElement('img');img.src=url;img.style.cssText='width:100%;cursor:pointer;border:2px solid transparent;';
+                    img.onmouseenter=function(){img.style.borderColor='#fff';};img.onmouseleave=function(){img.style.borderColor='transparent';};
+                    img.onclick=function(){overlay.remove();onSelect({type:'gif',gifUrl:url});};
+                    gGrid.appendChild(img);
+                });
+                if(!gGrid.children.length) gGrid.innerHTML='<div style="color:#666;padding:20px;text-align:center;font-size:13px;">No results</div>';
+            }catch(e){gGrid.innerHTML='<div style="color:#f55;padding:20px;text-align:center;font-size:12px;">GIF search unavailable</div>';}
+        }
+        gBtn.onclick=searchGifs;ginp.onkeydown=function(e){if(e.key==='Enter')searchGifs();};
+        sw.appendChild(ginp);sw.appendChild(gBtn);grid.appendChild(sw);grid.appendChild(gGrid);searchGifs();
+    }
+
+    Object.keys(STICKER_PACKS).forEach(function(name){
+        var pb=document.createElement('button');pb.dataset.pack=name;
+        pb.style.cssText="padding:8px 12px;background:#000;color:#fff;border:none;border-right:1px solid #333;white-space:nowrap;cursor:pointer;font-family:'Courier Prime',monospace;font-size:12px;";
+        pb.textContent=name;pb.onclick=function(){renderPack(name);};packBar.appendChild(pb);
+    });
+    stickerTab.onclick=function(){renderPack(Object.keys(STICKER_PACKS)[0]);};gifTab.onclick=renderGIF;
+    tabBar.appendChild(stickerTab);tabBar.appendChild(gifTab);overlay.appendChild(tabBar);overlay.appendChild(packBar);overlay.appendChild(grid);
+    setTimeout(function(){document.addEventListener('click',function closer(e){if(!overlay.contains(e.target)){overlay.remove();document.removeEventListener('click',closer);}});},50);
+    document.body.appendChild(overlay);renderPack(Object.keys(STICKER_PACKS)[0]);
+}
+
+async function sendSticker(chatId,friend,item){
+    await db.collection('chats').doc(chatId).collection('messages').add(Object.assign({fromUid:currentUser.uid,fromName:currentProfile.displayName,timestamp:firebase.firestore.FieldValue.serverTimestamp()},item));
+    updateLastMsg(friend,item.type==='gif'?'[GIF]':'[Sticker]');
+}
+async function sendGroupSticker(gid,myColor,g,item){
+    await db.collection('groups').doc(gid).collection('messages').add(Object.assign({fromUid:currentUser.uid,fromUsername:currentProfile.username,fromDisplayName:currentProfile.displayName,color:myColor,timestamp:firebase.firestore.FieldValue.serverTimestamp()},item));
+    db.collection('groups').doc(gid).update({lastMsg:item.type==='gif'?'[GIF]':'[Sticker]',lastMsgTime:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+}
+
+// ── VOICE COMMENTS ────────────────────────────────────────
+var commentRecording=false,commentRecorder=null,commentChunks=[];
+
+function buildVoiceCommentBtn(postId,sec,row){
+    var micBtn=document.createElement('button');micBtn.className='btn';micBtn.style.cssText='padding:8px 12px;font-size:13px;flex-shrink:0;';
+    micBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+    micBtn.title='Hold to record voice comment';
+    micBtn.onmousedown=function(){startCommentRecord(micBtn);};
+    micBtn.onmouseup=function(){stopCommentRecord(postId,sec,row);};
+    micBtn.ontouchstart=function(e){e.preventDefault();startCommentRecord(micBtn);};
+    micBtn.ontouchend=function(e){e.preventDefault();stopCommentRecord(postId,sec,row);};
+    return micBtn;
+}
+function startCommentRecord(btn){
+    if(commentRecording)return;
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+        commentRecording=true;commentChunks=[];
+        commentRecorder=new MediaRecorder(stream);
+        commentRecorder.ondataavailable=function(e){commentChunks.push(e.data);};commentRecorder.start();
+        btn.style.background='#f00';btn.style.color='#fff';showNotification('Recording... release to post');
+    }).catch(function(){showNotification('Mic access denied');});
+}
+function stopCommentRecord(postId,sec,row){
+    if(!commentRecording||!commentRecorder)return;
+    commentRecording=false;commentRecorder.stop();
+    commentRecorder.onstop=async function(){
+        var blob=new Blob(commentChunks,{type:'audio/webm'});
+        commentRecorder.stream.getTracks().forEach(function(t){t.stop();});
+        var micBtn=sec.querySelector('[title="Hold to record voice comment"]');if(micBtn){micBtn.style.background='#000';micBtn.style.color='#fff';}
+        if(blob.size<500){showNotification('Recording too short');return;}
+        var reader=new FileReader();
+        reader.onload=async function(e){
+            var ref=await db.collection('posts').doc(postId).collection('comments').add({
+                type:'voice',audioData:e.target.result,uid:currentUser.uid,username:currentProfile.username,
+                displayName:currentProfile.displayName,avatar:currentProfile.avatar||'',likes:[],
+                timestamp:firebase.firestore.FieldValue.serverTimestamp()
+            });
+            var empty2=sec.querySelector('[data-empty]');if(empty2)empty2.remove();
+            sec.insertBefore(buildCommentEl(postId,ref.id,{type:'voice',audioData:e.target.result,uid:currentUser.uid,username:currentProfile.username,displayName:currentProfile.displayName,likes:[]}),row);
+            showNotification('Voice comment posted!');
+        };
+        reader.readAsDataURL(blob);
+    };
+}
+
 function openMenuModal(){document.getElementById('menuModal').classList.add('active');}
 function closeMenuModal(){document.getElementById('menuModal').classList.remove('active');}
 function openAccountsModal(){closeMenuModal();generateAccountsList();document.getElementById('accountsModal').classList.add('active');}
@@ -2567,7 +2917,7 @@ loadSettings();
         },300);
         return;
     }
-    // Profile link: #@username
+   
     var pm=hash.match(/^#@([a-zA-Z0-9_]+)/);
     if(!pm)return;
     var uname=pm[1].toLowerCase();
@@ -2582,7 +2932,6 @@ loadSettings();
         else showNotification('Profile not found');
     },300);
 })();
-// Handle browser back button
 window.addEventListener('popstate',function(){
     if(!window.location.hash){
         var modal=document.getElementById('profileViewModal');
