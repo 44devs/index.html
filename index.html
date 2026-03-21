@@ -1813,6 +1813,21 @@ async function submitPost(type){
     var hashtags=hashRaw.split(/\s+/).filter(Boolean);
     var vis=(document.getElementById('statusVis')||{}).value||'friends';
     if(!desc.trim()&&!postMediaData){showNotification('Add something first!');return;}
+
+    // Firestore has a 1MB document limit — base64 video blows past it
+    // Images: 700KB base64 ~ 500KB file. Videos need to be small.
+    if(postMediaData){
+        var byteSize=postMediaData.length;
+        if(type==='vid'&&byteSize>900000){
+            showNotification('Video too large for storage (max ~650KB file). Try a shorter clip.');
+            return;
+        }
+        if(type==='pic'&&byteSize>1200000){
+            showNotification('Image too large (max ~900KB). Try a smaller photo.');
+            return;
+        }
+    }
+
     var postData={
         type:type,text:desc.trim(),hashtags:hashtags,
         uid:currentUser.uid,username:currentProfile.username,
@@ -1821,11 +1836,16 @@ async function submitPost(type){
         timestamp:firebase.firestore.FieldValue.serverTimestamp()
     };
     if(postMediaData) postData.mediaData=postMediaData;
-    await db.collection('posts').add(postData);
-    postMediaData=null;
-    closeModal('socialModal');
-    showNotification(type+' posted!');
-    if(document.getElementById('feedModal').classList.contains('active')) loadFeed();
+    try{
+        await db.collection('posts').add(postData);
+        postMediaData=null;
+        closeModal('socialModal');
+        showNotification(type+' posted!');
+        if(document.getElementById('feedModal').classList.contains('active')) loadFeed();
+    }catch(e){
+        showNotification('Post failed: '+e.message);
+        setBtn('postBtn',false);
+    }
 }
 
 // ── ADMIN PANEL ───────────────────────────────────────────
@@ -1840,7 +1860,11 @@ function getDeviceFingerprint(){
 }
 async function getUserIP(){
     try{
-        var r=await fetch('https://api.ipify.org?format=json');
+        // 3 second timeout — if it hangs on mobile, skip gracefully
+        var controller=new AbortController();
+        var timeout=setTimeout(function(){controller.abort();},3000);
+        var r=await fetch('https://api.ipify.org?format=json',{signal:controller.signal});
+        clearTimeout(timeout);
         var d=await r.json();
         return d.ip||'';
     }catch(e){return '';}
