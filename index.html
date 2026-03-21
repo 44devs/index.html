@@ -2183,6 +2183,7 @@ function renderJoinCreate(){
 async function joinGroup(doc){
     var g=doc.data();var gid=doc.id;
     if((g.memberUids||[]).indexOf(currentUser.uid)!==-1){showNotification('Already in this group!');return;}
+    if((g.bannedUids||[]).indexOf(currentUser.uid)!==-1){showNotification('You are banned from this group.');return;}
     var myColor=GROUP_COLORS[Math.floor(Math.random()*GROUP_COLORS.length)];
     await db.collection('groups').doc(gid).update({
         memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
@@ -2212,10 +2213,17 @@ function openGroupChat(g){
     var av=document.createElement('div');av.style.cssText='width:40px;height:40px;border:3px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;background:#222;flex-shrink:0;';
     if(g.avatar){var avImg=document.createElement('img');avImg.src=g.avatar;avImg.style.cssText='width:100%;height:100%;object-fit:cover;';av.appendChild(avImg);}else{av.textContent=g.name?g.name[0].toUpperCase():'G';}
     hd.appendChild(av);
-    var nameEl=document.createElement('div');nameEl.style.cssText='flex:1;';
-    var titleEl=document.createElement('div');titleEl.style.cssText='font-size:16px;letter-spacing:-0.5px;';titleEl.textContent=g.name||'Group';
+    var nameEl=document.createElement('div');nameEl.style.cssText='flex:1;min-width:0;cursor:pointer;';
+    var titleEl=document.createElement('div');titleEl.style.cssText='font-size:16px;letter-spacing:-0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';titleEl.textContent=g.name||'Group';
+    // Shareable link — click to copy
+    var linkEl=document.createElement('div');linkEl.style.cssText='font-size:11px;color:#555;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    var groupSlug=(g.name||'group').replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'');
+    var groupLink=window.location.origin+window.location.pathname+'#group-'+groupSlug+'-'+g._id;
+    linkEl.textContent='#group-'+groupSlug;
+    linkEl.title='Click to copy group link';
+    linkEl.onclick=function(e){e.stopPropagation();navigator.clipboard.writeText(groupLink).then(function(){showNotification('Group link copied!');});};
     var subEl=document.createElement('div');subEl.style.cssText='font-size:12px;color:#666;';subEl.textContent=(g.members||[]).length+' members';
-    nameEl.appendChild(titleEl);nameEl.appendChild(subEl);hd.appendChild(nameEl);
+    nameEl.appendChild(titleEl);nameEl.appendChild(linkEl);nameEl.appendChild(subEl);hd.appendChild(nameEl);
     // Settings button
     var settBtn=document.createElement('button');settBtn.style.cssText='background:none;border:2px solid #fff;color:#fff;padding:6px 10px;cursor:pointer;font-size:13px;font-family:"Courier Prime",monospace;';settBtn.textContent='...';
     settBtn.onclick=function(){openGroupSettings(g,cm);};hd.appendChild(settBtn);
@@ -2450,14 +2458,38 @@ function openGroupSettings(g,parentModal){
         var mName=document.createElement('div');mName.style.cssText='flex:1;font-size:14px;color:'+(mem.color||'#fff')+';';mName.textContent=mem.displayName+' @'+mem.username+(mem.uid===g.ownerUid?' [Owner]':'');
         mRow.appendChild(dot);mRow.appendChild(mName);
         if(isOwner&&mem.uid!==currentUser.uid){
-            var kickBtn=document.createElement('button');kickBtn.className='btn';kickBtn.style.cssText='padding:4px 10px;font-size:12px;border-color:#f55;color:#f55;';kickBtn.textContent='Kick';
+            var btnPair=document.createElement('div');btnPair.style.cssText='display:flex;gap:4px;flex-shrink:0;';
+            var kickBtn=document.createElement('button');kickBtn.className='btn';kickBtn.style.cssText='padding:4px 8px;font-size:11px;border-color:#fa0;color:#fa0;';kickBtn.textContent='Kick';
             kickBtn.onclick=async function(){
                 var newMembers=(g.members||[]).filter(function(m){return m.uid!==mem.uid;});
                 var newUids=(g.memberUids||[]).filter(function(u){return u!==mem.uid;});
                 await db.collection('groups').doc(g._id).update({members:newMembers,memberUids:newUids});
+                // Send system message
+                db.collection('groups').doc(g._id).collection('messages').add({type:'system',text:mem.displayName+' was kicked.',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
                 mRow.remove();showNotification(mem.username+' kicked.');
             };
-            mRow.appendChild(kickBtn);
+            var banBtn=document.createElement('button');banBtn.className='btn';banBtn.style.cssText='padding:4px 8px;font-size:11px;border-color:#f55;color:#f55;';banBtn.textContent='Ban';
+            banBtn.onclick=async function(){
+                // Kick + add to bannedUids list
+                var newMembers=(g.members||[]).filter(function(m){return m.uid!==mem.uid;});
+                var newUids=(g.memberUids||[]).filter(function(u){return u!==mem.uid;});
+                var bannedUids=(g.bannedUids||[]);
+                if(bannedUids.indexOf(mem.uid)===-1) bannedUids.push(mem.uid);
+                await db.collection('groups').doc(g._id).update({members:newMembers,memberUids:newUids,bannedUids:bannedUids});
+                db.collection('groups').doc(g._id).collection('messages').add({type:'system',text:mem.displayName+' was banned from this group.',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+                mRow.remove();showNotification(mem.username+' banned from group.');
+            };
+            // Show if already banned
+            if((g.bannedUids||[]).indexOf(mem.uid)!==-1){
+                banBtn.textContent='Unban';banBtn.style.cssText='padding:4px 8px;font-size:11px;border-color:#5f5;color:#5f5;';
+                banBtn.onclick=async function(){
+                    var nb=(g.bannedUids||[]).filter(function(u){return u!==mem.uid;});
+                    await db.collection('groups').doc(g._id).update({bannedUids:nb});
+                    banBtn.textContent='Ban';banBtn.style.cssText='padding:4px 8px;font-size:11px;border-color:#f55;color:#f55;';
+                    showNotification(mem.username+' unbanned.');
+                };
+            }
+            btnPair.appendChild(kickBtn);btnPair.appendChild(banBtn);mRow.appendChild(btnPair);
         }
         content.appendChild(mRow);
     });
@@ -2509,9 +2541,36 @@ loadSettings();
 // Auto-open profile from URL hash e.g. #@username
 (function(){
     var hash=window.location.hash;
-    var m=hash.match(/^#@([a-zA-Z0-9_]+)/);
-    if(!m)return;
-    var uname=m[1].toLowerCase();
+    // Group link: #group-name-id
+    var gm=hash.match(/^#group-.+-([a-zA-Z0-9]+)$/);
+    if(gm){
+        var gid=gm[1];
+        var tries=0;
+        var interval=setInterval(async function(){
+            tries++;if(tries>40){clearInterval(interval);return;}
+            if(!currentUser)return;
+            clearInterval(interval);
+            var gdoc=await db.collection('groups').doc(gid).get();
+            if(!gdoc.exists){showNotification('Group not found');return;}
+            var g=gdoc.data();g._id=gdoc.id;
+            if((g.bannedUids||[]).indexOf(currentUser.uid)!==-1){showNotification('You are banned from this group.');return;}
+            if((g.memberUids||[]).indexOf(currentUser.uid)===-1){
+                // Not a member — offer to join
+                if(g.isPublic){
+                    if(confirm('Join "'+g.name+'"?')) joinGroup(gdoc);
+                } else {
+                    showNotification('This group is private. You need an invite code.');
+                }
+            } else {
+                openGroupChat(g);
+            }
+        },300);
+        return;
+    }
+    // Profile link: #@username
+    var pm=hash.match(/^#@([a-zA-Z0-9_]+)/);
+    if(!pm)return;
+    var uname=pm[1].toLowerCase();
     var tries=0;
     var interval=setInterval(async function(){
         tries++;
