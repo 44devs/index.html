@@ -2459,16 +2459,23 @@ function renderJoinCreate(){
         var code=Math.random().toString(36).substr(2,6).toUpperCase();
         var myColor=GROUP_COLORS[Math.floor(Math.random()*GROUP_COLORS.length)];
         var pin=(!isPublic&&pinInp.value.trim())?pinInp.value.trim():'';
+        // Compute slug and assign sequential number
+        var slug=name.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'').toLowerCase();
+        var existSnap=await db.collection('groups').where('nameSlug','==',slug).get();
+        var maxIdx=0;
+        existSnap.forEach(function(d){var si=d.data().slugIndex||0;if(si>maxIdx)maxIdx=si;});
+        var slugIndex=maxIdx+1;
         var ref=await db.collection('groups').add({
             name:name,description:descInp.value.trim(),
             ownerUid:currentUser.uid,ownerUsername:currentProfile.username,
             memberUids:[currentUser.uid],
             members:[{uid:currentUser.uid,username:currentProfile.username,displayName:currentProfile.displayName,avatar:currentProfile.avatar||'',color:myColor}],
             isPublic:isPublic,joinCode:code,groupPin:pin,avatar:'',
+            nameSlug:slug,slugIndex:slugIndex,
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
         createBtn.disabled=false;
-        showNotification('Group created! Code: '+code+(pin?' · PIN: '+pin:''));
+        showNotification('Group created! Link: #group-'+slug+'-'+slugIndex+(pin?' · PIN: '+pin:''));
         switchGroupTab('mine');
     };
     createBox.appendChild(cTitle);createBox.appendChild(nameInp);createBox.appendChild(descInp);createBox.appendChild(pubRow);createBox.appendChild(pinRow);createBox.appendChild(createBtn);
@@ -2551,9 +2558,10 @@ async function openGroupChat(g){
     var titleEl=document.createElement('div');titleEl.style.cssText='font-size:16px;letter-spacing:-0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';titleEl.textContent=g.name||'Group';
     // Shareable link — click to copy
     var linkEl=document.createElement('div');linkEl.style.cssText='font-size:11px;color:#555;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-    var groupSlug=(g.name||'group').replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'');
-    var groupLink=window.location.origin+window.location.pathname+'#group-'+groupSlug+'-'+g._id;
-    linkEl.textContent='#group-'+groupSlug;
+    var groupSlug=g.nameSlug||(g.name||'group').replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'').toLowerCase();
+    var groupShortId=groupSlug+(g.slugIndex?'-'+g.slugIndex:'');
+    var groupLink=window.location.origin+window.location.pathname+'#group-'+groupShortId;
+    linkEl.textContent='#group-'+groupShortId;
     linkEl.title='Click to copy group link';
     linkEl.onclick=function(e){e.stopPropagation();navigator.clipboard.writeText(groupLink).then(function(){showNotification('Group link copied!');});};
     var subEl=document.createElement('div');subEl.style.cssText='font-size:12px;color:#666;';subEl.textContent=(g.members||[]).length+' members';
@@ -3279,10 +3287,10 @@ function showGroupJoinScreen(g,gdoc,requiredPin){
     else{avEl.textContent=g.name?g.name[0].toUpperCase():'G';}
 
     var titleEl=document.createElement('div');titleEl.style.cssText='font-size:22px;letter-spacing:-0.5px;text-align:center;';
-    titleEl.textContent='"'+g.name+'" is '+(requiredPin?'Protected!':'Public!');
+    titleEl.textContent='"'+g.name+'" is '+(requiredPin?'Protected!':g.isPublic?'Public!':'Private.');
 
     var subEl=document.createElement('div');subEl.style.cssText='font-size:13px;color:#666;text-align:center;';
-    subEl.textContent=(g.memberUids||[]).length+' members · '+(g.isPublic?'Public':'Private');
+    subEl.textContent=(g.memberUids||[]).length+' members · '+(g.isPublic?'Public':'Private')+(requiredPin?' · PIN protected':'');
 
     var pinSection=document.createElement('div');
 
@@ -3353,30 +3361,24 @@ loadSettings();
 // Auto-open profile from URL hash e.g. #@username
 (function(){
     var hash=window.location.hash;
-    // Group link: #group-name-id
-    var gm=hash.match(/^#group-.+-([a-zA-Z0-9]+)$/);
+    // Group link: #group-slug-number  e.g. #group-my-group-1
+    var gm=hash.match(/^#group-(.+)-(\d+)$/);
     if(gm){
-        var gid=gm[1];
+        var slug=gm[1];
+        var idx=parseInt(gm[2]);
         var tries=0;
         var interval=setInterval(async function(){
             tries++;if(tries>40){clearInterval(interval);return;}
             if(!currentUser)return;
             clearInterval(interval);
-            var gdoc=await db.collection('groups').doc(gid).get();
-            if(!gdoc.exists){showGroupLinkError('Group not found.');return;}
+            // Look up by nameSlug + slugIndex
+            var snap=await db.collection('groups').where('nameSlug','==',slug).where('slugIndex','==',idx).limit(1).get();
+            if(snap.empty){showGroupLinkError('Group "#group-'+slug+'-'+idx+'" not found or was deleted.');return;}
+            var gdoc=snap.docs[0];
             var g=gdoc.data();g._id=gdoc.id;
             if((g.bannedUids||[]).indexOf(currentUser.uid)!==-1){showGroupLinkError('You are banned from "'+g.name+'".');return;}
-            if((g.memberUids||[]).indexOf(currentUser.uid)!==-1){
-                // Already a member — open directly
-                openGroupChat(g);return;
-            }
-            if(g.isPublic){
-                // Public — confirm and join
-                showGroupJoinScreen(g,gdoc,null);
-            } else {
-                // Private — show PIN screen
-                showGroupJoinScreen(g,gdoc,g.groupPin||null);
-            }
+            if((g.memberUids||[]).indexOf(currentUser.uid)!==-1){openGroupChat(g);return;}
+            showGroupJoinScreen(g,gdoc,(!g.isPublic&&g.groupPin)?g.groupPin:null);
         },300);
         return;
     }
