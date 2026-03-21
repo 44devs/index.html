@@ -436,6 +436,8 @@ auth.onAuthStateChanged(async function(user){
         if(data.displayName){
             currentProfile=data;
             showPage('homePage'); loadFriends(); listenForCall(); listenForFriendRequests(); applyTags();
+            updateLastOnline();
+            logActivity(user.uid,'login','Logged in');
         } else {
             document.getElementById('profileUsernameDisplay').textContent='@'+user.email.replace('@usen.app','');
             showPage('setupPage');
@@ -1892,6 +1894,7 @@ async function submitPost(type){
     if(mediaUrl) postData.mediaData=mediaUrl;
     try{
         await db.collection('posts').add(postData);
+        logActivity(currentUser.uid,'post','Posted '+type+(postData.text?' — '+postData.text.slice(0,40):''));
         postMediaData=null;
         if(submitBtn)submitBtn.disabled=false;
         closeModal('socialModal');
@@ -1957,142 +1960,190 @@ async function openAdminPanel(){
     modal.innerHTML='';modal.classList.add('active');
     var hd=document.createElement('div');hd.className='modal-header';hd.innerHTML='<span>[SSettings] Admin</span>';
     var cb=document.createElement('button');cb.className='modal-close';cb.textContent='X';cb.onclick=function(){modal.classList.remove('active');};hd.appendChild(cb);modal.appendChild(hd);
-    var content=document.createElement('div');content.className='modal-content';
 
-    var searchRow=document.createElement('div');searchRow.style.cssText='display:flex;gap:10px;margin-bottom:20px;';
-    var searchInp=document.createElement('input');searchInp.type='text';searchInp.placeholder='@username to manage';
-    searchInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:10px;color:#fff;font-family:'Courier Prime',monospace;font-size:15px;";
-    var searchBtn=document.createElement('button');searchBtn.className='btn';searchBtn.style.cssText='padding:10px 16px;';searchBtn.textContent='Load';
-    var targetArea=document.createElement('div');targetArea.id='adminTargetArea';
+    var tabBar=document.createElement('div');tabBar.style.cssText='display:grid;grid-template-columns:1fr 1fr;border-bottom:3px solid #fff;flex-shrink:0;';
+    var t1=document.createElement('button');t1.style.cssText="padding:12px;background:#fff;color:#000;border:none;border-right:3px solid #fff;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";t1.textContent='Manage User';
+    var t2=document.createElement('button');t2.style.cssText="padding:12px;background:#000;color:#fff;border:none;font-family:'Courier Prime',monospace;font-size:14px;cursor:pointer;";t2.textContent='All Users';
+    tabBar.appendChild(t1);tabBar.appendChild(t2);modal.appendChild(tabBar);
+    var content=document.createElement('div');content.className='modal-content';modal.appendChild(content);
 
-    searchBtn.onclick=async function(){
-        var uname=searchInp.value.trim().replace('@','').toLowerCase();
-        if(!uname)return;
-        var udoc=await db.collection('usernames').doc(uname).get();
-        if(!udoc.exists){showNotification('User not found');return;}
-        var uid=udoc.data().uid;
-        var userDoc=await db.collection('users').doc(uid).get();
-        var data=userDoc.data();
-        targetArea.innerHTML='';
+    function showManageTab(){
+        t1.style.background='#fff';t1.style.color='#000';t2.style.background='#000';t2.style.color='#fff';
+        content.innerHTML='';
+        var searchRow=document.createElement('div');searchRow.style.cssText='display:flex;gap:10px;margin-bottom:20px;';
+        var searchInp=document.createElement('input');searchInp.type='text';searchInp.placeholder='@username to manage';
+        searchInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:10px;color:#fff;font-family:'Courier Prime',monospace;font-size:15px;";
+        var searchBtn=document.createElement('button');searchBtn.className='btn';searchBtn.style.cssText='padding:10px 16px;';searchBtn.textContent='Load';
+        var targetArea=document.createElement('div');
 
-        // User info card
-        var info=document.createElement('div');
-        info.style.cssText='border:3px solid #fff;padding:15px;margin-bottom:15px;';
-        var isBanned=data.banned;
-        info.innerHTML='<div style="font-size:16px;margin-bottom:4px;color:'+(isBanned?'#f55':'#fff')+';">'+data.displayName+(isBanned?' [BANNED]':'')+'</div>'
-            +'<div style="color:#aaa;font-size:13px;">@'+data.username+'</div>'
-            +'<div style="margin-top:8px;">'+renderTags(data.tags||[])+'</div>'
-            +(data.ip?'<div style="font-size:11px;color:#555;margin-top:4px;">IP: '+data.ip+'</div>':'');
-        targetArea.appendChild(info);
+        searchBtn.onclick=async function(){
+            var uname=searchInp.value.trim().replace('@','').toLowerCase();
+            if(!uname)return;
+            var udoc=await db.collection('usernames').doc(uname).get();
+            if(!udoc.exists){showNotification('User not found');return;}
+            var uid=udoc.data().uid;
+            var userDoc=await db.collection('users').doc(uid).get();
+            var data=userDoc.data();
+            targetArea.innerHTML='';
 
-        // ── BAN SECTION ──
-        var banSection=document.createElement('div');
-        banSection.style.cssText='border:3px solid #f55;padding:16px;margin-bottom:14px;';
-        var banTitle=document.createElement('div');banTitle.style.cssText='font-size:14px;color:#f55;margin-bottom:12px;letter-spacing:-0.5px;';banTitle.textContent='BAN CONTROLS';
-        banSection.appendChild(banTitle);
+            // Info card
+            var info=document.createElement('div');info.style.cssText='border:3px solid #fff;padding:15px;margin-bottom:15px;';
+            var isBanned=data.banned;
+            info.innerHTML='<div style="font-size:16px;margin-bottom:4px;color:'+(isBanned?'#f55':'#fff')+';">'+data.displayName+(isBanned?' [BANNED]':'')+'</div>'
+                +'<div style="color:#aaa;font-size:13px;">@'+data.username+'</div>'
+                +'<div style="margin-top:8px;">'+renderTags(data.tags||[])+'</div>'
+                +(data.ip?'<div style="font-size:11px;color:#555;margin-top:4px;">IP: '+data.ip+'</div>':'');
+            targetArea.appendChild(info);
 
-        // Reason input
-        var rLabel=document.createElement('div');rLabel.style.cssText='font-size:12px;color:#666;margin-bottom:4px;';rLabel.textContent='Reason:';
-        var reasonInp=document.createElement('input');reasonInp.type='text';reasonInp.placeholder='e.g. Bad behavior';
-        reasonInp.style.cssText="width:100%;background:#000;border:2px solid #f55;padding:10px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;margin-bottom:10px;";
-        banSection.appendChild(rLabel);banSection.appendChild(reasonInp);
-
-        // Duration picker
-        var dLabel=document.createElement('div');dLabel.style.cssText='font-size:12px;color:#666;margin-bottom:4px;';dLabel.textContent='Duration:';
-        var durSel=document.createElement('select');
-        durSel.style.cssText="width:100%;background:#000;border:2px solid #f55;color:#fff;padding:10px;font-family:'Courier Prime',monospace;font-size:14px;margin-bottom:12px;";
-        var durations=[
-            {label:'1 Hour',ms:3600000},{label:'12 Hours',ms:43200000},
-            {label:'1 Day',ms:86400000},{label:'2 Days',ms:172800000},
-            {label:'3 Days',ms:259200000},{label:'7 Days',ms:604800000},
-            {label:'30 Days',ms:2592000000},{label:'Forever',ms:0}
-        ];
-        durations.forEach(function(d){var o=document.createElement('option');o.value=d.ms;o.textContent=d.label;durSel.appendChild(o);});
-        banSection.appendChild(dLabel);banSection.appendChild(durSel);
-
-        // Ban type buttons row
-        var banBtnRow=document.createElement('div');banBtnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
-
-        async function doBan(banType){
-            var reason=reasonInp.value.trim()||'No reason given.';
-            var durMs=parseInt(durSel.value);
-            var durLabel=durSel.options[durSel.selectedIndex].text;
-            var expiry=durMs===0?'forever':Date.now()+durMs;
-            var update={banned:true,banReason:reason,banType:banType,banExpiry:expiry,banDurationLabel:durLabel,displayName:'[User Has Been Banned.]'};
-            await db.collection('users').doc(uid).update(update);
-            // Update display name color flag
-            if(banType==='ipban'&&data.ip){
-                var ipKey='ip_'+data.ip.replace(/\./g,'_');
-                await db.collection('bans').doc(ipKey).set({ip:data.ip,uid:uid,reason:reason,expiry:expiry===0?'forever':Date.now()+44*86400000,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+            // Ban section
+            var banSec=document.createElement('div');banSec.style.cssText='border:3px solid #f55;padding:16px;margin-bottom:14px;';
+            banSec.innerHTML='<div style="font-size:14px;color:#f55;margin-bottom:10px;">BAN CONTROLS</div>';
+            var reasonInp=document.createElement('input');reasonInp.type='text';reasonInp.placeholder='Reason...';
+            reasonInp.style.cssText="width:100%;background:#000;border:2px solid #f55;padding:10px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;margin-bottom:10px;";
+            banSec.appendChild(reasonInp);
+            var durSel=document.createElement('select');
+            durSel.style.cssText="width:100%;background:#000;border:2px solid #f55;color:#fff;padding:10px;font-family:'Courier Prime',monospace;font-size:14px;margin-bottom:12px;";
+            [{l:'1 Hour',ms:3600000},{l:'12 Hours',ms:43200000},{l:'1 Day',ms:86400000},{l:'2 Days',ms:172800000},{l:'3 Days',ms:259200000},{l:'7 Days',ms:604800000},{l:'30 Days',ms:2592000000},{l:'Forever',ms:0}].forEach(function(d){var o=document.createElement('option');o.value=d.ms;o.textContent=d.l;durSel.appendChild(o);});
+            banSec.appendChild(durSel);
+            var banBtnRow=document.createElement('div');banBtnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+            async function doBan(banType){
+                var reason=reasonInp.value.trim()||'No reason given.';
+                var durMs=parseInt(durSel.value);
+                var durLabel=durSel.options[durSel.selectedIndex].text;
+                var expiry=durMs===0?'forever':Date.now()+durMs;
+                await db.collection('users').doc(uid).update({banned:true,banReason:reason,banType:banType,banExpiry:expiry,banDurationLabel:durLabel,displayName:'[User Has Been Banned.]'});
+                if(banType==='ipban'&&data.ip){await db.collection('bans').doc('ip_'+data.ip.replace(/\./g,'_')).set({ip:data.ip,uid:uid,reason:reason,expiry:Date.now()+44*86400000,createdAt:firebase.firestore.FieldValue.serverTimestamp()});}
+                if(banType==='deviceban'&&data.deviceFingerprint){await db.collection('bans').doc('device_'+data.deviceFingerprint).set({fp:data.deviceFingerprint,uid:uid,reason:reason,expiry:'forever',createdAt:firebase.firestore.FieldValue.serverTimestamp()});}
+                logActivity(uid,'banned','Banned ('+banType+'): '+reason);
+                showNotification('@'+uname+' banned.');
             }
-            if(banType==='deviceban'&&data.deviceFingerprint){
-                await db.collection('bans').doc('device_'+data.deviceFingerprint).set({fp:data.deviceFingerprint,uid:uid,reason:reason,expiry:'forever',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-            }
-            info.querySelector('div:first-child').style.color='#f55';
-            info.querySelector('div:first-child').textContent='[User Has Been Banned.] @'+data.username;
-            showNotification('@'+uname+' banned ('+banType+').');
-        }
+            [{label:'Account Ban',type:'ban',color:'#fa0'},{label:'IP Ban (44d)',type:'ipban',color:'#f55'},{label:'Device Ban',type:'deviceban',color:'#f00'}].forEach(function(bt){
+                var btn=document.createElement('button');btn.className='btn';
+                btn.style.cssText='flex:1;padding:10px 6px;font-size:12px;border-color:'+bt.color+';color:'+bt.color+';';
+                btn.textContent=bt.label;btn.onclick=function(){doBan(bt.type);};banBtnRow.appendChild(btn);
+            });
+            banSec.appendChild(banBtnRow);
+            var unbanBtn=document.createElement('button');unbanBtn.className='btn';
+            unbanBtn.style.cssText='width:100%;margin-top:8px;padding:10px;border-color:#5f5;color:#5f5;';unbanBtn.textContent='Unban (All Types)';
+            unbanBtn.onclick=async function(){
+                await db.collection('users').doc(uid).update({banned:false,banReason:null,banType:null,banExpiry:null,banDurationLabel:null,displayName:data.username});
+                if(data.ip){await db.collection('bans').doc('ip_'+data.ip.replace(/\./g,'_')).delete().catch(function(){});}
+                if(data.deviceFingerprint){await db.collection('bans').doc('device_'+data.deviceFingerprint).delete().catch(function(){});}
+                showNotification('@'+uname+' unbanned.');
+            };
+            banSec.appendChild(unbanBtn);targetArea.appendChild(banSec);
 
-        var banTypes=[
-            {label:'Account Ban',type:'ban',color:'#fa0'},
-            {label:'IP Ban (44d)',type:'ipban',color:'#f55'},
-            {label:'Device Ban (Forever)',type:'deviceban',color:'#f00'}
-        ];
-        banTypes.forEach(function(bt){
-            var btn=document.createElement('button');btn.className='btn';
-            btn.style.cssText='flex:1;padding:10px 6px;font-size:12px;border-color:'+bt.color+';color:'+bt.color+';';
-            btn.textContent=bt.label;
-            btn.onclick=function(){doBan(bt.type);};
-            banBtnRow.appendChild(btn);
-        });
-        banSection.appendChild(banBtnRow);
+            // Tags
+            var tagRow=document.createElement('div');tagRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;';
+            var tagInp=document.createElement('input');tagInp.type='text';tagInp.placeholder='Tag e.g. [Dev]';
+            tagInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
+            var aTagBtn=document.createElement('button');aTagBtn.className='btn';aTagBtn.style.cssText='padding:8px 14px;';aTagBtn.textContent='+Tag';
+            aTagBtn.onclick=async function(){var tag=tagInp.value.trim();if(!tag)return;var tags=data.tags||[];if(tags.indexOf(tag)===-1)tags.push(tag);await db.collection('users').doc(uid).update({tags:tags});data.tags=tags;info.querySelectorAll('div')[2].innerHTML=renderTags(tags);showNotification('Tag added.');tagInp.value='';};
+            var rTagBtn=document.createElement('button');rTagBtn.className='btn';rTagBtn.style.cssText='padding:8px 14px;border-color:#f55;color:#f55;';rTagBtn.textContent='-Tag';
+            rTagBtn.onclick=async function(){var tag=tagInp.value.trim();if(!tag)return;var tags=(data.tags||[]).filter(function(t){return t!==tag;});await db.collection('users').doc(uid).update({tags:tags});data.tags=tags;info.querySelectorAll('div')[2].innerHTML=renderTags(tags);showNotification('Tag removed.');tagInp.value='';};
+            tagRow.appendChild(tagInp);tagRow.appendChild(aTagBtn);tagRow.appendChild(rTagBtn);targetArea.appendChild(tagRow);
 
-        // Unban button
-        var unbanBtn=document.createElement('button');unbanBtn.className='btn';
-        unbanBtn.style.cssText='width:100%;margin-top:8px;padding:10px;border-color:#5f5;color:#5f5;';
-        unbanBtn.textContent='Unban (All Types)';
-        unbanBtn.onclick=async function(){
-            await db.collection('users').doc(uid).update({banned:false,banReason:null,banType:null,banExpiry:null,banDurationLabel:null,displayName:data.username});
-            if(data.ip){await db.collection('bans').doc('ip_'+data.ip.replace(/\./g,'_')).delete().catch(function(){});}
-            if(data.deviceFingerprint){await db.collection('bans').doc('device_'+data.deviceFingerprint).delete().catch(function(){});}
-            info.querySelector('div:first-child').style.color='#fff';
-            info.querySelector('div:first-child').textContent=data.username;
-            showNotification('@'+uname+' unbanned.');
+            // Followers override
+            var fRow=document.createElement('div');fRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;';
+            var fInp=document.createElement('input');fInp.type='number';fInp.placeholder='Follower override';
+            fInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
+            var fBtn=document.createElement('button');fBtn.className='btn';fBtn.style.cssText='padding:8px 14px;';fBtn.textContent='Set';
+            fBtn.onclick=async function(){var n=parseInt(fInp.value);if(isNaN(n))return;await db.collection('users').doc(uid).update({followerOverride:n});showNotification('Set to '+n);};
+            fRow.appendChild(fInp);fRow.appendChild(fBtn);targetArea.appendChild(fRow);
+
+            // Rename
+            var rnRow=document.createElement('div');rnRow.style.cssText='display:flex;gap:8px;margin-bottom:16px;';
+            var rnInp=document.createElement('input');rnInp.type='text';rnInp.placeholder='New display name';
+            rnInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
+            var rnBtn=document.createElement('button');rnBtn.className='btn';rnBtn.style.cssText='padding:8px 14px;';rnBtn.textContent='Rename';
+            rnBtn.onclick=async function(){var n=rnInp.value.trim();if(!n)return;await db.collection('users').doc(uid).update({displayName:n});showNotification('Renamed.');};
+            rnRow.appendChild(rnInp);rnRow.appendChild(rnBtn);targetArea.appendChild(rnRow);
+
+            // Activity log
+            var aTitle=document.createElement('div');aTitle.style.cssText='font-size:14px;border-top:2px solid #333;padding-top:10px;margin-bottom:8px;';aTitle.textContent='Activity Log';targetArea.appendChild(aTitle);
+            var aList=document.createElement('div');aList.innerHTML='<div style="color:#666;font-size:13px;">Loading...</div>';targetArea.appendChild(aList);
+            db.collection('activityLog').where('uid','==',uid).orderBy('timestamp','desc').limit(30).get().then(function(s){
+                aList.innerHTML='';
+                if(s.empty){aList.innerHTML='<div style="color:#666;font-size:13px;">No activity yet.</div>';return;}
+                s.forEach(function(d){
+                    var a=d.data();var r=document.createElement('div');r.style.cssText='font-size:12px;padding:5px 0;border-bottom:1px solid #222;display:flex;gap:8px;';
+                    var t=document.createElement('span');t.style.color='#555';t.textContent=formatTime(a.timestamp);
+                    var ac=document.createElement('span');ac.style.color='#aaa';ac.textContent=a.action||'';
+                    r.appendChild(t);r.appendChild(ac);aList.appendChild(r);
+                });
+            }).catch(function(){aList.innerHTML='<div style="color:#666;font-size:13px;">Unavailable (needs index).</div>';});
         };
-        banSection.appendChild(unbanBtn);
-        targetArea.appendChild(banSection);
 
-        // Tag management
-        var tagRow=document.createElement('div');tagRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;';
-        var tagInp=document.createElement('input');tagInp.type='text';tagInp.placeholder='Tag (e.g. [Dev])';
-        tagInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
-        var addTagBtn=document.createElement('button');addTagBtn.className='btn';addTagBtn.style.cssText='padding:8px 14px;';addTagBtn.textContent='+Tag';
-        addTagBtn.onclick=async function(){var tag=tagInp.value.trim();if(!tag)return;var tags=data.tags||[];if(tags.indexOf(tag)===-1)tags.push(tag);await db.collection('users').doc(uid).update({tags:tags});data.tags=tags;info.querySelector('div:nth-child(3)').innerHTML=renderTags(tags);showNotification('Tag added.');tagInp.value='';};
-        var remTagBtn=document.createElement('button');remTagBtn.className='btn';remTagBtn.style.cssText='padding:8px 14px;border-color:#f55;color:#f55;';remTagBtn.textContent='-Tag';
-        remTagBtn.onclick=async function(){var tag=tagInp.value.trim();if(!tag)return;var tags=(data.tags||[]).filter(function(t){return t!==tag;});await db.collection('users').doc(uid).update({tags:tags});data.tags=tags;info.querySelector('div:nth-child(3)').innerHTML=renderTags(tags);showNotification('Tag removed.');tagInp.value='';};
-        tagRow.appendChild(tagInp);tagRow.appendChild(addTagBtn);tagRow.appendChild(remTagBtn);targetArea.appendChild(tagRow);
+        searchRow.appendChild(searchInp);searchRow.appendChild(searchBtn);
+        content.appendChild(searchRow);content.appendChild(targetArea);
+    }
 
-        // Followers override
-        var fRow=document.createElement('div');fRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;';
-        var fInp=document.createElement('input');fInp.type='number';fInp.placeholder='Follower count override';
-        fInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
-        var setFBtn=document.createElement('button');setFBtn.className='btn';setFBtn.style.cssText='padding:8px 14px;';setFBtn.textContent='Set';
-        setFBtn.onclick=async function(){var n=parseInt(fInp.value);if(isNaN(n))return;await db.collection('users').doc(uid).update({followerOverride:n});showNotification('Followers set to '+n);};
-        fRow.appendChild(fInp);fRow.appendChild(setFBtn);targetArea.appendChild(fRow);
+    async function showUsersTab(){
+        t1.style.background='#000';t1.style.color='#fff';t2.style.background='#fff';t2.style.color='#000';
+        content.innerHTML='<div style="color:#666;padding:20px;text-align:center;">Loading users...</div>';
+        var snap=await db.collection('users').orderBy('username').limit(200).get();
+        content.innerHTML='';
+        var topRow=document.createElement('div');topRow.style.cssText='display:flex;gap:8px;margin-bottom:12px;align-items:center;';
+        var filterInp=document.createElement('input');filterInp.type='text';filterInp.placeholder='Filter by @username...';
+        filterInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:10px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
+        var cntEl=document.createElement('div');cntEl.style.cssText='font-size:12px;color:#666;padding:10px;white-space:nowrap;';cntEl.textContent=snap.size+' users';
+        topRow.appendChild(filterInp);topRow.appendChild(cntEl);content.appendChild(topRow);
+        var list=document.createElement('div');content.appendChild(list);
+        var allRows=[];
+        snap.forEach(function(doc){
+            var u=doc.data();u._uid=doc.id;
+            var row=document.createElement('div');row.style.cssText='border-bottom:2px solid #222;padding:12px 0;';
+            var top2=document.createElement('div');top2.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px;';
+            var nameEl=document.createElement('span');nameEl.style.cssText='font-size:15px;color:'+(u.banned?'#f55':'#fff')+';flex:1;';
+            nameEl.textContent='@'+(u.username||'?')+(u.banned?' [BANNED]':'')+' — '+(u.displayName||'');
+            var onlineEl=document.createElement('span');onlineEl.style.cssText='font-size:12px;color:#666;white-space:nowrap;';
+            onlineEl.textContent=u.lastOnline?formatTime(u.lastOnline):'never';
+            top2.appendChild(nameEl);top2.appendChild(onlineEl);
 
-        // Rename
-        var rnRow=document.createElement('div');rnRow.style.cssText='display:flex;gap:8px;';
-        var rnInp=document.createElement('input');rnInp.type='text';rnInp.placeholder='New display name';
-        rnInp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:8px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
-        var rnBtn=document.createElement('button');rnBtn.className='btn';rnBtn.style.cssText='padding:8px 14px;';rnBtn.textContent='Rename';
-        rnBtn.onclick=async function(){var n=rnInp.value.trim();if(!n)return;await db.collection('users').doc(uid).update({displayName:n});showNotification('Renamed to '+n);};
-        rnRow.appendChild(rnInp);rnRow.appendChild(rnBtn);targetArea.appendChild(rnRow);
-    };
+            var meta=document.createElement('div');meta.style.cssText='font-size:12px;color:#555;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:10px;';
+            if(u.ip){
+                var ipS=document.createElement('span');ipS.textContent='IP: '+u.ip;meta.appendChild(ipS);
+                fetch('https://ipapi.co/'+u.ip+'/json/').then(function(r){return r.json();}).then(function(geo){
+                    if(geo&&geo.city){var loc=document.createElement('span');loc.style.color='#666';loc.textContent='📍 '+geo.city+(geo.country_name?', '+geo.country_name:'')+(geo.org?' ('+geo.org+')':'');meta.appendChild(loc);}
+                }).catch(function(){});
+            }
 
-    searchRow.appendChild(searchInp);searchRow.appendChild(searchBtn);
-    content.appendChild(searchRow);content.appendChild(targetArea);
-    modal.appendChild(content);
+            var acts=document.createElement('div');acts.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+            var manBtn=document.createElement('button');manBtn.className='btn';manBtn.style.cssText='padding:4px 10px;font-size:11px;';manBtn.textContent='Manage';
+            manBtn.onclick=function(){
+                showManageTab();
+                setTimeout(function(){
+                    var si=content.querySelector('input[placeholder="@username to manage"]');
+                    var sb=content.querySelector('button');
+                    if(si&&sb){si.value=u.username||'';sb.click();}
+                },150);
+            };
+            var logBtn=document.createElement('button');logBtn.className='btn';logBtn.style.cssText='padding:4px 10px;font-size:11px;border-color:#aaa;color:#aaa;';logBtn.textContent='Log';
+            var logArea=document.createElement('div');logArea.style.cssText='display:none;font-size:12px;margin-top:8px;background:#111;padding:8px;';
+            logBtn.onclick=async function(){
+                if(logArea.style.display!=='none'){logArea.style.display='none';return;}
+                logArea.style.display='block';logArea.innerHTML='Loading...';
+                var as2=await db.collection('activityLog').where('uid','==',u._uid).orderBy('timestamp','desc').limit(15).get().catch(function(){return null;});
+                logArea.innerHTML='';
+                if(!as2||as2.empty){logArea.textContent='No activity.';return;}
+                as2.forEach(function(d){
+                    var a=d.data();var r=document.createElement('div');r.style.cssText='padding:3px 0;border-bottom:1px solid #222;font-size:11px;color:#aaa;';
+                    r.textContent=formatTime(a.timestamp)+'  '+(a.action||'');logArea.appendChild(r);
+                });
+            };
+            acts.appendChild(manBtn);acts.appendChild(logBtn);
+            row.appendChild(top2);row.appendChild(meta);row.appendChild(acts);row.appendChild(logArea);
+            list.appendChild(row);
+            allRows.push({row:row,un:u.username||''});
+        });
+        filterInp.oninput=function(){var q=filterInp.value.toLowerCase();allRows.forEach(function(r){r.row.style.display=r.un.includes(q)?'':'none';});};
+    }
+
+    t1.onclick=showManageTab;t2.onclick=showUsersTab;
+    showManageTab();
 }
+
+
 
 
 // ── SETTINGS ─────────────────────────────────────────────
@@ -3337,6 +3388,18 @@ function showGroupJoinScreen(g,gdoc,requiredPin){
 
     box.appendChild(avEl);box.appendChild(titleEl);box.appendChild(subEl);box.appendChild(pinSection);
     overlay.appendChild(box);document.body.appendChild(overlay);
+}
+
+// ── ACTIVITY LOGGING ─────────────────────────────────────
+function logActivity(uid,type,action){
+    db.collection('activityLog').add({
+        uid:uid||currentUser.uid,type:type,action:action,
+        timestamp:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){});
+}
+function updateLastOnline(){
+    if(!currentUser)return;
+    db.collection('users').doc(currentUser.uid).update({lastOnline:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
 }
 
 function openMenuModal(){document.getElementById('menuModal').classList.add('active');}
