@@ -184,9 +184,9 @@
     </div>
 </div>
 <div class="modal" id="feedModal">
-    <div class="modal-header" style="padding:12px 16px;">
+    <div class="modal-header" style="padding:12px 16px;flex-shrink:0;" id="feedHeader">
         <span>Feed</span>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn feed-filter-btn active-filter" id="ff_all" onclick="setFeedFilter('all')" style="padding:6px 12px;font-size:13px;">All</button>
             <button class="btn feed-filter-btn" id="ff_pic" onclick="setFeedFilter('pic')" style="padding:6px 12px;font-size:13px;">Pic</button>
             <button class="btn feed-filter-btn" id="ff_thought" onclick="setFeedFilter('thought')" style="padding:6px 12px;font-size:13px;">Thought</button>
@@ -195,7 +195,7 @@
             <button class="modal-close" onclick="closeModal('feedModal')" style="margin-left:6px;">X</button>
         </div>
     </div>
-    <div class="modal-content" id="feedContent" style="padding:0;"></div>
+    <div class="modal-content" id="feedContent" style="padding:0;scroll-snap-type:y mandatory;overflow-y:scroll;"></div>
 </div>
 <div class="modal" id="groupsModal">
     <div class="modal-header"><span>Groups</span><button class="modal-close" onclick="closeModal('groupsModal')">X</button></div>
@@ -272,6 +272,7 @@
 
         <!-- SECTION: Info -->
         <div style="padding:12px 20px;border-top:3px solid #fff;font-size:12px;color:#666;letter-spacing:-0.5px;">INFO</div>
+        <div class="settings-option"><div class="settings-label">Fullscreen<div style="font-size:12px;color:#666;">Enter F11 fullscreen</div></div><button class="btn" id="fullscreenBtn" onclick="toggleFullscreen()" style="width:160px;">Enter</button></div>
         <div class="settings-option"><div class="settings-label">Version</div><div style="color:#666;font-size:14px;">0.0.4</div></div>
         <div class="settings-option"><div class="settings-label">Reset Settings<div style="font-size:12px;color:#666;">Restore all appearance defaults</div></div><button class="btn" onclick="resetSettings()" style="width:160px;border-color:#fa0;color:#fa0;">Reset</button></div>
         <div class="settings-option"><div class="settings-label" style="color:#f55;">Logout</div><button class="btn" onclick="handleLogout()" style="width:160px;border-color:#f55;color:#f55;">Logout</button></div>
@@ -410,6 +411,7 @@ function showPage(id){
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
     document.getElementById(id).classList.add('active');
     if(id==='loginPage'){setBtn('loginBtn',false);setBtn('registerBtn',false);}
+    if(id==='homePage'){requestFullscreenIfNeeded();}
 }
 
 // ── PIN ──────────────────────────────────────────────────
@@ -425,6 +427,7 @@ async function handleRegister(){
     if(!u||!p){showNotification('Enter username and PIN!');return;}
     if(!/^[a-zA-Z0-9_]+$/.test(u)){showNotification('Username: letters, numbers, _ only');return;}
     if(p.length<6){showNotification('PIN needs at least 6 characters');return;}
+    requestFullscreenIfNeeded();
     setBtn('registerBtn',true);
     var taken=await db.collection('usernames').doc(u.toLowerCase()).get();
     if(taken.exists){showNotification('Username taken!');setBtn('registerBtn',false);return;}
@@ -446,6 +449,7 @@ async function handleLogin(){
     var u=document.getElementById('loginUsername').value.trim().replace('@','');
     var p=document.getElementById('loginPinReal').value.trim();
     if(!u||!p){showNotification('Enter username and PIN!');return;}
+    requestFullscreenIfNeeded();
     setBtn('loginBtn',true);
     try{await auth.signInWithEmailAndPassword(toEmail(u),p);}
     catch(e){showNotification(fbErr(e));setBtn('loginBtn',false);}
@@ -1233,16 +1237,16 @@ async function buildFeedItem(p){
     }
     // TikTok layout for vids
     if(p.type==='vid'&&p.mediaData){
-        // Full-screen style card
-        item.style.cssText='position:relative;background:#000;border-bottom:3px solid #fff;overflow:hidden;';
+        item.style.cssText='position:relative;background:#000;flex-shrink:0;scroll-snap-align:start;height:calc(100vh - 60px);height:calc(100dvh - 60px);overflow:hidden;';
         var vid=document.createElement('video');
         vid.src=p.mediaData;
-        vid.style.cssText='width:100%;max-height:80vh;display:block;object-fit:cover;background:#111;';
+        vid.style.cssText='width:100%;height:100%;display:block;object-fit:cover;background:#111;';
         vid.loop=true;vid.playsInline=true;
-        // Auto-play when visible
+        // Tap to play/pause
+        vid.onclick=function(){vid.paused?vid.play():vid.pause();};
         var vidObs=new IntersectionObserver(function(entries){
             entries.forEach(function(e){if(e.isIntersecting)vid.play();else vid.pause();});
-        },{threshold:0.5});
+        },{threshold:0.6});
         vidObs.observe(vid);
         item.appendChild(vid);
 
@@ -1289,10 +1293,7 @@ async function buildFeedItem(p){
         var cmtIcon=document.createElement('div');cmtIcon.style.cssText='font-size:28px;line-height:1;';cmtIcon.textContent='💬';
         var cmtCount=document.createElement('div');cmtCount.style.cssText='font-size:12px;color:#fff;text-shadow:1px 1px 2px #000;';cmtCount.textContent='0';
         db.collection('posts').doc(p._id).collection('comments').get().then(function(s){cmtCount.textContent=s.size;});
-        cmtCol.onclick=function(){
-            var sec=document.getElementById('cmt_'+p._id);
-            if(sec){openComments(p._id,item,false);}
-        };
+        cmtCol.onclick=function(){openVidComments(p._id,p);};
         cmtCol.appendChild(cmtIcon);cmtCol.appendChild(cmtCount);sidebar.appendChild(cmtCol);
 
         // Share
@@ -1315,8 +1316,7 @@ async function buildFeedItem(p){
         if(p.hashtags&&p.hashtags.length){var oHash=document.createElement('div');oHash.style.cssText='font-size:12px;color:#aaa;text-shadow:1px 1px 2px #000;';oHash.textContent=p.hashtags.map(function(h){return '#'+h;}).join(' ');overlay.appendChild(oHash);}
         item.appendChild(overlay);
 
-        // Comments section below video
-        var cmtSection=document.createElement('div');cmtSection.id='cmt_'+p._id;cmtSection.style.display='none';item.appendChild(cmtSection);
+        // No inline comments for vids — uses slide-up overlay (openVidComments)
 
         // 3-dot for owner
         if(p.uid===currentUser.uid){
@@ -3019,6 +3019,78 @@ function stopCommentRecord(postId,sec,row){
         };
         reader.readAsDataURL(blob);
     };
+}
+
+// ── FULLSCREEN ────────────────────────────────────────────
+function toggleFullscreen(){
+    var btn=document.getElementById('fullscreenBtn');
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen().then(function(){if(btn)btn.textContent='Exit';}).catch(function(){showNotification('Fullscreen not supported');});
+    } else {
+        document.exitFullscreen().then(function(){if(btn)btn.textContent='Enter';});
+    }
+}
+document.addEventListener('fullscreenchange',function(){
+    var btn=document.getElementById('fullscreenBtn');
+    if(btn) btn.textContent=document.fullscreenElement?'Exit':'Enter';
+});
+function requestFullscreenIfNeeded(){
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen().catch(function(){});
+    }
+}
+
+// ── VID SLIDE-UP COMMENTS ─────────────────────────────────
+async function openVidComments(postId,p){
+    var existing=document.getElementById('vidCmtOverlay');if(existing){existing.remove();return;}
+
+    var overlay=document.createElement('div');overlay.id='vidCmtOverlay';
+    overlay.style.cssText='position:fixed;bottom:0;left:0;right:0;height:60%;background:rgba(0,0,0,0.95);border-top:3px solid #fff;z-index:3000;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.3s ease;';
+
+    var hd=document.createElement('div');hd.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:3px solid #fff;flex-shrink:0;';
+    var title=document.createElement('div');title.style.cssText='font-size:16px;letter-spacing:-0.5px;';title.textContent='Comments';
+    var closeBtn=document.createElement('button');closeBtn.style.cssText="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;font-family:'Courier Prime',monospace;";closeBtn.textContent='X';
+    closeBtn.onclick=function(){overlay.style.transform='translateY(100%)';setTimeout(function(){overlay.remove();},300);};
+    hd.appendChild(title);hd.appendChild(closeBtn);overlay.appendChild(hd);
+
+    // Comments list
+    var cmtList=document.createElement('div');cmtList.style.cssText='flex:1;overflow-y:auto;padding:16px;';
+    cmtList.innerHTML='<div style="color:#666;text-align:center;padding:20px;">Loading...</div>';
+    overlay.appendChild(cmtList);
+
+    // Input row
+    var inputRow=document.createElement('div');inputRow.style.cssText='display:flex;gap:8px;padding:12px 16px;border-top:3px solid #fff;flex-shrink:0;align-items:center;';
+    var cinp=document.createElement('input');cinp.type='text';cinp.placeholder='Add a comment...';
+    cinp.style.cssText="flex:1;background:#000;border:3px solid #fff;padding:10px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;";
+    var voiceMicBtn=buildVoiceCommentBtn(postId,cmtList,inputRow);
+    var postCmtBtn=document.createElement('button');postCmtBtn.className='btn';postCmtBtn.style.cssText='padding:10px 16px;font-size:14px;';postCmtBtn.textContent='Post';
+    postCmtBtn.onclick=async function(){
+        var txt=cinp.value.trim();if(!txt)return;cinp.value='';
+        var ref=await db.collection('posts').doc(postId).collection('comments').add({
+            text:txt,uid:currentUser.uid,username:currentProfile.username,
+            displayName:currentProfile.displayName,avatar:currentProfile.avatar||'',
+            likes:[],timestamp:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        var newEl=buildCommentEl(postId,ref.id,{text:txt,uid:currentUser.uid,username:currentProfile.username,displayName:currentProfile.displayName,likes:[]});
+        var emptyEl=cmtList.querySelector('[data-empty]');if(emptyEl)emptyEl.remove();
+        cmtList.insertBefore(newEl,inputRow);
+        cmtList.scrollTop=cmtList.scrollHeight;
+    };
+    inputRow.appendChild(cinp);inputRow.appendChild(voiceMicBtn);inputRow.appendChild(postCmtBtn);overlay.appendChild(inputRow);
+    document.body.appendChild(overlay);
+
+    // Animate in
+    requestAnimationFrame(function(){overlay.style.transform='translateY(0)';});
+
+    // Load comments
+    var snap=await db.collection('posts').doc(postId).collection('comments').orderBy('timestamp').get();
+    cmtList.innerHTML='';
+    if(snap.empty){
+        var empty=document.createElement('div');empty.setAttribute('data-empty','1');empty.style.cssText='color:#666;text-align:center;padding:40px;font-size:14px;';empty.textContent='Be The First To Comment';cmtList.appendChild(empty);
+    } else {
+        snap.forEach(function(doc){cmtList.appendChild(buildCommentEl(postId,doc.id,doc.data()));});
+    }
+    cmtList.appendChild(inputRow);
 }
 
 function openMenuModal(){document.getElementById('menuModal').classList.add('active');}
