@@ -371,7 +371,8 @@ var localStream=null,peerConnection=null;
 var callStartTime=null,callTimerInterval=null;
 var isRecording=false,mediaRecorder=null,audioChunks=[];
 var pinStates={},pinVisible=false;
-var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+function formatNum(n){n=Number(n)||0;if(n>=1e9)return(n/1e9).toFixed(n%1e9===0?0:1).replace(/\.0$/,'')+' B';if(n>=1e6)return(n/1e6).toFixed(n%1e6===0?0:1).replace(/\.0$/,'')+' M';if(n>=1e3)return(n/1e3).toFixed(n%1e3===0?0:1).replace(/\.0$/,'')+' K';return n.toString();}
+var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.relay.metered.ca:80'},{urls:'turn:global.relay.metered.ca:80',username:'83eebabf8b4cce9d5dbcb649',credential:'2D+yFIs+2yCZFbrH'},{urls:'turn:global.relay.metered.ca:80?transport=tcp',username:'83eebabf8b4cce9d5dbcb649',credential:'2D+yFIs+2yCZFbrH'},{urls:'turn:global.relay.metered.ca:443',username:'83eebabf8b4cce9d5dbcb649',credential:'2D+yFIs+2yCZFbrH'},{urls:'turns:global.relay.metered.ca:443?transport=tcp',username:'83eebabf8b4cce9d5dbcb649',credential:'2D+yFIs+2yCZFbrH'}]};
 
 // ── TAGS ─────────────────────────────────────────────────
 var SPECIAL_TAGS={
@@ -1203,9 +1204,10 @@ async function viewProfile(friend){
             var pvRow=document.createElement('div');pvRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;';
             var pvBal=document.createElement('div');pvBal.style.cssText='flex:1;background:#111;padding:10px;text-align:center;min-width:90px;';
             var _pvC=pvUserData.coins||0;
-            var _pvE=(_pvC*0.001).toFixed(2);
-            pvBal.innerHTML='<div style="font-size:20px;font-weight:700;color:#ffbb00;">'+_pvC.toLocaleString()+' PV</div>'
-              +'<div style="font-size:12px;color:#0f0;margin-top:2px;">~'+_pvE+' EUR</div>'
+            var _pvE=(_pvC*0.001);
+            var _pvEStr=_pvE>=1000?formatNum(Math.round(_pvE))+' EUR':_pvE.toFixed(2)+' EUR';
+            pvBal.innerHTML='<div style="font-size:20px;font-weight:700;color:#ffbb00;">'+formatNum(_pvC)+' PV</div>'
+              +'<div style="font-size:12px;color:#0f0;margin-top:2px;">~'+_pvEStr+'</div>'
               +'<div style="font-size:11px;color:#666;margin-top:1px;">Balance</div>';
             pvRow.appendChild(pvBal);
             if(lbRank!==null){
