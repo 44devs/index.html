@@ -230,6 +230,32 @@
         <div class="settings-option"><div class="settings-label">Friend Requests</div><button class="btn s-toggle" id="tog_friendRequests" onclick="toggleSetting('friendRequests')" style="width:80px;">ON</button></div>
         <div class="settings-option"><div class="settings-label">Friends List Private<div style="font-size:12px;color:#666;">Hide your friends from your profile</div></div><button class="btn s-toggle" id="tog_friendsListPrivate" onclick="toggleSetting('friendsListPrivate')" style="width:80px;">OFF</button></div>
         <div class="settings-option"><div class="settings-label">Blocked List</div><button class="btn" onclick="openBlockedList()" style="width:160px;">View</button></div>
+
+        <!-- SECTION: Connect PixelValue -->
+        <div style="padding:12px 20px;border-bottom:3px solid #fff;border-top:3px solid #fff;font-size:12px;color:#666;letter-spacing:-0.5px;">PIXELVALUE</div>
+        <div class="settings-option" style="flex-direction:column;align-items:flex-start;gap:12px;">
+            <div class="settings-label">Connect PixelValue Account
+                <div style="font-size:12px;color:#666;">Link your PV account to sync rewards &amp; show on leaderboard.</div>
+            </div>
+            <div id="pv-connect-status" style="width:100%;"></div>
+        </div>
+        <div id="pv-connect-form" style="display:none;padding:16px 20px;border-bottom:3px solid #fff;">
+            <div style="font-size:13px;color:#aaa;margin-bottom:14px;line-height:1.8;">Get your link code from <strong style="color:#fff;">PixelValue &rarr; Connect Accounts</strong>, then paste it below along with your link password.</div>
+            <div style="margin-bottom:10px;">
+                <div style="font-size:11px;color:#666;margin-bottom:6px;">LINK CODE</div>
+                <textarea id="pv-link-code-input" placeholder="Paste your full link code here..." style="width:100%;background:#000;border:3px solid #fff;padding:12px;color:#fff;font-family:'Courier Prime',monospace;font-size:12px;min-height:80px;resize:none;letter-spacing:0.5px;"></textarea>
+            </div>
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px;color:#666;margin-bottom:6px;">LINK PASSWORD</div>
+                <input type="password" id="pv-link-pass-input" placeholder="Your link password..." style="width:100%;background:#000;border:3px solid #fff;padding:12px;color:#fff;font-family:'Courier Prime',monospace;font-size:14px;"/>
+            </div>
+            <div id="pv-link-err" style="color:#f55;font-size:13px;min-height:18px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn" id="pv-link-btn" onclick="submitPVLink()" style="flex:1;">Link Accounts</button>
+                <button class="btn" onclick="document.getElementById('pv-connect-form').style.display='none';" style="width:100px;border-color:#666;color:#666;">Cancel</button>
+            </div>
+        </div>
+
         <div id="adminPanelRow" class="settings-option" style="display:none;"><div class="settings-label" style="color:#ff0;">[SSettings]<div style="font-size:12px;color:#aaa;">Admin Panel</div></div><button class="btn" onclick="openAdminPanel()" style="width:160px;border-color:#ff0;color:#ff0;">Open</button></div>
         <input type="file" id="settingsAvatarInput" accept="image/*" style="display:none;" onchange="handleSettingsAvatar()"/>
 
@@ -2225,6 +2251,7 @@ async function openAdminPanel(){
 // ── SETTINGS ─────────────────────────────────────────────
 function openSettings(){
     document.getElementById('settingsDisplayName').value=currentProfile.displayName||'';
+    setTimeout(renderPVConnectStatus, 150);
     var unEl=document.getElementById('settingsUsernameDisplay');
     if(unEl) unEl.textContent='@'+(currentProfile.username||'');
     // Show admin panel button only for 44devs
@@ -3657,6 +3684,109 @@ window.addEventListener('popstate',function(){
 });
 document.addEventListener('click',function(e){if(!e.target.closest('.bottom-nav')&&!e.target.closest('.menu-modal'))closeMenuModal();});
 addFallingDots();
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  PIXELVALUE CONNECTOR (Usen side)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function pvHash(s){
+    function mix(str){
+        var h1=0xdeadbeef,h2=0x41c6ce57;
+        for(var i=0;i<str.length;i++){var ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+        h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+        h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+        return(4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(16,'0');
+    }
+    var v='pv$'+s+'$pv';
+    for(var i=0;i<8;i++) v=mix(v+s+i);
+    return v;
+}
+
+async function renderPVConnectStatus(){
+    var statusEl=document.getElementById('pv-connect-status');
+    if(!statusEl||!currentUser) return;
+    try{
+        var snap=await db.collection('usen_pv_links').doc(currentUser.uid).get();
+        if(snap.exists&&snap.data().pvUser){
+            var pvUser=snap.data().pvUser;
+            statusEl.innerHTML=
+                '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'+
+                '<div style="background:#111;border:3px solid #0f0;padding:10px 14px;flex:1;">'+
+                '<div style="font-size:11px;color:#666;">LINKED TO</div>'+
+                '<div style="font-size:16px;color:#fff;margin-top:2px;">@'+pvUser+' <span style="color:#0f0;font-size:12px;">&#10003; PixelValue</span></div>'+
+                '</div>'+
+                '<button class="btn" onclick="unlinkPVAccount()" style="border-color:#f55;color:#f55;width:100px;">Unlink</button>'+
+                '</div>';
+            return;
+        }
+    }catch(e){}
+    statusEl.innerHTML='<button class="btn" onclick="document.getElementById(\'pv-connect-form\').style.display=\'block\';document.getElementById(\'pv-link-err\').textContent=\'\';document.getElementById(\'pv-link-code-input\').value=\'\';document.getElementById(\'pv-link-pass-input\').value=\'\';" style="width:100%;">Connect PixelValue</button>';
+}
+
+async function submitPVLink(){
+    var rawCode=document.getElementById('pv-link-code-input').value.trim();
+    var pass=document.getElementById('pv-link-pass-input').value;
+    var errEl=document.getElementById('pv-link-err');
+    var btn=document.getElementById('pv-link-btn');
+    errEl.textContent='';
+    if(!rawCode){errEl.textContent='Paste your link code.';return;}
+    if(!pass){errEl.textContent='Enter your link password.';return;}
+    if(!currentUser||!currentProfile){errEl.textContent='You must be logged in.';return;}
+    var codeKey=rawCode.replace(/\s/g,'');
+    btn.disabled=true; btn.textContent='Linking...';
+    try{
+        var docSnap=await db.collection('pv_links').doc(codeKey).get();
+        if(!docSnap.exists){
+            errEl.textContent='Code not found. Make sure you copied it exactly from PixelValue.';
+            btn.disabled=false; btn.textContent='Link Accounts'; return;
+        }
+        var data=docSnap.data();
+        var myUsen=(currentProfile.username||'').toLowerCase();
+        if(data.usenUser&&data.usenUser.toLowerCase()!==myUsen){
+            errEl.textContent='This code was set up for @'+data.usenUser+', not @'+myUsen+'.';
+            btn.disabled=false; btn.textContent='Link Accounts'; return;
+        }
+        var expectedHash=pvHash(pass+rawCode);
+        if(data.passwordHash!==expectedHash){
+            errEl.textContent='Wrong link password.';
+            document.getElementById('pv-link-pass-input').style.borderColor='#f55';
+            btn.disabled=false; btn.textContent='Link Accounts'; return;
+        }
+        // Mark linked in pv_links
+        await db.collection('pv_links').doc(codeKey).update({
+            linked:true,
+            linkedAt:firebase.firestore.FieldValue.serverTimestamp(),
+            usenUid:currentUser.uid
+        });
+        // Store in usen_pv_links
+        await db.collection('usen_pv_links').doc(currentUser.uid).set({
+            pvUser:data.pvUser,
+            usenUser:myUsen,
+            linkedAt:firebase.firestore.FieldValue.serverTimestamp(),
+            codeKey:codeKey
+        });
+        document.getElementById('pv-connect-form').style.display='none';
+        btn.disabled=false; btn.textContent='Link Accounts';
+        showNotification('Linked! PixelValue @'+data.pvUser+' connected to Usen @'+myUsen);
+        renderPVConnectStatus();
+    }catch(e){
+        errEl.textContent='Error: '+(e.message||'Something went wrong.');
+        btn.disabled=false; btn.textContent='Link Accounts';
+    }
+}
+
+async function unlinkPVAccount(){
+    if(!currentUser) return;
+    try{
+        var snap=await db.collection('usen_pv_links').doc(currentUser.uid).get();
+        if(snap.exists){
+            var codeKey=snap.data().codeKey;
+            await db.collection('usen_pv_links').doc(currentUser.uid).delete();
+            if(codeKey) await db.collection('pv_links').doc(codeKey).update({linked:false,usenUid:null}).catch(function(){});
+        }
+        renderPVConnectStatus();
+        showNotification('PixelValue account unlinked.');
+    }catch(e){ showNotification('Error unlinking. Try again.'); }
+}
 </script>
 </body>
 </html>
