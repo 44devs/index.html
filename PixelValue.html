@@ -367,6 +367,81 @@ body.theme-sunset{--bg:#0d0608;--bg2:#130a0e;--sf:#1a0d12;--sf2:#221018;--sf3:#2
 
 
 
+<!-- BANNED -->
+<div id="banned">
+  <h1>PERMANENTLY BANNED</h1>
+  <p>Cheat software was detected on this device.</p>
+  <p style="color:var(--mu);font-size:12px;margin-top:4px">Contact support if you believe this is an error.</p>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-box">
+    <div class="login-glow"></div>
+    <div class="login-body">
+      <div class="login-logo">PixelValue <span>PV Exchange Platform</span></div>
+      <div class="login-tabs">
+        <button class="ltab active" onclick="lSwitch('in')">Sign In</button>
+        <button class="ltab" onclick="lSwitch('up')">Create Account</button>
+      </div>
+      <div class="lfield"><label>USERNAME</label><input type="text" id="l-user" autocomplete="username" onkeydown="lKey(event)"></div>
+      <div class="lfield"><label>PASSWORD</label><input type="password" id="l-pass" autocomplete="current-password" onkeydown="lKey(event)"></div>
+      <div class="lerr" id="l-err"></div>
+      <button class="lbtn" id="l-btn" onclick="lSubmit()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div id="ticker">
+  <div class="t-brand">PV EXCHANGE</div>
+  <div class="t-scroll"><span class="t-text" id="t-txt"></span></div>
+</div>
+
+<!-- MOBILE HEADER -->
+<div id="mob-hdr">
+  <button id="mob-menu" onclick="toggleSB()">&#9776;</button>
+  <div id="mob-title">PixelValue</div>
+  <div id="mob-bal"></div>
+</div>
+<div id="overlay" onclick="closeSB()"></div>
+
+<!-- SHELL -->
+<div id="shell">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="s-logo"><div class="s-logo-name">PixelValue</div><div class="s-logo-sub">PV EXCHANGE</div></div>
+    <div id="sidebar-xp" style="padding:8px 12px 2px;font-size:10px;color:var(--mu);font-family:'Space Mono',monospace"></div>
+    <div class="s-sec">PLATFORM</div>
+    <button class="nb on" onclick="nav('home',this)">Dashboard</button>
+    <div class="s-div"></div>
+    <div class="s-sec">PROGRESSION</div>
+    <button class="nb" onclick="nav('battlepass',this)">Battle Pass</button>
+    <button class="nb" onclick="nav('tasks',this)">Tasks</button>
+    <button class="nb" onclick="nav('ranks',this)">Ranks</button>
+    <div class="s-div"></div>
+    <div class="s-sec">SOCIAL</div>
+    <button class="nb" onclick="nav('profiles',this)">Profiles</button>
+    <button class="nb" onclick="nav('leaderboard',this)">🏆 Leaderboard</button>
+    <div class="s-div"></div>
+    <div class="s-sec">ACCOUNT</div>
+    <button class="nb" onclick="nav('itemshop',this)">🛒 Item Shop</button>
+    <button class="nb" onclick="nav('connector',this)">🔗 Connect Accounts</button>
+    <button class="nb" onclick="nav('shop',this)">Buy PV</button>
+    <button class="nb" onclick="nav('boosters',this)">Boosters</button>
+    <button class="nb" onclick="nav('redeem',this)">Redeem Code</button>
+    <button class="nb" onclick="nav('daily',this)">Daily Reward</button>
+    <button class="nb" onclick="nav('tos',this)">Terms of Service</button>
+    <button class="nb" onclick="nav('settings',this)">Settings</button>
+    <button class="nb" id="admin-nav-btn" style="display:none;color:#ff0;border-left-color:#ff0" onclick="nav('admin',this)">⚡ Admin Panel</button>
+    <div style="flex:1"></div>
+    <div id="upill"></div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main id="content">
+
     <!-- CONNECTOR -->
     <div class="pg" id="pg-connector">
       <div class="pg-title">🔗 Connect Accounts</div>
@@ -458,80 +533,6 @@ body.theme-sunset{--bg:#0d0608;--bg2:#130a0e;--sf:#1a0d12;--sf2:#221018;--sf3:#2
       </div>
     </div>
 
-<!-- BANNED -->
-<div id="banned">
-  <h1>PERMANENTLY BANNED</h1>
-  <p>Cheat software was detected on this device.</p>
-  <p style="color:var(--mu);font-size:12px;margin-top:4px">Contact support if you believe this is an error.</p>
-</div>
-
-<!-- LOGIN SCREEN -->
-<div id="login-screen">
-  <div class="login-bg"></div>
-  <div class="login-box">
-    <div class="login-glow"></div>
-    <div class="login-body">
-      <div class="login-logo">PixelValue <span>PV Exchange Platform</span></div>
-      <div class="login-tabs">
-        <button class="ltab active" onclick="lSwitch('in')">Sign In</button>
-        <button class="ltab" onclick="lSwitch('up')">Create Account</button>
-      </div>
-      <div class="lfield"><label>USERNAME</label><input type="text" id="l-user" autocomplete="username" onkeydown="lKey(event)"></div>
-      <div class="lfield"><label>PASSWORD</label><input type="password" id="l-pass" autocomplete="current-password" onkeydown="lKey(event)"></div>
-      <div class="lerr" id="l-err"></div>
-      <button class="lbtn" id="l-btn" onclick="lSubmit()">Sign In</button>
-    </div>
-  </div>
-</div>
-
-<!-- TICKER -->
-<div id="ticker">
-  <div class="t-brand">PV EXCHANGE</div>
-  <div class="t-scroll"><span class="t-text" id="t-txt"></span></div>
-</div>
-
-<!-- MOBILE HEADER -->
-<div id="mob-hdr">
-  <button id="mob-menu" onclick="toggleSB()">&#9776;</button>
-  <div id="mob-title">PixelValue</div>
-  <div id="mob-bal"></div>
-</div>
-<div id="overlay" onclick="closeSB()"></div>
-
-<!-- SHELL -->
-<div id="shell">
-  <!-- SIDEBAR -->
-  <nav id="sidebar">
-    <div class="s-logo"><div class="s-logo-name">PixelValue</div><div class="s-logo-sub">PV EXCHANGE</div></div>
-    <div id="sidebar-xp" style="padding:8px 12px 2px;font-size:10px;color:var(--mu);font-family:'Space Mono',monospace"></div>
-    <div class="s-sec">PLATFORM</div>
-    <button class="nb on" onclick="nav('home',this)">Dashboard</button>
-    <div class="s-div"></div>
-    <div class="s-sec">PROGRESSION</div>
-    <button class="nb" onclick="nav('battlepass',this)">Battle Pass</button>
-    <button class="nb" onclick="nav('tasks',this)">Tasks</button>
-    <button class="nb" onclick="nav('ranks',this)">Ranks</button>
-    <div class="s-div"></div>
-    <div class="s-sec">SOCIAL</div>
-    <button class="nb" onclick="nav('profiles',this)">Profiles</button>
-    <button class="nb" onclick="nav('leaderboard',this)">🏆 Leaderboard</button>
-    <div class="s-div"></div>
-    <div class="s-sec">ACCOUNT</div>
-    <button class="nb" onclick="nav('itemshop',this)">🛒 Item Shop</button>
-    <button class="nb" onclick="nav('connector',this)">🔗 Connect Accounts</button>
-    <button class="nb" onclick="nav('shop',this)">Buy PV</button>
-    <button class="nb" onclick="nav('boosters',this)">Boosters</button>
-    <button class="nb" onclick="nav('redeem',this)">Redeem Code</button>
-    <button class="nb" onclick="nav('daily',this)">Daily Reward</button>
-    <button class="nb" onclick="nav('tos',this)">Terms of Service</button>
-    <button class="nb" onclick="nav('settings',this)">Settings</button>
-    <button class="nb" id="admin-nav-btn" style="display:none;color:#ff0;border-left-color:#ff0" onclick="nav('admin',this)">⚡ Admin Panel</button>
-    <div style="flex:1"></div>
-    <div id="upill"></div>
-  </nav>
-
-  <!-- CONTENT -->
-  <main id="content">
 
     <!-- DASHBOARD -->
     <div class="pg on" id="pg-home">
