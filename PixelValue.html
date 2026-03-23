@@ -2411,14 +2411,14 @@ function renderTasks(){
 //  RANKS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const RANKS=[
-  {name:'Noob',     req:0,    badge:'⚪',color:'#8899b0'},
-  {name:'Starter',  req:1000, badge:'🟢',color:'#00d084'},
-  {name:'Pro',      req:2000, badge:'🔵',color:'#06b6d4'},
-  {name:'Diamond',  req:3000, badge:'💎',color:'#7c4dff'},
-  {name:'Mythic',   req:4000, badge:'🟣',color:'#e879f9'},
-  {name:'Legendary',req:5000, badge:'🟡',color:'#ffbb00'},
-  {name:'Ruby',     req:6000, badge:'🔴',color:'#ff3d5a'},
-  {name:'Lapis',    req:7000, badge:'🔷',color:'#0ea5e9'},
+  {name:'Noob',     req:0,    badge:'⚪',color:'#8899b0', frame:null},
+  {name:'Starter',  req:1000, badge:'🟢',color:'#00d084', frame:'starter'},
+  {name:'Pro',      req:2000, badge:'🔵',color:'#06b6d4', frame:'pro'},
+  {name:'Diamond',  req:3000, badge:'💎',color:'#7c4dff', frame:'diamond'},
+  {name:'Mythic',   req:4000, badge:'🟣',color:'#e879f9', frame:'mythic'},
+  {name:'Legendary',req:5000, badge:'🟡',color:'#ffbb00', frame:'legendary'},
+  {name:'Ruby',     req:6000, badge:'🔴',color:'#ff3d5a', frame:'ruby'},
+  {name:'Lapis',    req:7000, badge:'🔷',color:'#0ea5e9', frame:'lapis'},
 ];
 function getCurrentRank(xp){
   let r=RANKS[0];
@@ -2440,18 +2440,23 @@ function renderRanks(){
     <div style="font-size:24px;font-weight:700;color:${cur.color}">${cur.name}</div>
     <div style="font-size:13px;color:var(--tx2);margin-top:4px">${xp.toLocaleString()} XP total</div>
     <div style="font-size:11px;color:var(--mu);margin-top:6px;font-family:'Space Mono',monospace">Season ends in: ${days}d ${hrs}h</div>`;
+  const equipped = d.equippedFrame||null;
   el.innerHTML=RANKS.map((r,i)=>{
     const done=xp>=r.req;
     const active=cur.name===r.name;
+    const isEquipped=equipped===r.frame;
+    const frameLabel=r.frame?`<span style="font-size:10px;font-family:'Space Mono',monospace;color:${r.color};margin-left:6px">[${r.name} Frame]</span>`:'<span style="font-size:10px;color:var(--mu);margin-left:6px;font-family:monospace">[No Frame]</span>';
+    const equipBtn=done&&r.frame?`<button onclick="equipFrame('${r.frame}')" style="margin-top:6px;padding:5px 10px;border:1px solid ${isEquipped?'var(--gn)':'var(--br)'};border-radius:5px;background:${isEquipped?'var(--gn2)':'var(--sf2)'};color:${isEquipped?'var(--gn)':'var(--tx2)'};font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer">${isEquipped?'✓ Equipped':'Equip'}</button>`:'';
     return `<div class="rank-row ${active?'active':done?'done':''}">
-      <div class="rank-badge" style="background:${r.color}22;border:2px solid ${r.color}">${r.badge}</div>
+      <div class="rank-badge ${done&&r.frame?'frame-'+r.frame:''}" style="background:${r.color}22;border:2px solid ${r.color};font-size:20px">${r.badge}</div>
       <div class="rank-info">
-        <div class="rank-name" style="color:${r.color}">${r.name}</div>
+        <div class="rank-name" style="color:${r.color}">${r.name}${frameLabel}</div>
         <div class="rank-req">${r.req.toLocaleString()} XP required</div>
+        ${equipBtn}
       </div>
       <div style="text-align:right">
         <div style="font-size:14px;font-weight:700;color:var(--gd)">+${((i+1)*100).toLocaleString()} PV</div>
-        ${done?'<div style="font-size:11px;color:var(--gn)">✓ Claimed</div>':'<div style="font-size:11px;color:var(--mu)">Locked</div>'}
+        ${done?'<div style="font-size:11px;color:var(--gn)">✓ Unlocked</div>':'<div style="font-size:11px;color:var(--mu)">🔒 Locked</div>'}
       </div>
     </div>`;
   }).join('');
@@ -3500,6 +3505,18 @@ function toggle2FA(){
       pvAlert('✅','2FA Enabled','From now on, every login will send a verification code to your email.');
     });
   }
+}
+
+function equipFrame(frameId){
+  if(!CU){rl();return;}
+  const d=ud();
+  d.equippedFrame = d.equippedFrame===frameId ? null : frameId; // toggle off if same
+  setUD(d);
+  // Sync frame to pv_users so Usen can read it
+  FSDB.collection('pv_users').doc(CU).update({equippedFrame:d.equippedFrame||null}).catch(()=>{});
+  renderRanks();
+  // Also update sidebar avatar if shown
+  refreshAll();
 }
 </script>
 </body>
