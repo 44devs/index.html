@@ -2929,17 +2929,20 @@ async function renderLeaderboard(){
     const rank = i+1;
     const medal = medals[i]||'';
     const isMe = CU && u.username===CU;
-    const b = (u.coins||0).toLocaleString();
+    const coins = u.coins||0;
+    const b = coins.toLocaleString();
+    const eur = (coins*PVR).toFixed(2);
     const rowBg = isMe?'var(--ac3)':(rank===1?'rgba(255,215,0,.06)':rank===2?'rgba(192,192,192,.04)':rank===3?'rgba(205,127,50,.04)':'var(--sf2)');
     const rowBorder = isMe?'var(--ac)':(rank<=3?rankColors[i]:'var(--br)');
     return '<div style="background:'+rowBg+';border:1px solid '+rowBorder+';border-radius:10px;padding:13px 16px;display:flex;align-items:center;gap:14px">'
       +'<div style="font-size:'+(rank<=3?'22px':'14px')+';width:36px;text-align:center;font-weight:700;color:'+(rank<=3?rankColors[i]:'var(--mu)')+';font-family:\'Space Mono\',monospace;flex-shrink:0">'+(medal||rank)+'</div>'
       +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:15px;font-weight:700;color:'+(isMe?'var(--ac2)':'var(--tx)')+'">@'+u.username+(isMe?' (you)':'')+'</div>'
-        +'<div style="font-size:11px;color:var(--mu);font-family:\'Space Mono\',monospace;margin-top:2px">Value: '+b+' PV</div>'
+        +'<div style="font-size:11px;color:var(--mu);font-family:\'Space Mono\',monospace;margin-top:2px">'+b+' PV &nbsp;·&nbsp; ~'+eur+' EUR</div>'
       +'</div>'
       +'<div style="text-align:right;flex-shrink:0">'
         +'<div style="font-size:16px;font-weight:700;color:var(--gd)">'+b+' PV</div>'
+        +'<div style="font-size:11px;color:var(--gn);margin-top:1px;font-family:\'Space Mono\',monospace">~'+eur+' EUR</div>'
         +'<div style="font-size:10px;color:var(--mu);margin-top:2px;font-family:\'Space Mono\',monospace">TOP '+rank+'</div>'
       +'</div>'
     +'</div>';
