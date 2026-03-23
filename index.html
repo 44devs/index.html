@@ -1202,7 +1202,11 @@ async function viewProfile(friend){
         if(pvUserData&&!pvUserData.pvPrivate){
             var pvRow=document.createElement('div');pvRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;';
             var pvBal=document.createElement('div');pvBal.style.cssText='flex:1;background:#111;padding:10px;text-align:center;min-width:90px;';
-            pvBal.innerHTML='<div style="font-size:20px;font-weight:700;color:#ffbb00;">'+(pvUserData.coins||0).toLocaleString()+' PV</div><div style="font-size:11px;color:#666;margin-top:2px;">Balance</div>';
+            var _pvC=pvUserData.coins||0;
+            var _pvE=(_pvC*0.001).toFixed(2);
+            pvBal.innerHTML='<div style="font-size:20px;font-weight:700;color:#ffbb00;">'+_pvC.toLocaleString()+' PV</div>'
+              +'<div style="font-size:12px;color:#0f0;margin-top:2px;">~'+_pvE+' EUR</div>'
+              +'<div style="font-size:11px;color:#666;margin-top:1px;">Balance</div>';
             pvRow.appendChild(pvBal);
             if(lbRank!==null){
                 var lbBox=document.createElement('div');lbBox.style.cssText='flex:1;background:#111;padding:10px;text-align:center;min-width:90px;';
