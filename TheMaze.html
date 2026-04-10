@@ -4,242 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Maze I</title>
-</head>
-<body>
-
-    <div class="screen star-bg active" id="preHome">
-        <h1>The Maze I</h1>
-        <div class="ver-tag">v0.1.0 Release | Working.Test.LD/g</div>
-        <div class="btn-group">
-            <button class="game-btn disabled">⬇ Download (Soon)</button>
-            <button class="game-btn" id="playBtn">▶ Play in Web</button>
-        </div>
-        <div class="ver-row">
-            Version:
-            <button class="ver-pill active" id="pcBtn">PC / Desktop</button>
-            <button class="ver-pill" id="mobileBtn">Mobile</button>
-        </div>
-        <div class="footer-ver">0.1.0</div>
-    </div>
-
-    <div class="screen" id="loadingScreen">
-        <div class="ls-top">
-            <span class="ls-title">The Maze I</span>
-            <span class="ls-level">1</span>
-        </div>
-        <div class="ls-mid">
-            <span class="ls-hint" id="hintText">Hint: You Can Bhop</span>
-        </div>
-        <div class="ls-bot">
-            <div class="ls-label">Loading...</div>
-            <div class="ls-bar-wrap">
-                <div class="ls-bar" id="loadBar"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="screen" id="mainMenu">
-        <div class="mm-topbar">
-            <h1>The Maze</h1>
-            <span class="mm-level">44</span>
-        </div>
-        <div class="mm-body">
-            <div class="mm-left">
-                <button class="mm-btn" id="newGameBtn">Play</button>
-                <button class="mm-btn" id="ShopBtn">Shop</button>
-                <button class="mm-btn">Info</button>
-                <button class="mm-btn">Credits</button>
-                <button class="mm-btn">Settings</button>
-                <button class="mm-btn">Profiles</button>
-                <button class="mm-btn">Leaderboard</button>
-                <button class="mm-btn">Daily Rewards</button>
-                <button class="mm-btn">Achivments</button>
-            </div>
-            <div class="mm-right">
-                <div class="mm-book-wrap">
-                    <div class="mm-book-left">
-                        <div class="mm-book-heading">Logs</div>
-                        <div class="mm-book-entry">4/4/26<br>4/5/26<br>4/6/26<br>4/7/26<br>4/10/26<br>4/9/26</div>
-                    </div>
-                    <div class="mm-book-divider"></div>
-                    <div class="mm-book-right">
-                        <div class="mm-book-heading">Versions</div>
-                        <div class="mm-book-entry">0.0.1<br>0.0.2<br>0.0.3<br>0.0.4<br>0.0.5 (Current)<br>0.0.6 (Soon)</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="screen" id="gamemodes">
-        <div class="gm-header">
-            <button class="gm-back" id="gmBackBtn">Back</button>
-            <span class="gm-title">Gamemode</span>
-        </div>
-        <div class="gm-cards">
-            <div class="gm-card" id="gmStory">
-                <div class="gm-card-title">StoryMode</div>
-                <div class="gm-card-desc">You Go Through The Story of The Protaganist Aka "Shaw Morgan" You Survive or Even Die, Come And Find Out.</div>
-            </div>
-            <div class="gm-card" id="gmNormal">
-                <div class="gm-card-title">Normal</div>
-                <div class="gm-card-desc">You Play Casually And Make It Through. Difficulty Is Normal And You Have 70% Chance To Survive.</div>
-            </div>
-            <div class="gm-card" id="gmLeveling">
-                <div class="gm-card-title">Leveling</div>
-                <div class="gm-card-desc">Your A Hero? Make It Through Under 5min Per Level or Die.</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="screen" id="mapSelect">
-        <div class="ms-header">
-            <h1 id="msTitle">Normal</h1>
-            <div class="ms-header-right">
-                <button class="ms-top-btn" id="msBackBtn">Back</button>
-                <button class="ms-top-btn" id="msExitBtn">Exit</button>
-                <button class="ms-top-btn" id="msJoinBtn">Join</button>
-            </div>
-        </div>
-        <div class="ms-mode-bar">
-            <span class="ms-mode-label" id="msModeLabel">Normal</span>
-            <button class="ms-show-btn">Show As...</button>
-        </div>
-        <div class="ms-grid-wrap">
-            <div class="ms-grid" id="msGrid">
-
-                <div class="ms-card selected" id="mapRandom">
-                    <div class="ms-card-img"><span>?</span></div>
-                    <div class="ms-card-footer">
-                        <span class="ms-card-name">Random</span>
-                        <span class="ms-card-diff unknown">[Unknown]</span>
-                    </div>
-                </div>
-
-                <div class="ms-card" id="mapBasement">
-                    <div class="ms-card-img">
-                        <img src="Maps/Basement/Icon.png" onerror="this.parentElement.innerHTML='Icon.png'">
-                    </div>
-                    <div class="ms-card-footer">
-                        <span class="ms-card-name">Basement I</span>
-                        <span class="ms-card-diff normal">[Normal]</span>
-                    </div>
-                </div>
-
-                <div class="ms-card locked" id="mapHouse">
-                    <div class="ms-card-img"><span>Icon.png</span></div>
-                    <div class="ms-card-footer">
-                        <span class="ms-card-name">House I</span>
-                        <span class="ms-card-diff hard">[Hard]</span>
-                    </div>
-                </div>
-
-                <div class="ms-card locked" id="mapGarden">
-                    <div class="ms-card-img"><span>Icon.png</span></div>
-                    <div class="ms-card-footer">
-                        <span class="ms-card-name">Garden I</span>
-                        <span class="ms-card-diff normal">[Normal]</span>
-                    </div>
-                </div>
-
-                <div class="ms-card locked" id="mapMatrix">
-                    <div class="ms-card-img"><span>Icon.png</span></div>
-                    <div class="ms-card-footer">
-                        <span class="ms-card-name">The Matrix</span>
-                        <span class="ms-card-diff easy">[Easy]</span>
-                    </div>
-                </div>
-
-                <div class="ms-card locked" id="mapEvent">
-                    <div class="ms-card-img"><span>Icon.png</span></div>
-                    <div class="ms-card-footer">
-                        <span class="ms-card-name">The Event (Soon)</span>
-                        <span class="ms-card-diff soon">[Soon]</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="screen" id="Shop">
-        <button class="gm-back" id="shopBackBtn">Back</button>
-        <br><br>
-        <div class="shop-header"><h1>Shop</h1></div>
-        <br>
-        <div class="PlayerUpgrades">
-            <h1>Player Upgrades</h1>
-            <div class="shop-items">
-                <div class="shop-item">
-                    <div class="shop-item-name">More Haste</div>
-                    <div class="shop-item-desc">Makes You Faster</div>
-                    <div class="shop-item-price">7k PV | 7€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-item-name">Better Lungs</div>
-                    <div class="shop-item-desc">Gives You Longer Sprint Time</div>
-                    <div class="shop-item-price">10k PV | 10€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-item-name">More Health</div>
-                    <div class="shop-item-desc">Gives You More Health</div>
-                    <div class="shop-item-price">20k PV | 20€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-item-name">Revive</div>
-                    <div class="shop-item-desc">Gives You A Second Chance (Stackable)</div>
-                    <div class="shop-item-price">50k PV | 50€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-            </div>
-        </div>
-        <div class="VisualUpgrades">
-            <h1>Visual Upgrades</h1>
-            <div class="shop-items">
-                <div class="shop-item">
-                    <div class="shop-item-name">White Gloves</div>
-                    <div class="shop-item-price">4k PV | 4€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-item-name">Green Gloves</div>
-                    <div class="shop-item-price">10k PV | 10€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-item-name">Blue Gloves</div>
-                    <div class="shop-item-price">20k PV | 20€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-item-name">Ruby Gloves</div>
-                    <div class="shop-item-price">150k PV | 150€</div><br>
-                    <button class="shop-item-buy">Buy</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="loginPopup" class="popup-overlay">
-        <div class="popup-box">
-            <h2>Info</h2>
-            <p>Would You Like to Login/Register?</p>
-            <p class="popup-sub">(You Can Buy Stuff)</p>
-            <div class="popup-buttons">
-                <button id="loginYes">Yes</button>
-                <button id="loginNo">No</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="gameOverlay">
-        <button id="exitGameBtn">✕ Exit Game</button>
-        <iframe id="gameFrame" src="" allowfullscreen></iframe>
-    </div>
-
     <style>
         *{ margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -523,7 +287,8 @@
     background: #444;
 }
 
- #mapSelect {
+        /* Map Select Screen */
+        #mapSelect {
             background: #0d0d0d;
             align-items: flex-start;
             justify-content: flex-start;
@@ -541,74 +306,24 @@
         .ms-header h1 { font-size: 42px; font-weight: 400; }
         .ms-header-right { display: flex; gap: 12px; }
         .ms-top-btn {
-            background: transparent;
-            border: 1px solid #555;
-            color: white;
-            font-family: "Georgia", serif;
-            font-size: 14px;
-            padding: 8px 22px;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
+            background: transparent; border: 1px solid #555; color: white;
+            font-family: "Georgia", serif; font-size: 14px; padding: 8px 22px;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
         }
         .ms-top-btn:hover { border-color: white; background: rgba(255,255,255,0.05); }
-        .ms-mode-bar {
-            width: 100%;
-            padding: 10px 28px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .ms-mode-bar { width: 100%; padding: 10px 28px 0; display: flex; align-items: center; gap: 10px; }
         .ms-mode-label { font-size: 32px; font-weight: 400; margin-right: 6px; }
-        .ms-show-btn {
-            background: transparent;
-            border: 1px solid #666;
-            color: #ccc;
-            font-family: "Georgia", serif;
-            font-size: 14px;
-            padding: 5px 14px;
-            cursor: pointer;
-        }
-        .ms-grid-wrap {
-            flex: 1;
-            overflow-y: auto;
-            padding: 18px 28px 28px;
-            width: 100%;
-        }
-        .ms-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-        }
-        .ms-card {
-            background: #1a1a1a;
-            border: 2px solid #444;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
+        .ms-show-btn { background: transparent; border: 1px solid #666; color: #ccc; font-family: "Georgia", serif; font-size: 14px; padding: 5px 14px; cursor: pointer; }
+        .ms-grid-wrap { flex: 1; overflow-y: auto; padding: 18px 28px 28px; width: 100%; }
+        .ms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .ms-card { background: #1a1a1a; border: 2px solid #444; cursor: pointer; transition: border-color 0.2s, background 0.2s; display: flex; flex-direction: column; }
         .ms-card:hover { border-color: white; background: #222; }
         .ms-card.selected { border-color: #4cff6e; }
         .ms-card.locked { opacity: 0.5; cursor: default; }
         .ms-card.locked:hover { border-color: #444; background: #1a1a1a; }
-        .ms-card-img {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #2a2a2a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #555;
-            font-size: 16px;
-            overflow: hidden;
-        }
+        .ms-card-img { width: 100%; aspect-ratio: 16/9; background: #2a2a2a; display: flex; align-items: center; justify-content: center; color: #555; font-size: 16px; overflow: hidden; }
         .ms-card-img img { width: 100%; height: 100%; object-fit: cover; }
-        .ms-card-footer {
-            padding: 8px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .ms-card-footer { padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; }
         .ms-card-name { font-size: 18px; }
         .ms-card-diff { font-size: 14px; font-weight: bold; }
         .ms-card-diff.easy   { color: #4cff6e; }
@@ -617,44 +332,217 @@
         .ms-card-diff.soon   { color: #888; }
         .ms-card-diff.unknown{ color: #aaa; }
 
-        #gameOverlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: #000;
-            flex-direction: column;
-        }
+        /* Game overlay */
+        #gameOverlay { display: none; position: fixed; inset: 0; z-index: 9999; background: #000; flex-direction: column; }
         #gameOverlay.active { display: flex; }
-        #gameOverlay iframe {
-            flex: 1;
-            border: none;
-            width: 100%;
-            height: 100%;
-        }
+        #gameOverlay iframe { flex: 1; border: none; width: 100%; height: 100%; }
         #exitGameBtn {
-            position: fixed;
-            top: 12px;
-            left: 12px;
-            z-index: 10000;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid #555;
-            color: white;
-            font-family: "Georgia", serif;
-            font-size: 13px;
-            padding: 6px 14px;
-            cursor: pointer;
-            transition: border-color 0.2s;
+            position: fixed; top: 12px; left: 12px; z-index: 10000;
+            background: rgba(0,0,0,0.6); border: 1px solid #555; color: white;
+            font-family: "Georgia", serif; font-size: 13px; padding: 6px 14px;
+            cursor: pointer; transition: border-color 0.2s;
         }
         #exitGameBtn:hover { border-color: white; }
-</style>
 
-<script>
-const hints = [
-    "Hint: You Can Bhop",
-    "Hint: Dont Choose Wrong Answers",
-    "Hint: Don't Hold Back"
-];
+        /* Maze (runs inline, not iframe) */
+        #mazeOverlay { display:none; position:fixed; inset:0; z-index:9999; background:#000; }
+        #mazeOverlay.active { display:block; }
+        #mazeOverlay canvas { position:fixed;top:0;left:0;width:100vw;height:100vh; }
+        #maze-minimap{position:fixed;top:14px;right:14px;width:120px;height:120px;border-radius:50%;overflow:hidden;border:1px solid rgba(255,255,255,0.2);pointer-events:none;z-index:10001;}
+        #maze-crosshair{position:fixed;top:50%;left:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:rgba(200,200,200,0.85);border-radius:50%;pointer-events:none;border:1.5px solid rgba(255,255,255,1);z-index:10001;}
+        #maze-stam-wrap{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);width:120px;height:6px;border-radius:3px;background:rgba(80,80,80,0.5);border:1.5px solid rgba(255,255,255,0.9);pointer-events:none;opacity:0;transition:opacity 0.4s ease;z-index:10001;}
+        #maze-stam-wrap.show{opacity:1;}
+        #maze-stam-bar{height:100%;width:100%;background:rgba(200,200,200,0.8);border-radius:2px;transition:background 0.3s;}
+        #maze-stam-bar.low{background:rgba(255,80,80,0.9);}
+        #maze-win{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:monospace;gap:16px;cursor:pointer;z-index:10002;}
+        #maze-win h2{font-size:30px;letter-spacing:4px;font-weight:400;}
+        #maze-win p{font-size:13px;color:#666;letter-spacing:2px;}
+        #maze-hand-left,#maze-hand-right{position:fixed;bottom:0;pointer-events:none;z-index:10001;width:35%;}
+        #maze-hand-left{left:0;transform-origin:bottom left;}
+        #maze-hand-right{right:0;transform-origin:bottom right;transform:scaleX(-1);}
+        #maze-exit-btn{position:fixed;top:12px;left:12px;z-index:10002;background:rgba(0,0,0,0.6);border:1px solid #555;color:white;font-family:"Georgia",serif;font-size:13px;padding:6px 14px;cursor:pointer;}
+        #maze-exit-btn:hover{border-color:white;}
+    </style>
+</head>
+<body>
+
+    <!-- PRE-HOME -->
+    <div class="screen star-bg active" id="preHome">
+        <h1>The Maze I</h1>
+        <div class="ver-tag">v0.1.0 Release | Working.Test.LD/g</div>
+        <div class="btn-group">
+            <button class="game-btn disabled">⬇ Download (Soon)</button>
+            <button class="game-btn" id="playBtn">▶ Play in Web</button>
+        </div>
+        <div class="ver-row">
+            Version:
+            <button class="ver-pill active" id="pcBtn">PC / Desktop</button>
+            <button class="ver-pill" id="mobileBtn">Mobile</button>
+        </div>
+        <div class="footer-ver">0.1.0</div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="screen" id="loadingScreen">
+        <div class="ls-top"><span class="ls-title">The Maze I</span><span class="ls-level">1</span></div>
+        <div class="ls-mid"><span class="ls-hint" id="hintText">Hint: You Can Bhop</span></div>
+        <div class="ls-bot">
+            <div class="ls-label">Loading...</div>
+            <div class="ls-bar-wrap"><div class="ls-bar" id="loadBar"></div></div>
+        </div>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div class="screen" id="mainMenu">
+        <div class="mm-topbar"><h1>The Maze</h1><span class="mm-level">44</span></div>
+        <div class="mm-body">
+            <div class="mm-left">
+                <button class="mm-btn" id="newGameBtn">Play</button>
+                <button class="mm-btn" id="ShopBtn">Shop</button>
+                <button class="mm-btn">Info</button>
+                <button class="mm-btn">Credits</button>
+                <button class="mm-btn">Settings</button>
+                <button class="mm-btn">Profiles</button>
+                <button class="mm-btn">Leaderboard</button>
+                <button class="mm-btn">Daily Rewards</button>
+                <button class="mm-btn">Achivments</button>
+            </div>
+            <div class="mm-right">
+                <div class="mm-book-wrap">
+                    <div class="mm-book-left">
+                        <div class="mm-book-heading">Logs</div>
+                        <div class="mm-book-entry">4/4/26<br>4/5/26<br>4/6/26<br>4/7/26<br>4/10/26<br>4/9/26</div>
+                    </div>
+                    <div class="mm-book-divider"></div>
+                    <div class="mm-book-right">
+                        <div class="mm-book-heading">Versions</div>
+                        <div class="mm-book-entry">0.0.1<br>0.0.2<br>0.0.3<br>0.0.4<br>0.0.5 (Current)<br>0.0.6 (Soon)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAMEMODES -->
+    <div class="screen" id="gamemodes">
+        <div class="gm-header">
+            <button class="gm-back" id="gmBackBtn">Back</button>
+            <span class="gm-title">Gamemode</span>
+        </div>
+        <div class="gm-cards">
+            <div class="gm-card" id="gmStory">
+                <div class="gm-card-title">StoryMode</div>
+                <div class="gm-card-desc">You Go Through The Story of The Protaganist Aka "Shaw Morgan" You Survive or Even Die, Come And Find Out.</div>
+            </div>
+            <div class="gm-card" id="gmNormal">
+                <div class="gm-card-title">Normal</div>
+                <div class="gm-card-desc">You Play Casually And Make It Through. Difficulty Is Normal And You Have 70% Chance To Survive.</div>
+            </div>
+            <div class="gm-card" id="gmLeveling">
+                <div class="gm-card-title">Leveling</div>
+                <div class="gm-card-desc">Your A Hero? Make It Through Under 5min Per Level or Die.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAP SELECT -->
+    <div class="screen" id="mapSelect">
+        <div class="ms-header">
+            <h1 id="msTitle">Normal</h1>
+            <div class="ms-header-right">
+                <button class="ms-top-btn" id="msBackBtn">Back</button>
+                <button class="ms-top-btn" id="msExitBtn">Exit</button>
+                <button class="ms-top-btn" id="msJoinBtn">Join</button>
+            </div>
+        </div>
+        <div class="ms-mode-bar">
+            <span class="ms-mode-label" id="msModeLabel">Normal</span>
+            <button class="ms-show-btn">Show As...</button>
+        </div>
+        <div class="ms-grid-wrap">
+            <div class="ms-grid">
+                <div class="ms-card selected" id="mapRandom">
+                    <div class="ms-card-img"><span>?</span></div>
+                    <div class="ms-card-footer"><span class="ms-card-name">Random</span><span class="ms-card-diff unknown">[Unknown]</span></div>
+                </div>
+                <div class="ms-card" id="mapBasement">
+                    <div class="ms-card-img"><img src="Maps/Basement/Icon.png" onerror="this.parentElement.innerHTML='Icon.png'"></div>
+                    <div class="ms-card-footer"><span class="ms-card-name">Basement I</span><span class="ms-card-diff normal">[Normal]</span></div>
+                </div>
+                <div class="ms-card locked">
+                    <div class="ms-card-img"><span>Icon.png</span></div>
+                    <div class="ms-card-footer"><span class="ms-card-name">House I</span><span class="ms-card-diff hard">[Hard]</span></div>
+                </div>
+                <div class="ms-card locked">
+                    <div class="ms-card-img"><span>Icon.png</span></div>
+                    <div class="ms-card-footer"><span class="ms-card-name">Garden I</span><span class="ms-card-diff normal">[Normal]</span></div>
+                </div>
+                <div class="ms-card locked">
+                    <div class="ms-card-img"><span>Icon.png</span></div>
+                    <div class="ms-card-footer"><span class="ms-card-name">The Matrix</span><span class="ms-card-diff easy">[Easy]</span></div>
+                </div>
+                <div class="ms-card locked">
+                    <div class="ms-card-img"><span>Icon.png</span></div>
+                    <div class="ms-card-footer"><span class="ms-card-name">The Event (Soon)</span><span class="ms-card-diff soon">[Soon]</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="screen" id="Shop">
+        <button class="gm-back" id="shopBackBtn">Back</button><br><br>
+        <div class="shop-header"><h1>Shop</h1></div><br>
+        <div class="PlayerUpgrades">
+            <h1>Player Upgrades</h1>
+            <div class="shop-items">
+                <div class="shop-item"><div class="shop-item-name">More Haste</div><div class="shop-item-desc">Makes You Faster</div><div class="shop-item-price">7k PV | 7€</div><br><button class="shop-item-buy">Buy</button></div>
+                <div class="shop-item"><div class="shop-item-name">Better Lungs</div><div class="shop-item-desc">Gives You Longer Sprint Time</div><div class="shop-item-price">10k PV | 10€</div><br><button class="shop-item-buy">Buy</button></div>
+                <div class="shop-item"><div class="shop-item-name">More Health</div><div class="shop-item-desc">Gives You More Health</div><div class="shop-item-price">20k PV | 20€</div><br><button class="shop-item-buy">Buy</button></div>
+                <div class="shop-item"><div class="shop-item-name">Revive</div><div class="shop-item-desc">Gives You A Second Chance (Stackable)</div><div class="shop-item-price">50k PV | 50€</div><br><button class="shop-item-buy">Buy</button></div>
+            </div>
+        </div>
+        <div class="VisualUpgrades">
+            <h1>Visual Upgrades</h1>
+            <div class="shop-items">
+                <div class="shop-item"><div class="shop-item-name">White Gloves</div><div class="shop-item-price">4k PV | 4€</div><br><button class="shop-item-buy">Buy</button></div>
+                <div class="shop-item"><div class="shop-item-name">Green Gloves</div><div class="shop-item-price">10k PV | 10€</div><br><button class="shop-item-buy">Buy</button></div>
+                <div class="shop-item"><div class="shop-item-name">Blue Gloves</div><div class="shop-item-price">20k PV | 20€</div><br><button class="shop-item-buy">Buy</button></div>
+                <div class="shop-item"><div class="shop-item-name">Ruby Gloves</div><div class="shop-item-price">150k PV | 150€</div><br><button class="shop-item-buy">Buy</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN POPUP -->
+    <div id="loginPopup" class="popup-overlay">
+        <div class="popup-box">
+            <h2>Info</h2>
+            <p>Would You Like to Login/Register?</p>
+            <p class="popup-sub">(You Can Buy Stuff)</p>
+            <div class="popup-buttons">
+                <button id="loginYes">Yes</button>
+                <button id="loginNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAZE OVERLAY (runs inline, no iframe needed) -->
+    <div id="mazeOverlay">
+        <canvas id="maze-minimap" width="120" height="120"></canvas>
+        <div id="maze-crosshair"></div>
+        <div id="maze-stam-wrap"><div id="maze-stam-bar"></div></div>
+        <div id="maze-win"><h2>EXIT REACHED</h2><p>click to play again</p></div>
+        <canvas id="maze-hand-left"></canvas>
+        <canvas id="maze-hand-right"></canvas>
+        <button id="maze-exit-btn">✕ Exit</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+// ============================================================
+// SITE LOGIC
+// ============================================================
+const hints = ["Hint: You Can Bhop","Hint: Dont Choose Wrong Answers","Hint: Don't Hold Back"];
 
 const pcBtn     = document.getElementById('pcBtn');
 const mobileBtn = document.getElementById('mobileBtn');
@@ -674,27 +562,16 @@ function showScreen(id) {
 playBtn.onclick = () => {
     hintText.textContent = hints[Math.floor(Math.random() * hints.length)];
     loadBar.style.width = '0%';
-
     const audio = new Audio('LoadingMenuSound.mp3');
     audio.volume = 0.7;
-    audio.play().catch(() => {
-        document.addEventListener('click', () => audio.play().catch(() => {}), { once: true });
-    });
-
+    audio.play().catch(() => { document.addEventListener('click', () => audio.play().catch(()=>{}), {once:true}); });
     showScreen('loadingScreen');
-
-    const steps = [
-        [400, 12],[600, 28],[700, 45],[500, 60],
-        [600, 73],[500, 85],[600, 93],[500, 100]
-    ];
+    const steps = [[400,12],[600,28],[700,45],[500,60],[600,73],[500,85],[600,93],[500,100]];
     let i = 0;
     function step() {
-        if (i >= steps.length) {
-            setTimeout(() => { audio.pause(); audio.currentTime = 0; showScreen('mainMenu'); }, 400);
-            return;
-        }
+        if (i >= steps.length) { setTimeout(() => { audio.pause(); audio.currentTime=0; showScreen('mainMenu'); }, 400); return; }
         const [delay, pct] = steps[i++];
-        setTimeout(() => { loadBar.style.width = pct + '%'; step(); }, delay);
+        setTimeout(() => { loadBar.style.width = pct+'%'; step(); }, delay);
     }
     setTimeout(step, 300);
 };
@@ -702,21 +579,9 @@ playBtn.onclick = () => {
 document.getElementById('newGameBtn').onclick = () => showScreen('gamemodes');
 ShopBtn.onclick = () => showScreen('Shop');
 
-document.getElementById('gmNormal').onclick = () => {
-    document.getElementById('msTitle').textContent    = 'Normal';
-    document.getElementById('msModeLabel').textContent = 'Normal';
-    showScreen('mapSelect');
-};
-document.getElementById('gmStory').onclick = () => {
-    document.getElementById('msTitle').textContent    = 'StoryMode';
-    document.getElementById('msModeLabel').textContent = 'StoryMode';
-    showScreen('mapSelect');
-};
-document.getElementById('gmLeveling').onclick = () => {
-    document.getElementById('msTitle').textContent    = 'Leveling';
-    document.getElementById('msModeLabel').textContent = 'Leveling';
-    showScreen('mapSelect');
-};
+document.getElementById('gmNormal').onclick   = () => { document.getElementById('msTitle').textContent = document.getElementById('msModeLabel').textContent = 'Normal';   showScreen('mapSelect'); };
+document.getElementById('gmStory').onclick    = () => { document.getElementById('msTitle').textContent = document.getElementById('msModeLabel').textContent = 'StoryMode'; showScreen('mapSelect'); };
+document.getElementById('gmLeveling').onclick = () => { document.getElementById('msTitle').textContent = document.getElementById('msModeLabel').textContent = 'Leveling';  showScreen('mapSelect'); };
 
 document.querySelectorAll('.ms-card:not(.locked)').forEach(card => {
     card.addEventListener('click', () => {
@@ -725,50 +590,268 @@ document.querySelectorAll('.ms-card:not(.locked)').forEach(card => {
     });
 });
 
-document.getElementById('mapBasement').addEventListener('dblclick', () => {
-    launchMap('Maps/Basement/Basement.html');
-});
+// Double-click Basement → launch maze
+document.getElementById('mapBasement').addEventListener('dblclick', () => launchBasement());
 
-function launchMap(src) {
-    const overlay = document.getElementById('gameOverlay');
-    const frame   = document.getElementById('gameFrame');
-    frame.src = src;
-    overlay.classList.add('active');
+function launchBasement() {
+    document.getElementById('mazeOverlay').classList.add('active');
+    initMaze();
 }
 
-document.getElementById('exitGameBtn').onclick = () => {
-    const overlay = document.getElementById('gameOverlay');
-    const frame   = document.getElementById('gameFrame');
-    frame.src = '';                   // stop the game
-    overlay.classList.remove('active');
+document.getElementById('maze-exit-btn').onclick = () => {
+    document.getElementById('mazeOverlay').classList.remove('active');
+    destroyMaze();
 };
 
-document.getElementById('gmBackBtn').onclick  = () => showScreen('mainMenu');
-document.getElementById('shopBackBtn').onclick = () => showScreen('mainMenu');
-document.getElementById('msBackBtn').onclick  = () => showScreen('gamemodes');
-document.getElementById('msExitBtn').onclick  = () => showScreen('mainMenu');
-document.getElementById('msJoinBtn').onclick  = () => {};   // future multiplayer
+document.getElementById('gmBackBtn').onclick   = () => showScreen('mainMenu');
+document.getElementById('shopBackBtn').onclick  = () => showScreen('mainMenu');
+document.getElementById('msBackBtn').onclick   = () => showScreen('gamemodes');
+document.getElementById('msExitBtn').onclick   = () => showScreen('mainMenu');
+document.getElementById('msJoinBtn').onclick   = () => {};
 
 const popup = document.getElementById('loginPopup');
-
 function goFullscreen() {
-    if (document.documentElement.requestFullscreen)
-        document.documentElement.requestFullscreen();
-    if (screen.orientation && screen.orientation.lock)
-        screen.orientation.lock('landscape').catch(() => {});
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
+}
+window.onload = () => { popup.style.display = 'flex'; };
+document.getElementById('loginYes').onclick = () => { goFullscreen(); popup.style.display='none'; /* Nico Put Your Login Code Here */ };
+document.getElementById('loginNo').onclick  = () => { goFullscreen(); popup.style.display='none'; };
+
+// ============================================================
+// MAZE ENGINE
+// ============================================================
+const WALL_SRC  = 'Maps/Basement/Wall.jpg';
+const FLOOR_SRC = 'Maps/Basement/Floor.avif';
+const HANDS_SRC = 'Maps/Basement/Hands.png';
+const AUDIO_SRC = 'Maps/Basement/WalkingNormal.mp3';
+
+let mazeRenderer=null, mazeScene=null, mazeCamera=null, mazeClock=null;
+let mazeYaw=null, mazePitch=null, mazeGoal=null;
+let mazeMaze=[], mazeWon=false, mazeLocked=false;
+let mazeVelY=0, mazeOnGround=true, mazeBobTime=0, mazeBobAmt=0;
+let mazeStamina=100, mazeStamTimeout=null;
+let mazeKeys={}, mazeAnim=null;
+let mazeWalkAudio=null;
+let mazeWTex=null, mazeFTex=null;
+
+const COLS=21,ROWS=21,CELL=4,WALL_H=3.2,EYE_H=1.6,RADIUS=0.9;
+const MM=120,MCS=MM/COLS;
+const SPD_WALK=5,SPD_SPRINT=7.5,JUMP_VEL=5.5,GRAVITY=20;
+const STAM_MAX=100,STAM_DRAIN=40,STAM_REGEN_WALK=10,STAM_REGEN_IDLE=22;
+
+function initMaze() {
+    mazeWon=false; mazeOnGround=true; mazeVelY=0; mazeStamina=STAM_MAX;
+    mazeBobTime=0; mazeBobAmt=0; mazeKeys={};
+
+    mazeWalkAudio = new Audio(AUDIO_SRC);
+    mazeWalkAudio.loop = true;
+
+    // Hands chroma key
+    const handsImg = new Image();
+    handsImg.onload = function() {
+        setupMazeHand(document.getElementById('maze-hand-left'),  handsImg);
+        setupMazeHand(document.getElementById('maze-hand-right'), handsImg);
+    };
+    handsImg.src = HANDS_SRC;
+
+    mazeCamera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 200);
+    mazeClock  = new THREE.Clock();
+
+    mazeRenderer = new THREE.WebGLRenderer({antialias:true});
+    mazeRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    mazeRenderer.setSize(innerWidth, innerHeight);
+    const rc = mazeRenderer.domElement;
+    rc.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;';
+    document.getElementById('mazeOverlay').appendChild(rc);
+
+    window.addEventListener('resize', onMazeResize);
+    rc.addEventListener('click', onMazeClick);
+    document.addEventListener('pointerlockchange', onMazeLockChange);
+    document.addEventListener('mousemove', onMazeMouseMove);
+    document.addEventListener('keydown', onMazeKeyDown);
+    document.addEventListener('keyup',   onMazeKeyUp);
+
+    document.getElementById('maze-win').addEventListener('click', restartMaze);
+
+    const tl = new THREE.TextureLoader();
+    let loaded = 0;
+    function tryStart() { if(++loaded===2) startMaze(); }
+    mazeWTex = tl.load(WALL_SRC,  t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,1);      tryStart();}, null, tryStart);
+    mazeFTex = tl.load(FLOOR_SRC, t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(COLS,ROWS); tryStart();}, null, tryStart);
 }
 
-window.onload = () => { popup.style.display = 'flex'; };
+function setupMazeHand(canvas, img) {
+    canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0);
+    const id=ctx.getImageData(0,0,canvas.width,canvas.height), d=id.data;
+    for(let i=0;i<d.length;i+=4) if(d[i]>160&&d[i+1]<110&&d[i+2]>140) d[i+3]=0;
+    ctx.putImageData(id,0,0);
+}
 
-document.getElementById('loginYes').onclick = () => {
-    goFullscreen();
-    popup.style.display = 'none';
-    // Nico Put Your Login Code Here
-};
-document.getElementById('loginNo').onclick = () => {
-    goFullscreen();
-    popup.style.display = 'none';
-};
-</script>
+function destroyMaze() {
+    if(mazeAnim){cancelAnimationFrame(mazeAnim);mazeAnim=null;}
+    if(mazeWalkAudio){mazeWalkAudio.pause();mazeWalkAudio=null;}
+    window.removeEventListener('resize', onMazeResize);
+    document.removeEventListener('pointerlockchange', onMazeLockChange);
+    document.removeEventListener('mousemove', onMazeMouseMove);
+    document.removeEventListener('keydown', onMazeKeyDown);
+    document.removeEventListener('keyup',   onMazeKeyUp);
+    document.exitPointerLock && document.exitPointerLock();
+    const overlay = document.getElementById('mazeOverlay');
+    // remove the canvas
+    const rc = mazeRenderer && mazeRenderer.domElement;
+    if(rc && rc.parentNode) rc.parentNode.removeChild(rc);
+    if(mazeRenderer){mazeRenderer.dispose();mazeRenderer=null;}
+    mazeScene=null; mazeYaw=null; mazePitch=null; mazeGoal=null;
+    document.getElementById('maze-win').style.display='none';
+    // clear hand canvases
+    ['maze-hand-left','maze-hand-right'].forEach(id=>{
+        const c=document.getElementById(id);
+        if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);}
+    });
+}
+
+function onMazeResize(){ mazeCamera.aspect=innerWidth/innerHeight; mazeCamera.updateProjectionMatrix(); mazeRenderer.setSize(innerWidth,innerHeight); }
+function onMazeClick(){ if(!mazeWon) mazeRenderer.domElement.requestPointerLock(); }
+function onMazeLockChange(){ mazeLocked=document.pointerLockElement===mazeRenderer.domElement; }
+function onMazeMouseMove(e){
+    if(!mazeLocked||mazeWon)return;
+    mazeYaw.rotation.y -= e.movementX*0.002;
+    mazePitch.rotation.x = Math.max(-1.2,Math.min(1.2, mazePitch.rotation.x - e.movementY*0.002));
+}
+function onMazeKeyDown(e){
+    const k=e.key.toLowerCase(); mazeKeys[k]=true;
+    if(e.key==='Shift') mazeKeys['shift']=true;
+    if(k===' '&&mazeOnGround&&!mazeWon){mazeVelY=JUMP_VEL;mazeOnGround=false;e.preventDefault();}
+    if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) e.preventDefault();
+}
+function onMazeKeyUp(e){
+    const k=e.key.toLowerCase(); mazeKeys[k]=false;
+    if(e.key==='Shift') mazeKeys['shift']=false;
+}
+
+function genMaze(){
+    mazeMaze=[];
+    for(let r=0;r<ROWS;r++){mazeMaze.push([]);for(let c=0;c<COLS;c++)mazeMaze[r].push(1);}
+    function carve(r,c){
+        mazeMaze[r][c]=0;
+        [[0,2],[0,-2],[2,0],[-2,0]].sort(()=>Math.random()-0.5).forEach(([dr,dc])=>{
+            const nr=r+dr,nc=c+dc;
+            if(nr>0&&nr<ROWS-1&&nc>0&&nc<COLS-1&&mazeMaze[nr][nc]){mazeMaze[r+dr/2][c+dc/2]=0;carve(nr,nc);}
+        });
+    }
+    carve(1,1); mazeMaze[ROWS-2][COLS-2]=0;
+}
+
+function buildMazeScene(){
+    mazeScene=new THREE.Scene();
+    mazeScene.background=new THREE.Color(0x080808);
+    mazeScene.fog=new THREE.Fog(0x080808,6,CELL*7);
+    mazeScene.add(new THREE.AmbientLight(0xffffff,0.4));
+    const dl=new THREE.DirectionalLight(0xfff5e0,0.6);dl.position.set(4,8,4);mazeScene.add(dl);
+    const wM=new THREE.MeshLambertMaterial({map:mazeWTex});
+    const wG=new THREE.BoxGeometry(CELL,WALL_H,CELL);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(mazeMaze[r][c]){
+        const m=new THREE.Mesh(wG,wM);m.position.set(c*CELL+CELL/2,WALL_H/2,r*CELL+CELL/2);mazeScene.add(m);
+    }
+    const pg=new THREE.PlaneGeometry(COLS*CELL,ROWS*CELL);
+    const fl=new THREE.Mesh(pg,new THREE.MeshLambertMaterial({map:mazeFTex}));
+    fl.rotation.x=-Math.PI/2;fl.position.set(COLS*CELL/2,0,ROWS*CELL/2);mazeScene.add(fl);
+    const cl=new THREE.Mesh(pg,new THREE.MeshLambertMaterial({color:0x1a1a1a}));
+    cl.rotation.x=Math.PI/2;cl.position.set(COLS*CELL/2,WALL_H,ROWS*CELL/2);mazeScene.add(cl);
+    const gx=(COLS-2)*CELL+CELL/2,gz=(ROWS-2)*CELL+CELL/2;
+    mazeGoal=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),
+        new THREE.MeshLambertMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:0.7}));
+    mazeGoal.position.set(gx,EYE_H,gz);mazeScene.add(mazeGoal);
+    const gl=new THREE.PointLight(0xffd700,2,CELL*3);gl.position.set(gx,EYE_H,gz);mazeScene.add(gl);
+    mazePitch=new THREE.Object3D();mazePitch.add(mazeCamera);
+    mazeYaw=new THREE.Object3D();mazeYaw.add(mazePitch);
+    mazeYaw.position.set(CELL+CELL/2,EYE_H,CELL+CELL/2);mazeScene.add(mazeYaw);
+}
+
+function mazeSolid(x,z){const c=Math.floor(x/CELL),r=Math.floor(z/CELL);if(c<0||c>=COLS||r<0||r>=ROWS)return true;return mazeMaze[r][c]===1;}
+function mazeBlocked(x,z){return mazeSolid(x-RADIUS,z)||mazeSolid(x+RADIUS,z)||mazeSolid(x,z-RADIUS)||mazeSolid(x,z+RADIUS);}
+
+function showMazeStam(){document.getElementById('maze-stam-wrap').classList.add('show');if(mazeStamTimeout)clearTimeout(mazeStamTimeout);mazeStamTimeout=null;}
+function hideMazeStamSoon(){if(mazeStamTimeout)return;mazeStamTimeout=setTimeout(()=>{document.getElementById('maze-stam-wrap').classList.remove('show');mazeStamTimeout=null;},1200);}
+function updateMazeStamUI(){const b=document.getElementById('maze-stam-bar');b.style.width=(mazeStamina/STAM_MAX*100)+'%';b.classList.toggle('low',mazeStamina<25);}
+
+function updateMazeHands(bt,ba){
+    const L=document.getElementById('maze-hand-left'),R=document.getElementById('maze-hand-right');
+    if(!L||!R)return;
+    const by=Math.sin(bt)*ba*80,bx=Math.sin(bt*0.5)*ba*25;
+    L.style.transform=`translateY(${-by}px) translateX(${bx}px)`;
+    R.style.transform=`scaleX(-1) translateY(${-by}px) translateX(${bx}px)`;
+}
+
+function doMazeMove(delta){
+    if(mazeWon)return;
+    const moving=mazeKeys['w']||mazeKeys['s']||mazeKeys['a']||mazeKeys['d']||mazeKeys['arrowup']||mazeKeys['arrowdown']||mazeKeys['arrowleft']||mazeKeys['arrowright'];
+    const sprinting=mazeKeys['shift']&&moving&&mazeStamina>0;
+    if(sprinting){mazeStamina=Math.max(0,mazeStamina-STAM_DRAIN*delta);showMazeStam();}
+    else{const wasLow=mazeStamina<STAM_MAX;mazeStamina=Math.min(STAM_MAX,mazeStamina+(moving?STAM_REGEN_WALK:STAM_REGEN_IDLE)*delta);if(wasLow){showMazeStam();if(mazeStamina>=STAM_MAX)hideMazeStamSoon();}else hideMazeStamSoon();}
+    updateMazeStamUI();
+    const spd=(sprinting?SPD_SPRINT:SPD_WALK)*delta;
+    const s=Math.sin(mazeYaw.rotation.y),c=Math.cos(mazeYaw.rotation.y);
+    let dx=0,dz=0;
+    if(mazeKeys['w']||mazeKeys['arrowup'])   {dx-=s*spd;dz-=c*spd;}
+    if(mazeKeys['s']||mazeKeys['arrowdown']) {dx+=s*spd;dz+=c*spd;}
+    if(mazeKeys['a']||mazeKeys['arrowleft']) {dx-=c*spd;dz+=s*spd;}
+    if(mazeKeys['d']||mazeKeys['arrowright']){dx+=c*spd;dz-=s*spd;}
+    if(!mazeBlocked(mazeYaw.position.x+dx,mazeYaw.position.z))mazeYaw.position.x+=dx;
+    if(!mazeBlocked(mazeYaw.position.x,mazeYaw.position.z+dz))mazeYaw.position.z+=dz;
+    const isMoving=!!(dx||dz)&&mazeOnGround;
+    if(isMoving){if(mazeWalkAudio.paused){mazeWalkAudio.volume=sprinting?0.9:0.6;mazeWalkAudio.playbackRate=sprinting?1.4:1.0;mazeWalkAudio.play().catch(()=>{});}else{mazeWalkAudio.playbackRate=sprinting?1.4:1.0;mazeWalkAudio.volume=sprinting?0.9:0.6;}}
+    else if(!mazeWalkAudio.paused)mazeWalkAudio.pause();
+    if(isMoving){mazeBobTime+=delta*(sprinting?11:7);mazeBobAmt+=((sprinting?0.055:0.035)-mazeBobAmt)*0.3;}
+    else{mazeBobAmt+=(0-mazeBobAmt)*0.15;mazeBobTime+=delta*3;}
+    mazeCamera.position.y=Math.sin(mazeBobTime)*mazeBobAmt;
+    mazeCamera.position.x=Math.sin(mazeBobTime*0.5)*mazeBobAmt*0.5;
+    updateMazeHands(mazeBobTime,mazeBobAmt);
+    mazeVelY-=GRAVITY*delta;mazeYaw.position.y+=mazeVelY*delta;
+    if(mazeYaw.position.y<=EYE_H){mazeYaw.position.y=EYE_H;mazeVelY=0;mazeOnGround=true;}
+}
+
+function checkMazeGoal(){
+    if(mazeWon)return;
+    const gx=(COLS-2)*CELL+CELL/2,gz=(ROWS-2)*CELL+CELL/2;
+    const dx=mazeYaw.position.x-gx,dz=mazeYaw.position.z-gz;
+    if(dx*dx+dz*dz<CELL*CELL*0.6){mazeWon=true;document.getElementById('maze-win').style.display='flex';document.exitPointerLock&&document.exitPointerLock();}
+}
+
+function drawMazeMinimap(){
+    if(!mazeMaze.length)return;
+    const mm=document.getElementById('maze-minimap'),ctx=mm.getContext('2d');
+    ctx.clearRect(0,0,MM,MM);ctx.save();ctx.beginPath();ctx.arc(MM/2,MM/2,MM/2,0,Math.PI*2);ctx.clip();
+    ctx.fillStyle='rgba(0,0,0,0.82)';ctx.fillRect(0,0,MM,MM);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){ctx.fillStyle=mazeMaze[r][c]?'#3a3a3a':'#0e0e0e';ctx.fillRect(c*MCS,r*MCS,MCS,MCS);}
+    ctx.fillStyle='#ffd700';ctx.fillRect((COLS-2)*MCS,(ROWS-2)*MCS,MCS,MCS);
+    const px=mazeYaw.position.x/CELL*MCS,pz=mazeYaw.position.z/CELL*MCS;
+    const s=Math.sin(mazeYaw.rotation.y),c=Math.cos(mazeYaw.rotation.y);
+    ctx.fillStyle='#4af';ctx.beginPath();ctx.arc(px,pz,3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#4af';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,pz);ctx.lineTo(px-s*8,pz-c*8);ctx.stroke();
+    ctx.restore();
+}
+
+function mazeLoop(){
+    mazeAnim=requestAnimationFrame(mazeLoop);
+    const d=Math.min(mazeClock.getDelta(),0.05);
+    doMazeMove(d);checkMazeGoal();
+    if(mazeGoal)mazeGoal.rotation.y+=d*2;
+    drawMazeMinimap();mazeRenderer.render(mazeScene,mazeCamera);
+}
+
+function startMaze(){genMaze();buildMazeScene();mazeLoop();}
+
+function restartMaze(){
+    mazeWon=false;mazeOnGround=true;mazeVelY=0;mazeStamina=STAM_MAX;
+    document.getElementById('maze-win').style.display='none';
+    while(mazeScene.children.length)mazeScene.remove(mazeScene.children[0]);
+    genMaze();buildMazeScene();
+    mazeRenderer.domElement.requestPointerLock();
+}
+    </script>
 </body>
 </html>
