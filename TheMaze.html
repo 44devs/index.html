@@ -179,6 +179,9 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
 .tm-btn{background:#111;border:1px solid #333;color:#fff;font-family:monospace;font-size:14px;padding:8px 24px;cursor:pointer;min-width:260px;text-align:left;}
 .tm-btn:hover{background:#1a1a1a;border-color:#666;}
 #tmClose{margin-top:12px;background:transparent;border:1px solid #555;color:#fff;font-family:monospace;font-size:14px;padding:8px 24px;cursor:pointer;}
+
+/* Pagination */
+.ms-page{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 </style>
 </head>
 <body>
@@ -287,41 +290,56 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
     <span class="ms-modelabel" id="msModeLabel">Normal</span>
     <button class="ms-showbtn">Show As...</button>
   </div>
-  <div class="ms-grid-wrap">
-    <div class="ms-grid">
+  <!-- Pagination bar -->
+  <div style="display:flex;align-items:center;gap:12px;padding:6px 28px 0;font-size:14px;color:#888;">
+    <button class="ms-hbtn" id="pgPrev" style="opacity:0.3;cursor:default;">← Prev</button>
+    <span id="pgLabel">Page 0</span>
+    <button class="ms-hbtn" id="pgNext">Next →</button>
+  </div>
 
+  <div class="ms-grid-wrap">
+    <!-- Page 0 -->
+    <div class="ms-grid ms-page" id="page0">
       <div class="ms-card selected" id="mapRandom" data-map="random">
         <div class="ms-thumb"><span style="font-size:32px;color:#666">?</span></div>
         <div class="ms-foot"><span class="ms-name">Random</span><span class="ms-diff unknown">[Unknown]</span></div>
       </div>
-
       <div class="ms-card" id="mapBasement" data-map="basement">
-        <div class="ms-thumb">
-          <img src="https://i.pinimg.com/736x/d5/20/ea/d520ea7e8fe61a89f37d7344fbda4f24.jpg">
-        </div>
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/d5/20/ea/d520ea7e8fe61a89f37d7344fbda4f24.jpg"></div>
         <div class="ms-foot"><span class="ms-name">Basement I</span><span class="ms-diff normal">[Normal]</span></div>
       </div>
-
-      <div class="ms-card locked" data-map="none">
-        <div class="ms-thumb"><span>Icon.png</span></div>
+      <div class="ms-card" id="mapHouse" data-map="house">
+        <div class="ms-thumb"><img src="https://i.pinimg.com/1200x/93/0e/d7/930ed7f135f977fabbfa88240bdf317c.jpg"></div>
         <div class="ms-foot"><span class="ms-name">House I</span><span class="ms-diff hard">[Hard]</span></div>
       </div>
-
       <div class="ms-card" id="mapGarden" data-map="garden">
         <div class="ms-thumb"><img src="https://i.pinimg.com/736x/cb/97/e0/cb97e0b11e0c918ef7a39cbe7296218e.jpg"></div>
         <div class="ms-foot"><span class="ms-name">Garden I</span><span class="ms-diff normal">[Normal]</span></div>
       </div>
-
       <div class="ms-card" id="mapMatrix" data-map="matrix">
         <div class="ms-thumb"><img src="https://i.pinimg.com/736x/a4/d0/db/a4d0db5913a2b52d4a98996bf5bf103d.jpg"></div>
         <div class="ms-foot"><span class="ms-name">The Matrix</span><span class="ms-diff easy">[Easy]</span></div>
       </div>
-
-      <div class="ms-card locked" data-map="none">
-        <div class="ms-thumb"><span>Icon.png</span></div>
-        <div class="ms-foot"><span class="ms-name">The Event (Soon)</span><span class="ms-diff soon">[Soon]</span></div>
+      <div class="ms-card" id="mapEvent" data-map="event">
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/30/eb/54/30eb54bb75bc98f3def03ed14a5b14a7.jpg"></div>
+        <div class="ms-foot"><span class="ms-name">The Event</span><span class="ms-diff soon">[Live]</span></div>
       </div>
+    </div>
 
+    <!-- Page 1 -->
+    <div class="ms-grid ms-page" id="page1" style="display:none;">
+      <div class="ms-card" id="mapBackrooms" data-map="backrooms">
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/05/7f/20/057f20f050ab16e6b1225dcec34c2573.jpg"></div>
+        <div class="ms-foot"><span class="ms-name">Backrooms</span><span class="ms-diff hard">[Hard]</span></div>
+      </div>
+      <div class="ms-card" id="mapGarden2" data-map="garden2">
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/9f/d8/16/9fd816c570f1b4b312c9d39b1ac7365d.jpg"></div>
+        <div class="ms-foot"><span class="ms-name">Garden II</span><span class="ms-diff normal">[Normal]</span></div>
+      </div>
+      <div class="ms-card" id="mapOffice" data-map="office">
+        <div class="ms-thumb"><img src="https://img.freepik.com/free-photo/cement-texture_1194-6332.jpg?semt=ais_hybrid&w=740&q=80"></div>
+        <div class="ms-foot"><span class="ms-name">Office I</span><span class="ms-diff normal">[Normal]</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -445,30 +463,73 @@ const ASSETS = {
   basement: {
     wall:  'https://thumbs.dreamstime.com/b/old-gray-cracked-stone-brick-wall-outside-textured-backdrop-rough-surface-aged-gray-stone-brick-wall-cracks-holes-242282248.jpg',
     floor: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsLvw9wwNqPraYmWQQ87SW56WqN1qRiWrsEg&s',
-    hands: 'https://i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
     audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
     ambient: 'https://videos.viddynest.com/uploads/SX2A2VLtuY/MazeSound.mp4',
-    exitDoor: 'https://i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
   },
   garden: {
     wall:  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjLXfHQ36fi410U7-sVWVP078zRoDFAnBumA&s',
     floor: 'https://img.freepik.com/premium-photo/green-football-field-fake-grass-texture-background_7189-2627.jpg?semt=ais_hybrid&w=740&q=80',
-    hands: 'https://i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
     audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
     ambient: 'https://videos.viddynest.com/uploads/CNcwpozfBA/damaine13-cricket-insect-sound-176537.mp4',
-    exitDoor: 'https://i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
     noCeiling: true,
     fogColor: 0x0a0a0a,
     skyColor: 0x050508,
     noWallBlue: true,
   },
+  house: {
+    wall:  'https://images.weserv.nl/?url=i.pinimg.com/1200x/93/0e/d7/930ed7f135f977fabbfa88240bdf317c.jpg',
+    floor: 'https://images.weserv.nl/?url=i.pinimg.com/1200x/a4/f7/ed/a4f7eddcc559939efae898783a58d4e6.jpg',
+    ceiling: 'https://images.weserv.nl/?url=i.pinimg.com/1200x/87/30/72/8730722e97698129d36fa401c7988282.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
+    ambient: 'https://videos.viddynest.com/uploads/qer_XpFAif/3cd2-e684-47dd-a513-2af776d19e02.mp4',
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    skyColor: 0x050508, fogColor: 0x050508, fogFar: 20,
+    mapScale: 0.85,
+  },
+  backrooms: {
+    wall:  'https://images.weserv.nl/?url=i.pinimg.com/736x/84/d0/7f/84d07f2b83d14c1acb5a3764167edb02.jpg',
+    floor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/05/7f/20/057f20f050ab16e6b1225dcec34c2573.jpg',
+    ceiling: 'https://images.weserv.nl/?url=i.pinimg.com/736x/05/7f/20/057f20f050ab16e6b1225dcec34c2573.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
+    ambient: 'https://videos.viddynest.com/uploads/uDpusb19JR/cjb123-creaking-growl-223561.mp4',
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    skyColor: 0x0a0800, fogColor: 0x0a0800, fogFar: 36,
+    mapScale: 1.4,
+  },
+  garden2: {
+    wall:  'https://images.weserv.nl/?url=i.pinimg.com/736x/9f/d8/16/9fd816c570f1b4b312c9d39b1ac7365d.jpg',
+    floor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/9f/d8/16/9fd816c570f1b4b312c9d39b1ac7365d.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
+    ambient: 'https://videos.viddynest.com/uploads/Tqb7DGANcf/freesound_community-insect-ambience-4-45046.mp4',
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    skyColor: 0x020508, fogColor: 0x020508, fogFar: 20,
+    noCeiling: true, mapScale: 1.2,
+  },
+  office: {
+    wall:  'https://img.freepik.com/free-photo/close-up-painted-wall-surface_23-2148383652.jpg?semt=ais_hybrid&w=740&q=80',
+    floor: 'https://img.freepik.com/free-photo/cement-texture_1194-6332.jpg?semt=ais_hybrid&w=740&q=80',
+    ceiling: 'https://images.weserv.nl/?url=i.pinimg.com/1200x/87/30/72/8730722e97698129d36fa401c7988282.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
+    ambient: null,
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    skyColor: 0x050508, fogColor: 0x050508,
+    mapScale: 1.1,
+  },
   matrix: {
     wall:  null, // procedural
     floor: null, // solid black
-    hands: 'https://i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
+    hands: 'https://images.weserv.nl/?url=i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
     audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
     ambient: 'https://videos.viddynest.com/uploads/iqVuOP8CWg/uttamkumar_r-ghost-suspenseful-189371.mp4',
-    exitDoor: 'https://i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
+    exitDoor: 'https://images.weserv.nl/?url=i.pinimg.com/736x/24/d4/71/24d4715d6f455985b61f432a04206f17.jpg',
     noCeiling: true,
     fogColor: 0x000000,
     skyColor: 0x000000,
@@ -556,18 +617,49 @@ document.getElementById('gmBackBtn').onclick  = ()=>showScreen('mainMenu');
 // ─────────────────────────────────────────────
 let selectedMap = 'basement';
 
-document.querySelectorAll('.ms-card:not(.locked)').forEach(card=>{
-  card.addEventListener('click',()=>{
-    document.querySelectorAll('.ms-card').forEach(c=>c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedMap = card.dataset.map;
-  });
+// Card selection — use event delegation so it works on all pages
+document.getElementById('msGrid')||document.querySelector('.ms-grid-wrap').addEventListener('click',e=>{
+  const card=e.target.closest('.ms-card:not(.locked)');
+  if(!card)return;
+  document.querySelectorAll('.ms-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedMap=card.dataset.map;
 });
+// Also direct bind for initial cards
+function bindCardClicks(){
+  document.querySelectorAll('.ms-card:not(.locked)').forEach(card=>{
+    card.onclick=()=>{
+      document.querySelectorAll('.ms-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMap=card.dataset.map;
+    };
+  });
+}
+bindCardClicks();
+
+// Pagination
+let currentPage=0;
+const totalPages=2;
+function showPage(p){
+  currentPage=p;
+  document.querySelectorAll('.ms-page').forEach((pg,i)=>pg.style.display=i===p?'grid':'none');
+  document.getElementById('pgLabel').textContent='Page '+p;
+  document.getElementById('pgPrev').style.opacity=p===0?'0.3':'1';
+  document.getElementById('pgPrev').style.cursor=p===0?'default':'pointer';
+  document.getElementById('pgNext').style.opacity=p>=totalPages-1?'0.3':'1';
+  document.getElementById('pgNext').style.cursor=p>=totalPages-1?'default':'pointer';
+}
+document.getElementById('pgNext').onclick=()=>{if(currentPage<totalPages-1)showPage(currentPage+1);};
+document.getElementById('pgPrev').onclick=()=>{if(currentPage>0)showPage(currentPage-1);};
 
 document.getElementById('msJoinBtn').onclick = ()=>{
   let mapToPlay = selectedMap;
+  if(mapToPlay === 'event'){
+    showAlert('Sorry, Only Developers Can Join.');
+    return;
+  }
   if(mapToPlay === 'random'){
-    const available = ['basement','garden','matrix'];
+    const available = ['basement','garden','matrix','house','backrooms','garden2','office'];
     mapToPlay = available[Math.floor(Math.random()*available.length)];
     clog && clog('Random selected: '+mapToPlay,'sys');
   }
@@ -613,6 +705,7 @@ let won=false,locked=false,onGround=true,velY=0;
 let bobTime=0,bobAmt=0,stamina=STAM_MAX,stamBarTimeout=null;
 let walkAudio=null;
 let ambientAudio=null;
+let currentAssets=null;
 const keys={};
 // Settings state
 let sensitivity=1.0, fovVal=75, handScale=1.0, genScale=1;
@@ -628,24 +721,24 @@ let joyActive=false,joyStartX=0,joyStartY=0,joyDX=0,joyDZ=0,mobileSprint=false;
 let lookActive=false,lookLastX=0,lookLastY=0;
 
 function genMaze(){
+  const MR=window._mazeRows||ROWS,MC=window._mazeCols||COLS;
   maze=[];
-  for(let r=0;r<ROWS;r++){maze.push([]);for(let c=0;c<COLS;c++)maze[r].push(1);}
+  for(let r=0;r<MR;r++){maze.push([]);for(let c=0;c<MC;c++)maze[r].push(1);}
   function carve(r,c){
     maze[r][c]=0;
     [[0,2],[0,-2],[2,0],[-2,0]].sort(()=>Math.random()-0.5).forEach(([dr,dc])=>{
       const nr=r+dr,nc=c+dc;
-      if(nr>0&&nr<ROWS-1&&nc>0&&nc<COLS-1&&maze[nr][nc]){maze[r+dr/2][c+dc/2]=0;carve(nr,nc);}
+      if(nr>0&&nr<MR-1&&nc>0&&nc<MC-1&&maze[nr][nc]){maze[r+dr/2][c+dc/2]=0;carve(nr,nc);}
     });
   }
   carve(1,1);
-  // Extra passages based on genScale
   const extraPasses=Math.floor((genScale-1)*30);
   for(let i=0;i<extraPasses;i++){
-    const r=1+Math.floor(Math.random()*(ROWS-2));
-    const c=1+Math.floor(Math.random()*(COLS-2));
+    const r=1+Math.floor(Math.random()*(MR-2));
+    const c=1+Math.floor(Math.random()*(MC-2));
     maze[r][c]=0;
   }
-  maze[ROWS-2][COLS-2]=0;
+  maze[MR-2][MC-2]=0;
 }
 
 function makeMatrixWallTex(){
@@ -667,11 +760,13 @@ function makeMatrixWallTex(){
 let _currentAssets=null;
 function buildScene(wTex,fTex,assetsCfg){
   _currentAssets=assetsCfg||{};
+  const MR=window._mazeRows||ROWS,MC=window._mazeCols||COLS;
   const skyCol=assetsCfg&&assetsCfg.skyColor?assetsCfg.skyColor:0x080808;
   const fogCol=assetsCfg&&assetsCfg.fogColor?assetsCfg.fogColor:0x080808;
+  const fogFar=assetsCfg&&assetsCfg.fogFar?assetsCfg.fogFar:CELL*7;
   scene=new THREE.Scene();
   scene.background=new THREE.Color(skyCol);
-  scene.fog=new THREE.Fog(fogCol,6,CELL*7);
+  scene.fog=new THREE.Fog(fogCol,6,fogFar);
   // Lighting — dimmer at night maps
   scene.add(new THREE.AmbientLight(0xffffff,0.3));
   const dl=new THREE.DirectionalLight(0xfff5e0,0.4);dl.position.set(4,8,4);scene.add(dl);
@@ -684,12 +779,12 @@ function buildScene(wTex,fTex,assetsCfg){
     wMat=new THREE.MeshLambertMaterial({map:wTex});
   }
   const wG=new THREE.BoxGeometry(CELL,WALL_H,CELL);
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(maze[r][c]){
+  for(let r=0;r<MR;r++) for(let c=0;c<MC;c++) if(maze[r][c]){
     const m=new THREE.Mesh(wG,wMat);m.position.set(c*CELL+CELL/2,WALL_H/2,r*CELL+CELL/2);scene.add(m);
   }
 
   // Floor
-  const pg=new THREE.PlaneGeometry(COLS*CELL,ROWS*CELL);
+  const pg=new THREE.PlaneGeometry(MC*CELL,MR*CELL);
   let flMat;
   if(assetsCfg&&assetsCfg.isMatrix){
     flMat=new THREE.MeshLambertMaterial({color:0x000000});
@@ -697,16 +792,26 @@ function buildScene(wTex,fTex,assetsCfg){
     flMat=new THREE.MeshLambertMaterial({map:fTex});
   }
   const fl=new THREE.Mesh(pg,flMat);
-  fl.rotation.x=-Math.PI/2;fl.position.set(COLS*CELL/2,0,ROWS*CELL/2);scene.add(fl);
+  fl.rotation.x=-Math.PI/2;fl.position.set(MC*CELL/2,0,MR*CELL/2);scene.add(fl);
 
-  // Ceiling — skip if noCeiling
+  // Ceiling — skip if noCeiling, else use texture or solid color
   if(!assetsCfg||!assetsCfg.noCeiling){
-    const cl=new THREE.Mesh(pg,new THREE.MeshLambertMaterial({color:0x111111}));
-    cl.rotation.x=Math.PI/2;cl.position.set(COLS*CELL/2,WALL_H,ROWS*CELL/2);scene.add(cl);
+    let clMat;
+    if(assetsCfg&&assetsCfg.ceiling){
+      const cimg=new Image();cimg.crossOrigin='anonymous';
+      const ctex=new THREE.Texture();
+      cimg.onload=function(){ctex.image=cimg;ctex.wrapS=ctex.wrapT=THREE.RepeatWrapping;ctex.repeat.set(4,4);ctex.needsUpdate=true;};
+      cimg.src=assetsCfg.ceiling;
+      clMat=new THREE.MeshLambertMaterial({map:ctex});
+    } else {
+      clMat=new THREE.MeshLambertMaterial({color:0x111111});
+    }
+    const cl=new THREE.Mesh(pg,clMat);
+    cl.rotation.x=Math.PI/2;cl.position.set(MC*CELL/2,WALL_H,MR*CELL/2);scene.add(cl);
   }
 
   // Exit door
-  const gx=(COLS-2)*CELL+CELL/2,gz=(ROWS-2)*CELL+CELL/2;
+  const gx=(MC-2)*CELL+CELL/2,gz=(MR-2)*CELL+CELL/2;
   const doorTex=new THREE.Texture();
   const doorImg=new Image();
   doorImg.crossOrigin='anonymous';
@@ -737,8 +842,9 @@ function buildScene(wTex,fTex,assetsCfg){
 }
 
 function solid(x,z){
+  const MR=window._mazeRows||ROWS,MC=window._mazeCols||COLS;
   const c=Math.floor(x/CELL),r=Math.floor(z/CELL);
-  if(c<0||c>=COLS||r<0||r>=ROWS)return true;
+  if(c<0||c>=MC||r<0||r>=MR)return true;
   return maze[r][c]===1;
 }
 function blocked(x,z){return solid(x-RADIUS,z)||solid(x+RADIUS,z)||solid(x,z-RADIUS)||solid(x,z+RADIUS);}
@@ -839,7 +945,8 @@ function checkGoal(){
       if(ddx*ddx+ddz*ddz<CELL*CELL*.4){triggerWin();return;}
     }
   }
-  const gx=(COLS-2)*CELL+CELL/2,gz=(ROWS-2)*CELL+CELL/2;
+  const _MR=window._mazeRows||ROWS,_MC=window._mazeCols||COLS;
+  const gx=(_MC-2)*CELL+CELL/2,gz=(_MR-2)*CELL+CELL/2;
   const dx=yaw.position.x-gx,dz=yaw.position.z-gz;
   if(dx*dx+dz*dz<CELL*CELL*.6){
     triggerWin();
@@ -857,30 +964,29 @@ function triggerWin(){
 
 function drawMinimap(){
   if(!maze.length||!yaw)return;
+  const MR=window._mazeRows||ROWS,MC=window._mazeCols||COLS;
+  const mcs=MM/Math.max(MR,MC);
   const mm=document.getElementById('minimap'),ctx=mm.getContext('2d');
   ctx.clearRect(0,0,MM,MM);
   ctx.save();
-  // Clip to circle
   ctx.beginPath();ctx.arc(MM/2,MM/2,MM/2,0,Math.PI*2);ctx.clip();
   ctx.fillStyle='rgba(0,0,0,0.88)';ctx.fillRect(0,0,MM,MM);
 
-  // Player world position in minimap pixels
-  const px=yaw.position.x/CELL*MCS;
-  const pz=yaw.position.z/CELL*MCS;
+  // Player position in minimap pixels
+  const px=yaw.position.x/CELL*mcs;
+  const pz=yaw.position.z/CELL*mcs;
 
-  // Translate so player stays centered, rotate so forward is always up
-  ctx.translate(MM/2, MM/2);
+  ctx.translate(MM/2,MM/2);
   ctx.rotate(yaw.rotation.y);
-  ctx.translate(-px, -pz);
+  ctx.translate(-px,-pz);
 
   // Draw maze
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+  for(let r=0;r<MR;r++) for(let c=0;c<MC;c++){
     ctx.fillStyle=maze[r][c]?'#4a4a4a':'#141414';
-    ctx.fillRect(c*MCS,r*MCS,MCS,MCS);
+    ctx.fillRect(c*mcs,r*mcs,mcs,mcs);
   }
-  // Goal marker
   ctx.fillStyle='#ffd700';
-  ctx.fillRect((COLS-2)*MCS,(ROWS-2)*MCS,MCS,MCS);
+  ctx.fillRect((MC-2)*mcs,(MR-2)*mcs,mcs,mcs);
 
   ctx.restore();
 
@@ -948,9 +1054,10 @@ function setupHands(src){
 function startGame(mapKey){
   const assets=ASSETS[mapKey];
   if(!assets)return;
+  currentAssets=assets;
 
   // Show game loading screen
-  const mapNames={basement:'Basement I',garden:'Garden I',matrix:'The Matrix'};
+  const mapNames={basement:'Basement I',garden:'Garden I',matrix:'The Matrix',house:'House I',backrooms:'Backrooms',garden2:'Garden II',office:'Office I'};
   document.getElementById('gls-mapname').textContent = mapNames[mapKey]||mapKey;
   document.getElementById('gls-hint').textContent = hints[Math.floor(Math.random()*hints.length)];
   const glb = document.getElementById('gameLoadBar');
@@ -994,7 +1101,7 @@ function startGame(mapKey){
     });
     document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=false;if(e.key==='Shift')keys['shift']=false;if(e.key==='Control')keys['control']=false;});
     document.getElementById('gameCanvas').addEventListener('click',()=>{if(!won)document.getElementById('gameCanvas').requestPointerLock();});
-    document.getElementById('winScreen').addEventListener('click',()=>{document.getElementById('winFade').style.opacity='0';document.getElementById('winScreen').style.display='none';resetGame(assets);});
+    document.getElementById('winScreen').addEventListener('click',()=>{document.getElementById('winFade').style.opacity='0';document.getElementById('winScreen').style.display='none';resetGame(currentAssets);});
   }
 
   renderer.setSize(innerWidth,innerHeight);
@@ -1009,6 +1116,12 @@ function startGame(mapKey){
     ambientAudio.volume=0.35;
     ambientAudio.onerror=function(){ambientAudio=null;};
   }
+  // Apply map scale (bigger/smaller maze)
+  if(assets.mapScale&&assets.mapScale!==1){
+    const s=assets.mapScale;
+    window._mazeRows=Math.round(21*s)|1; if(window._mazeRows%2===0)window._mazeRows++;
+    window._mazeCols=Math.round(21*s)|1; if(window._mazeCols%2===0)window._mazeCols++;
+  } else {window._mazeRows=21;window._mazeCols=21;}
   genMaze();
 
   // Load textures in background, then wait for bar to hit 100% before launching
@@ -1037,10 +1150,24 @@ function startGame(mapKey){
   }
 
   function onTexLoaded(){if(++loaded===2){texturesDone=true;tryLaunch();}}
-  if(assets.wall){wTex=tl.load(assets.wall, t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,1);onTexLoaded();},null,onTexLoaded);}
-  else{onTexLoaded();}
-  if(assets.floor){fTex=tl.load(assets.floor,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(COLS,ROWS);onTexLoaded();},null,onTexLoaded);}
-  else{onTexLoaded();}
+
+  function loadTex(url, repeatX, repeatY, cb){
+    if(!url){cb(null);return;}
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=function(){
+      const t=new THREE.Texture(img);
+      t.wrapS=t.wrapT=THREE.RepeatWrapping;
+      t.repeat.set(repeatX,repeatY);
+      t.needsUpdate=true;
+      cb(t);
+    };
+    img.onerror=function(){console.warn('Tex failed:',url);cb(null);};
+    img.src=url;
+  }
+
+  loadTex(assets.wall,  1, 1,      t=>{wTex=t;onTexLoaded();});
+  loadTex(assets.floor, COLS, ROWS, t=>{fTex=t;onTexLoaded();});
 
   // Bar finishes after ~5s total
   setTimeout(()=>{barDone=true;tryLaunch();},5000);
@@ -1056,8 +1183,15 @@ function resetGame(assets){
   let loaded=0;
   function tryStart(){if(++loaded===2){buildScene(wTex,fTex,assets);clock.getDelta();gameLoop();document.getElementById('gameCanvas').requestPointerLock();}}
   let wTex,fTex;
-  wTex=tl.load(assets.wall, t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,1);tryStart();},null,tryStart);
-  fTex=tl.load(assets.floor,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(COLS,ROWS);tryStart();},null,tryStart);
+  function loadTexR(url,rx,ry,cb){
+    if(!url){cb(null);return;}
+    const img=new Image();img.crossOrigin='anonymous';
+    img.onload=function(){const t=new THREE.Texture(img);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.needsUpdate=true;cb(t);};
+    img.onerror=function(){cb(null);};
+    img.src=url;
+  }
+  loadTexR(assets.wall,  1,    1,    t=>{wTex=t;tryStart();});
+  loadTexR(assets.floor, COLS, ROWS, t=>{fTex=t;tryStart();});
 }
 
 function stopGame(){
@@ -1458,20 +1592,29 @@ function initMobileControls(){
   mc.appendChild(flyDownBtn);
   flyDownBtn.addEventListener('touchstart',e=>{if(flyMode)yaw.position.y-=0.5;e.preventDefault();},{passive:false});
 
-  // Look zone — drag to look
+  // Look zone — track specific touch identifier to avoid joystick interference
+  let lookTouchId=null;
   look.addEventListener('touchstart',e=>{
-    const t=e.touches[0];lookLastX=t.clientX;lookLastY=t.clientY;lookActive=true;e.preventDefault();
-  },{passive:false});
-  look.addEventListener('touchmove',e=>{
-    if(!lookActive)return;
-    const t=e.touches[0];
-    const ddx=t.clientX-lookLastX,ddy=t.clientY-lookLastY;
-    lookLastX=t.clientX;lookLastY=t.clientY;
-    if(yaw)yaw.rotation.y-=ddx*0.004*sensitivity;
-    if(pitch)pitch.rotation.x=Math.max(-1.2,Math.min(1.2,pitch.rotation.x-ddy*0.004*sensitivity));
+    // Only grab first touch that starts in look zone
+    for(const t of e.changedTouches){
+      if(lookTouchId===null){lookTouchId=t.identifier;lookLastX=t.clientX;lookLastY=t.clientY;}
+    }
     e.preventDefault();
   },{passive:false});
-  look.addEventListener('touchend',()=>lookActive=false);
+  look.addEventListener('touchmove',e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier===lookTouchId){
+        const ddx=t.clientX-lookLastX,ddy=t.clientY-lookLastY;
+        lookLastX=t.clientX;lookLastY=t.clientY;
+        if(yaw)yaw.rotation.y-=ddx*0.003*sensitivity;
+        if(pitch)pitch.rotation.x=Math.max(-1.2,Math.min(1.2,pitch.rotation.x-ddy*0.003*sensitivity));
+      }
+    }
+    e.preventDefault();
+  },{passive:false});
+  look.addEventListener('touchend',e=>{
+    for(const t of e.changedTouches){if(t.identifier===lookTouchId)lookTouchId=null;}
+  });
 }
 
 // Bind remaining elements safely after DOM is ready
