@@ -41,12 +41,12 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
 .mm-topbar{width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:18px 28px 10px;}
 .mm-topbar h1{font-size:58px;font-weight:400;line-height:1;}
 .mm-level{font-size:58px;font-weight:400;line-height:1;}
-.mm-body{display:flex;flex:1;width:100%;padding:8px 28px 28px;gap:28px;min-height:0;}
+.mm-body{display:flex;flex:1;width:100%;padding:8px 40px 28px;gap:40px;min-height:0;align-items:flex-start;justify-content:center;}
 .mm-left{display:flex;flex-direction:column;gap:10px;}
 .mm-btn{background:#111;border:2px solid white;color:white;font-family:"Georgia",serif;font-size:22px;padding:10px 0;width:210px;cursor:pointer;text-align:center;transition:background .2s;}
 .mm-btn:hover{background:rgba(255,255,255,0.08);}
-.mm-right{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;}
-.mm-book-wrap{position:relative;flex:1;min-height:0;border:none;display:flex;border-radius:4px;overflow:hidden;}
+
+.mm-book-wrap{position:relative;width:560px;height:460px;border:none;display:flex;border-radius:4px;overflow:hidden;}
 .mm-book-left,.mm-book-right{flex:1;display:flex;flex-direction:column;align-items:center;padding:18px 12px;}
 .mm-book-heading{font-size:20px;color:#997f7f;margin-bottom:14px;letter-spacing:1px;font-weight:bold;}
 .mm-book-entry{font-size:17px;color:#997f7f;font-family:"Georgia",serif;line-height:2;text-align:center;}
@@ -219,10 +219,20 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
 </div>
 
 <!-- MAIN MENU -->
-<div class="screen" id="mainMenu"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);pointer-events:none;z-index:0;"></div>
-  <div class="mm-topbar" style="position:relative;z-index:1;"><h1>The Maze</h1><span class="mm-level">44</span></div>
-  <div class="mm-body" style="position:relative;z-index:1;">
-    <div class="mm-left">
+<div class="screen" id="mainMenu">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);pointer-events:none;z-index:0;"></div>
+
+  <!-- Title centered at top -->
+  <div style="position:relative;z-index:1;width:100%;text-align:center;padding:55px 0 0;padding-left:80px;">
+    <h1 style="font-size:52px;font-weight:400;letter-spacing:2px;">The Maze</h1>
+    <span style="font-size:13px;color:#555;letter-spacing:3px;">v0.0.8</span>
+  </div>
+
+  <!-- Body: buttons left of book -->
+  <div class="mm-body" style="position:relative;z-index:1;align-items:flex-start;justify-content:center;gap:32px;padding-left:200px;padding-top:20px;">
+
+    <!-- Buttons — centered vertically, left of book -->
+    <div class="mm-left" style="justify-content:center;margin-top:8px;">
       <button class="mm-btn" id="newGameBtn">Play</button>
       <button class="mm-btn" id="ShopBtn">Shop</button>
       <button class="mm-btn" id="mmInfoBtn">Info</button>
@@ -230,21 +240,24 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
       <button class="mm-btn" id="mmSettingsBtn">Settings</button>
       <button class="mm-btn">Profiles</button>
       <button class="mm-btn">Leaderboard</button>
-      <button class="mm-btn" id="mmDailyBtn">Daily Rewards</button>
       <button class="mm-btn" id="mmAchievBtn">Achivments</button>
     </div>
-    <div class="mm-right">
-      <div class="mm-book-wrap" style="background-image:url('https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5lVb72Uxobf2eTQOY1dBzTz2Fsu2yzsHCPg%26s');background-size:100% 100%;background-repeat:no-repeat;">
+
+    <!-- Book -->
+    <div style="display:flex;align-items:flex-start;margin-top:8px;">
+      <div class="mm-book-wrap" style="background-image:url('https://i.pinimg.com/736x/11/ad/ec/11adecc657df2832b11eb44090587974.jpg');background-size:cover;background-position:center;background-repeat:no-repeat;">
+        <div class="mm-book-left">
           <div class="mm-book-heading">Logs</div>
-          <div class="mm-book-entry">4/4/26<br>4/5/26<br>4/6/26<br>4/7/26<br>4/9/26<br>4/10/26<br>4/11/26<br>4/12/26</div>
+          <div class="mm-book-entry">4/4/26<br>4/5/26<br>4/6/26<br>4/7/26<br>4/9/26<br>4/10/26<br>4/11/26<br>4/12/26<br>4/17/26<br>4/18/26 (Now)<br>4/19/26 (Soon)</div>
         </div>
         <div class="mm-book-divider"></div>
         <div class="mm-book-right">
           <div class="mm-book-heading">Versions</div>
-          <div class="mm-book-entry">0.0.1<br>0.0.2<br>0.0.3<br>0.0.4<br>0.0.5<br>0.0.6<br>0.0.7<br>0.0.8 (Current)<br>0.0.9 (Soon)</div>
+          <div class="mm-book-entry">0.0.1<br>0.0.2<br>0.0.3<br>0.0.4<br>0.0.5<br>0.0.6<br>0.0.7<br>0.0.8<br>0.0.9<br>0.1.0 (Current)<br>0.1.1 (Soon)</div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -313,7 +326,7 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
         <div class="ms-foot"><span class="ms-name">Basement I</span><span class="ms-diff normal">[Normal]</span></div>
       </div>
       <div class="ms-card" id="mapHouse" data-map="house">
-        <div class="ms-thumb"><img src="https://i.pinimg.com/1200x/93/0e/d7/930ed7f135f977fabbfa88240bdf317c.jpg"></div>
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/ee/44/cb/ee44cb8de79d63868c9ff39b3d663d7c.jpg"></div>
         <div class="ms-foot"><span class="ms-name">House I</span><span class="ms-diff hard">[Hard]</span></div>
       </div>
       <div class="ms-card" id="mapGarden" data-map="garden">
@@ -324,10 +337,6 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
         <div class="ms-thumb"><img src="https://i.pinimg.com/736x/a4/d0/db/a4d0db5913a2b52d4a98996bf5bf103d.jpg"></div>
         <div class="ms-foot"><span class="ms-name">The Matrix</span><span class="ms-diff easy">[Easy]</span></div>
       </div>
-      <div class="ms-card" id="mapRunPlace" data-map="runplace">
-        <div class="ms-thumb"><img src="https://img.goodfon.com/wallpaper/big/f/a6/stena-linii-oranzhevyi-belyi-tekstura.webp"></div>
-        <div class="ms-foot"><span class="ms-name">Run Place</span><span class="ms-diff hard">[Hard]</span></div>
-      </div>
       <div class="ms-card" id="mapEvent" data-map="event">
         <div class="ms-thumb"><img src="https://i.pinimg.com/736x/30/eb/54/30eb54bb75bc98f3def03ed14a5b14a7.jpg"></div>
         <div class="ms-foot"><span class="ms-name">The Event</span><span class="ms-diff soon">[Live]</span></div>
@@ -336,16 +345,20 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
 
     <!-- Page 1 -->
     <div class="ms-grid ms-page" id="page1" style="display:none;">
+      <div class="ms-card" id="mapRunPlace" data-map="runplace">
+        <div class="ms-thumb"><img src="https://img.goodfon.com/wallpaper/big/f/a6/stena-linii-oranzhevyi-belyi-tekstura.webp"></div>
+        <div class="ms-foot"><span class="ms-name">Run Place</span><span class="ms-diff hard">[Hard]</span></div>
+      </div>
       <div class="ms-card" id="mapBackrooms" data-map="backrooms">
-        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/05/7f/20/057f20f050ab16e6b1225dcec34c2573.jpg"></div>
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/c7/96/e9/c796e9794d8427d08ec872562a7d3d30.jpg"></div>
         <div class="ms-foot"><span class="ms-name">Backrooms</span><span class="ms-diff hard">[Hard]</span></div>
       </div>
       <div class="ms-card" id="mapGarden2" data-map="garden2">
-        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/9f/d8/16/9fd816c570f1b4b312c9d39b1ac7365d.jpg"></div>
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/6c/4f/48/6c4f48b5a6c750513f78c4393be33b87.jpg"></div>
         <div class="ms-foot"><span class="ms-name">Garden II</span><span class="ms-diff normal">[Normal]</span></div>
       </div>
       <div class="ms-card" id="mapOffice" data-map="office">
-        <div class="ms-thumb"><img src="https://img.freepik.com/free-photo/cement-texture_1194-6332.jpg?semt=ais_hybrid&w=740&q=80"></div>
+        <div class="ms-thumb"><img src="https://i.pinimg.com/736x/86/e8/2d/86e82da8fbdb00cb2ba1eee7534a01d0.jpg"></div>
         <div class="ms-foot"><span class="ms-name">Office I</span><span class="ms-diff normal">[Normal]</span></div>
       </div>
     </div>
@@ -422,6 +435,7 @@ body{background:#1e1e1e;color:white;font-family:"Georgia",serif;overflow:hidden;
     <button class="tm-btn" onclick="runCmd('!Summon.ExitDoor')">!Summon.ExitDoor — Spawn Exit Door</button>
     <button class="tm-btn" onclick="runCmd('!Summon.Piano.CfM')">!Summon.Piano.CfM — Spawn Piano (House/Garden)</button>
     <button class="tm-btn" onclick="runCmd('!CrashOrb')">!CrashOrb — Summon Crash Orb</button>
+    <button class="tm-btn" onclick="runCmd('!BetaCommandFunctions')">!BetaCommandFunctions — Unlock Beta Cmds</button>
     <button class="tm-btn" onclick="runCmd('!Settings')">!Settings — Open Settings</button>
     <button class="tm-btn" onclick="runCmd('!Exit')">!Exit — Exit Game</button>
     <button id="tmClose">Close</button>
@@ -537,7 +551,7 @@ const ASSETS = {
   runplace: {
     wall:  'https://img.goodfon.com/wallpaper/big/f/a6/stena-linii-oranzhevyi-belyi-tekstura.webp',
     floor: 'https://images.weserv.nl/?url=img.freepik.com/free-photo/grey-terrazzo-surface-with-mixed-stone-aggregates_84443-73094.jpg',
-    ceiling: 'https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTApoIV85oFisaGc7r4kEi4Diad3n--D8mAcw%26s',
+    ceiling: 'https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm5mf92yesMVHrQlbbQQV8Of8z0d8ZIM-eww%26s',
     hands: 'https://i.pinimg.com/736x/7a/13/eb/7a13ebaa7533ff04ea2bf625770113c0.jpg',
     audio: 'https://cdn.pixabay.com/audio/2024/09/27/audio_f287ce86fd.mp3',
     ambient: 'https://videos.viddynest.com/uploads/HY3_r-qQlD/dragon-studio-deep-haunting-drone-482880.mp4',
@@ -687,7 +701,7 @@ function goFullscreen(){
 
 safeClick('exitGameBtn', ()=>{ openPause(); });
 
-const COLS=21,ROWS=21,CELL=4,WALL_H=3.2,EYE_H=1.6,RADIUS=0.9;
+const COLS=31,ROWS=31,CELL=4,WALL_H=3.2,EYE_H=1.6,RADIUS=0.9;
 const MM=120,MCS=MM/COLS;
 const SPD_WALK=6.5,SPD_SPRINT=10,JUMP_VEL=5.5,GRAVITY=20;
 const STAM_MAX=100,STAM_DRAIN=40,STAM_REGEN_WALK=10,STAM_REGEN_IDLE=22;
@@ -725,11 +739,18 @@ function genMaze(){
     });
   }
   carve(1,1);
-  const extraPasses=Math.floor((genScale-1)*30);
-  for(let i=0;i<extraPasses;i++){
-    const r=1+Math.floor(Math.random()*(MR-2));
-    const c=1+Math.floor(Math.random()*(MC-2));
-    maze[r][c]=0;
+  if(genScale>1){
+    const MRg=window._mazeRows||ROWS,MCg=window._mazeCols||COLS;
+    const extraLoops=Math.floor((genScale-1)*8);
+    for(let loop=0;loop<extraLoops;loop++){
+      const r=2+Math.floor(Math.random()*((MRg-4)/2))*2;
+      const c=2+Math.floor(Math.random()*((MCg-4)/2))*2;
+      if(r<MRg-1&&c<MCg-1){
+        const dir=Math.random()<0.5?[0,1]:[1,0];
+        if(maze[r+dir[0]]&&maze[r+dir[0]][c+dir[1]]!==undefined)
+          maze[r+dir[0]][c+dir[1]]=0;
+      }
+    }
   }
   maze[MR-2][MC-2]=0;
 }
@@ -791,15 +812,15 @@ function buildScene(wTex,fTex,assetsCfg){
   
   if(assetsCfg&&assetsCfg.noCeiling){
     const starGeo=new THREE.BufferGeometry();
-    const starCount=300;
+    const starCount=600;
     const positions=new Float32Array(starCount*3);
     for(let i=0;i<starCount;i++){
       positions[i*3]  =(Math.random()-0.5)*MC*CELL*2;
-      positions[i*3+1]=WALL_H*2+Math.random()*20;
+      positions[i*3+1]=WALL_H*3+Math.random()*25;
       positions[i*3+2]=(Math.random()-0.5)*MR*CELL*2;
     }
     starGeo.setAttribute('position',new THREE.BufferAttribute(positions,3));
-    const starMat=new THREE.PointsMaterial({color:0xffffff,size:0.08,transparent:true,opacity:0.8});
+    const starMat=new THREE.PointsMaterial({color:0xffffff,size:0.18,transparent:true,opacity:0.9,sizeAttenuation:true});
     scene.add(new THREE.Points(starGeo,starMat));
   }
 
@@ -850,22 +871,30 @@ function buildScene(wTex,fTex,assetsCfg){
   scene.add(yaw);
 
   if(assetsCfg&&assetsCfg.hasPiano){
-    spawnPiano();
+    spawnPiano(false);
   }
 }
 
 let pianoMesh=null, pianoAudio=null, pianoNear=false;
-function spawnPiano(){
+function spawnPiano(inFrontOfPlayer){
   if(!scene||!maze.length){clog&&clog('No active scene','err');return;}
-  const MRp=window._mazeRows||21,MCp=window._mazeCols||21;
-  let px2=CELL*3,pz2=CELL*3;
-  for(let tries=0;tries<500;tries++){
-    const rc=1+Math.floor(Math.random()*(MRp-2));
-    const cc=1+Math.floor(Math.random()*(MCp-2));
-    if(maze[rc]&&maze[rc][cc]===0){px2=(cc+0.5)*CELL;pz2=(rc+0.5)*CELL;break;}
+  let px2,pz2;
+  if(inFrontOfPlayer&&yaw){
+    px2=yaw.position.x-Math.sin(yaw.rotation.y)*3;
+    pz2=yaw.position.z-Math.cos(yaw.rotation.y)*3;
+  } else {
+    const MRp=window._mazeRows||21,MCp=window._mazeCols||21;
+    px2=CELL*3;pz2=CELL*3;
+    for(let tries=0;tries<500;tries++){
+      const rc=3+Math.floor(Math.random()*(MRp-6));
+      const cc=3+Math.floor(Math.random()*(MCp-6));
+      if(maze[rc]&&maze[rc][cc]===0&&maze[rc-1]&&maze[rc-1][cc]===0&&maze[rc+1]&&maze[rc+1][cc]===0){
+        px2=(cc+0.5)*CELL;pz2=(rc+0.5)*CELL;break;
+      }
+    }
   }
   const geo=new THREE.PlaneGeometry(2.4,1.6);
-  pianoMesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x6B3A1F,side:THREE.DoubleSide}));
+  pianoMesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x222222,side:THREE.DoubleSide,transparent:true,opacity:0.01}));
   pianoMesh.position.set(px2,EYE_H*0.75,pz2);
   scene.add(pianoMesh);
   const pl=new THREE.PointLight(0xffcc66,2,CELL*3);
@@ -876,11 +905,16 @@ function spawnPiano(){
     c.width=img.naturalWidth;c.height=img.naturalHeight;
     const ctx=c.getContext('2d');ctx.drawImage(img,0,0);
     const id=ctx.getImageData(0,0,c.width,c.height),d=id.data;
-    for(let i=0;i<d.length;i+=4)if(d[i]>200&&d[i+1]>200&&d[i+2]>200)d[i+3]=0;
+    for(let i=0;i<d.length;i+=4){
+      const r=d[i],g=d[i+1],b=d[i+2];
+      const brightness=(r+g+b)/3;
+      const sat=Math.max(r,g,b)-Math.min(r,g,b);
+      if(brightness>180&&sat<40)d[i+3]=0;
+    }
     ctx.putImageData(id,0,0);
     pianoMesh.material=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),side:THREE.DoubleSide,transparent:true});
   };
-  img.src='https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_F1ofegZz4aYJfK5lL9AbSc8Sx5g3l96HNQ%26s';
+  img.src='https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_F1ofegZz4aYJfK5lL9AbSc8Sx5g3l96HNQ%26s&bg=transparent';
   if(!pianoAudio){
     pianoAudio=new Audio('https://videos.viddynest.com/uploads/rlWGaHbq-r/alex_jauk-distant-creepy-piano-428216_mp3cut.net_1_1_.mp4');
     pianoAudio.volume=0.7;
@@ -1134,6 +1168,7 @@ function startGame(mapKey){
   if(!assets)return;
   currentAssets=assets;
   checkAchievements&&checkAchievements(mapKey);
+  document.getElementById('pauseMenu').style.display='none';
 
   
   const mapNames={basement:'Basement I',garden:'Garden I',matrix:'The Matrix',house:'House I',backrooms:'Backrooms',garden2:'Garden II',office:'Office I',runplace:'Run Place'};
@@ -1327,6 +1362,166 @@ function stopGame(){
   if(pianoAudio){pianoAudio.pause();pianoAudio=null;} pianoMesh=null;
 }
 
+
+let betaCmds=false;
+let inventory=[null,null,null,null,null,null];
+let equippedItem=null;
+let ammo=16,maxAmmo=16,reloading=false;
+let isZoomed=false;
+let shotAudio=null,reloadAudio=null;
+let inventoryOpen=false;
+
+const ITEMS={
+  knifeflip:{id:'knifeflip',name:'Knife (Flip)',icon:'https://i.pinimg.com/736x/24/3a/ed/243aedcdda330420da624236c16c99aa.jpg',handL:'https://media.tenor.com/0ytzPL1OMwEAAAAM/knife-butterfly.gif',handR:'https://media.tenor.com/0ytzPL1OMwEAAAAM/knife-butterfly.gif'},
+  handgun:{id:'handgun',name:'Handgun',icon:'https://www.shootingillustrated.com/media/i0rlk3gk/duty.jpg',handL:'https://i.pinimg.com/736x/72/bb/4a/72bb4a287b5171edb06d1b2fe36e6bfc.jpg',handR:'https://i.pinimg.com/736x/72/bb/4a/72bb4a287b5171edb06d1b2fe36e6bfc.jpg',muzzle:'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1d034f60-0f23-44a7-8284-3bc1c284fb7b/d9ex312-5e805740-534d-40fb-8402-ec825c558ad4.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi8xZDAzNGY2MC0wZjIzLTQ0YTctODI4NC0zYmMxYzI4NGZiN2IvZDlleDMxMi01ZTgwNTc0MC01MzRkLTQwZmItODQwMi1lYzgyNWM1NThhZDQuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.Z7cA6qROGI-cS7NmZFpKsNikOnqPJG9g-dQEISrj1HE'}
+};
+
+function renderInventory(){
+  const slots=document.getElementById('invSlots');
+  if(!slots)return;
+  slots.innerHTML='';
+  for(let i=0;i<6;i++){
+    const item=inventory[i];
+    const slot=document.createElement('div');
+    slot.style.cssText='width:80px;height:80px;border:1px solid rgba(255,255,255,'+(item?'0.4':'0.15')+');border-radius:4px;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;cursor:'+(item?'pointer':'default')+';position:relative;';
+    if(item){
+      const img=document.createElement('img');
+      img.src=item.icon;
+      img.style.cssText='width:60px;height:60px;object-fit:contain;';
+      slot.appendChild(img);
+      const label=document.createElement('div');
+      label.style.cssText='position:absolute;bottom:2px;left:0;right:0;font-size:9px;color:#ccc;text-align:center;font-family:monospace;';
+      label.textContent=item.name;
+      slot.appendChild(label);
+      if(equippedItem&&equippedItem.id===item.id)slot.style.borderColor='#f5c542';
+      slot.onclick=()=>equipItem(item);
+    }
+    slots.appendChild(slot);
+  }
+}
+
+function addToInventory(item){
+  const empty=inventory.indexOf(null);
+  if(empty===-1){clog('Inventory full!','err');return;}
+  inventory[empty]=item;
+  renderInventory();
+  clog(item.name+' added to inventory','sys');
+}
+
+function equipItem(item){
+  if(equippedItem&&equippedItem.id===item.id){unequipItem();return;}
+  equippedItem=item;
+  renderInventory();
+  applyHandVisual(item);
+  if(item.id==='handgun'){
+    document.getElementById('gunHUD').style.display='block';
+    shotAudio=new Audio('https://cdn.pixabay.com/audio/2025/06/12/audio_7404f7775c.mp3');
+    reloadAudio=new Audio('https://cdn.pixabay.com/audio/2026/03/30/audio_0905eaa991.mp3');
+    updateAmmoDisplay();
+  }
+  clog('Equipped: '+item.name,'sys');
+}
+
+function unequipItem(){
+  equippedItem=null;
+  document.getElementById('gunHUD').style.display='none';
+  renderInventory();
+  if(typeof setupHands==='function'&&currentAssets)setupHands(currentAssets.hands);
+  clog('Unequipped','sys');
+}
+
+function applyHandVisual(item){
+  ['hand-left-wrap','hand-right-wrap'].forEach((id,idx)=>{
+    const wrap=document.getElementById(id);
+    if(!wrap)return;
+    const img=wrap.querySelector('canvas,img');
+    if(img&&img.tagName==='IMG'){img.src=idx===0?item.handL:item.handR;}
+  });
+}
+
+function updateAmmoDisplay(){
+  const el=document.getElementById('ammoDisplay');
+  if(el)el.textContent=ammo+'/'+maxAmmo;
+}
+
+function shoot(){
+  if(!equippedItem||equippedItem.id!=='handgun')return;
+  if(reloading)return;
+  if(ammo<=0){clog('Out of ammo! Press R to reload.','warn');return;}
+  ammo--;
+  updateAmmoDisplay();
+  if(shotAudio){shotAudio.currentTime=0;shotAudio.play().catch(()=>{});}
+  const R=document.getElementById('hand-right-wrap');
+  if(R){
+    const mf=document.createElement('img');
+    mf.src=ITEMS.handgun.muzzle;
+    mf.style.cssText='position:absolute;top:-40%;left:10%;width:80%;pointer-events:none;z-index:20;';
+    R.appendChild(mf);
+    setTimeout(()=>mf.remove(),200);
+  }
+}
+
+function reload(){
+  if(!equippedItem||equippedItem.id!=='handgun')return;
+  if(reloading||ammo===maxAmmo)return;
+  reloading=true;
+  const msg=document.getElementById('reloadMsg');
+  if(msg)msg.style.display='block';
+  if(reloadAudio){reloadAudio.currentTime=0;reloadAudio.play().catch(()=>{});}
+  setTimeout(()=>{ammo=maxAmmo;reloading=false;if(msg)msg.style.display='none';updateAmmoDisplay();clog('Reloaded!','sys');},2000);
+}
+
+function toggleInventory(){
+  const panel=document.getElementById('inventoryPanel');
+  if(!panel)return;
+  inventoryOpen=!inventoryOpen;
+  panel.style.display=inventoryOpen?'flex':'none';
+  renderInventory();
+  if(inventoryOpen)document.exitPointerLock&&document.exitPointerLock();
+  else if(!won&&document.getElementById('game').classList.contains('active'))
+    document.getElementById('gameCanvas')&&document.getElementById('gameCanvas').requestPointerLock();
+}
+
+function runBetaCmd(lower,cmd){
+  if(lower==='!betacommandfunctions'){
+    if(!privGame){clog('Access denied — use !PrivGame first','err');return true;}
+    if(!devOp){clog('Access denied — use !DevOP first','err');return true;}
+    betaCmds=!betaCmds;
+    clog(betaCmds?'[Beta Commands Unlocked]':'Beta Commands disabled','warn');
+    return true;
+  }
+  if(!betaCmds)return false;
+  if(lower==='!give.selfuser.knifeflip'){addToInventory(ITEMS.knifeflip);return true;}
+  if(lower==='!give.selfuser.handgun.r/h'||lower==='!give.selfuser.handgun.l/h'){addToInventory(ITEMS.handgun);return true;}
+  if(lower==='!time.set.day'){
+    if(scene){scene.background=new THREE.Color(0x87ceeb);scene.fog.color.set(0x87ceeb);}
+    clog('Time set to Day','sys');return true;
+  }
+  return false;
+}
+
+document.addEventListener('mousedown',e=>{
+  if(e.button===2&&equippedItem&&equippedItem.id==='handgun'&&camera){
+    isZoomed=true;camera.fov=45;camera.updateProjectionMatrix();e.preventDefault();
+  }
+  if(e.button===0&&equippedItem&&equippedItem.id==='handgun'&&locked)shoot();
+});
+document.addEventListener('mouseup',e=>{
+  if(e.button===2&&isZoomed&&camera){
+    isZoomed=false;
+    const fovEl=document.getElementById('fovSlider');
+    camera.fov=fovEl?parseInt(fovEl.value):75;
+    camera.updateProjectionMatrix();
+  }
+});
+document.addEventListener('contextmenu',e=>{if(equippedItem)e.preventDefault();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='b'||e.key==='B'){
+    if(document.getElementById('game').classList.contains('active'))toggleInventory();
+  }
+  if((e.key==='r'||e.key==='R')&&equippedItem&&equippedItem.id==='handgun')reload();
+});
+
 let consoleDev=false;
 function clog(msg,type='info'){
   const log=document.getElementById('consoleLog');
@@ -1341,12 +1536,22 @@ function clog(msg,type='info'){
 function runCmd(raw){
   const cmd=raw.trim();
   clog(cmd,'sys');
+  if(runBetaCmd&&runBetaCmd(cmd.toLowerCase(),cmd))return;
   const lower=cmd.toLowerCase();
   if(lower==='!privgame'){privGame=!privGame;clog(privGame?'[Access Granted] Private Game enabled — use !DevOP for more access':'Private Game disabled');}
   else if(lower==='!devop'){
     if(!privGame){clog('Access denied — enable !PrivGame first','err');return;}
     consoleDev=!consoleDev;devOp=consoleDev;
     clog(consoleDev?'[More Access Granted] DevOP enabled — all commands unlocked':'DevOP revoked','warn');
+  }
+  else if(lower.startsWith('!tp.')){
+    if(!yaw){clog('No active game','err');return;}
+    const parts=cmd.split('.');
+    const tx=parseFloat(parts[1]),ty=parseFloat(parts[2]),tz=parseFloat(parts[3]);
+    if(!isNaN(tx)&&!isNaN(ty)&&!isNaN(tz)){
+      yaw.position.set(tx*CELL,ty,tz*CELL);
+      clog('Teleported to ('+tx+', '+ty+', '+tz+')','sys');
+    } else {clog('Usage: !tp.X.Y.Z (e.g. !tp.2.1.2)','err');}
   }
   else if(lower==='!fly'){flyMode=!flyMode;onGround=true;velY=0;clog('Fly: '+flyMode);}
   else if(lower==='!noclip'){noclipMode=!noclipMode;clog('Noclip: '+noclipMode);}
@@ -1376,8 +1581,8 @@ function runCmd(raw){
     if(!devOp){clog('Access denied — use !DevOP first','err');return;}
     if(!scene){clog('No active game','err');return;}
     if(currentAssets!==ASSETS.house&&currentAssets!==ASSETS.garden){clog('Only works in House I or Garden I','err');return;}
-    spawnPiano();
-    clog('Piano summoned!','sys');
+    spawnPiano(true);
+    clog('Piano summoned in front of you!','sys');
   }
   else if(lower==='!summon.exitdoor'){
     if(!privGame){clog('Access denied — use !PrivGame first','err');return;}
@@ -1757,6 +1962,10 @@ function initMobileControls(){
 
 document.addEventListener('DOMContentLoaded', function(){
   bindSettingsControls();
+  safeClick('infoBack',    ()=>showScreen('mainMenu'));
+  safeClick('creditsBack', ()=>showScreen('mainMenu'));
+  safeClick('dailyBack',   ()=>showScreen('mainMenu'));
+  safeClick('achievBack',  ()=>showScreen('mainMenu'));
   safeClick('pmSettings', ()=>{document.getElementById('pauseMenu').style.display='none';openSettingsPanel(true);});
   safeClick('pmConsole',  ()=>{document.getElementById('pauseMenu').style.display='none';openConsole();});
   safeClick('pmExit',     ()=>{stopGame();showScreen('mapSelect');document.getElementById('bgMenuAudio').play().catch(()=>{});});
@@ -1947,34 +2156,28 @@ const _origOnclick=_origPlayBtn.onclick;
 
 <!-- INFO SCREEN -->
 <div class="screen" id="infoScreen" style="background:#0a0a0a;flex-direction:column;align-items:flex-start;padding:40px;gap:20px;overflow-y:auto;">
-  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
-    <h2 style="font-size:40px;font-weight:400;">Info</h2>
+  <div style="display:flex;justify-content:flex-end;width:100%;align-items:center;">
     <button class="gm-back" id="infoBack">Back</button>
   </div>
-  <div style="max-width:700px;font-size:16px;color:#aaa;line-height:2;font-family:'Georgia',serif;">
-    <p><b style="color:#fff;">The Maze I</b> — v0.0.8</p><br>
-    <p>A first-person horror maze game. Navigate through procedurally generated mazes, survive the environment and reach the exit door.</p><br>
-    <p><b style="color:#fff;">Controls (PC)</b><br>
-    WASD / Arrow Keys — Move<br>
-    Mouse — Look<br>
-    Shift — Sprint<br>
-    Space — Jump / Fly Up<br>
-    Ctrl — Fly Down<br>
-    Esc — Pause<br>
-    ` (backtick) — Console</p><br>
-    <p><b style="color:#fff;">Maps Available</b><br>
-    Basement I · Garden I · The Matrix · House I · Backrooms · Garden II · Office I</p><br>
-    <p><b style="color:#fff;">Version History</b><br>
-    0.0.1 → 0.0.8 (Current) · 0.0.9 (Soon)</p>
+  <h2 style="font-size:40px;font-weight:400;width:100%;text-align:center;margin-top:-20px;">Info</h2>
+  <div style="max-width:600px;font-size:16px;color:#aaa;line-height:2.2;font-family:'Georgia',serif;text-align:center;margin:0 auto;">
+    <p style="font-size:22px;color:#fff;letter-spacing:2px;margin-bottom:4px;">Information</p>
+    <p>Version &gt; 0.1.1</p>
+    <p>Time &gt; 4/19/26</p>
+    <br>
+    <p style="font-size:20px;color:#fff;">44devs®</p>
+    <p style="color:#666;">[2020-2021]</p>
+    <br>
+    <p>Email &gt; <span style="color:#997f7f;">44devs.cmd@gmail.com</span></p>
   </div>
 </div>
 
 <!-- CREDITS SCREEN -->
 <div class="screen" id="creditsScreen" style="background:#0a0a0a;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px;overflow-y:auto;">
-  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;margin-bottom:30px;">
-    <h2 style="font-size:40px;font-weight:400;">Credits</h2>
+  <div style="display:flex;justify-content:flex-end;width:100%;align-items:center;margin-bottom:20px;">
     <button class="gm-back" id="creditsBack">Back</button>
   </div>
+  <h2 style="font-size:40px;font-weight:400;margin-bottom:16px;">Credits</h2>
   <div style="font-family:'Georgia',serif;font-size:15px;color:#997f7f;line-height:2.4;text-align:center;max-width:500px;">
     <div style="color:#fff;font-size:18px;margin-bottom:4px;">~Developers~</div>
     <div>44devs</div><div>@User_94824</div>
@@ -1985,9 +2188,11 @@ const _origOnclick=_origPlayBtn.onclick;
     <div>@SoundReality</div><div>@freesound_community</div><div>@u_b32baquv5u</div>
     <div>@DRAGON-STUDIO</div><div>@TanwerAman</div><div>@SFX_LIBRARY</div>
     <div>@Damaine13</div><div>@CJB123</div>
+    <div>Alex Jauk / @Alex_Jauk</div>
     <div style="color:#fff;font-size:18px;margin:16px 0 4px;">~Helpers~</div>
     <div>Kaleido AI GmbH</div><div style="font-size:13px;color:#666;">(Background Remover)</div>
     <div style="color:#fff;font-size:18px;margin:16px 0 4px;">~Others~</div>
+    <div>A24 | Kane Pixels</div>
   </div>
 </div>
 
@@ -2045,6 +2250,23 @@ const _origOnclick=_origPlayBtn.onclick;
 <div id="achievNotif" style="position:fixed;top:14px;left:-400px;background:#111;border:1px solid #f5c542;color:#fff;font-family:'Georgia',serif;padding:12px 20px;z-index:9999;transition:left 0.5s ease;max-width:300px;">
   <div style="font-size:11px;color:#f5c542;margin-bottom:2px;">Achievement Unlocked!</div>
   <div id="achievNotifText" style="font-size:14px;"></div>
+</div>
+
+
+<!-- INVENTORY -->
+<div id="inventoryPanel" style="display:none;position:fixed;inset:0;z-index:500;align-items:center;justify-content:center;pointer-events:none;">
+  <div style="background:rgba(40,40,40,0.82);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:24px 28px;pointer-events:all;backdrop-filter:blur(6px);min-width:320px;">
+    <div style="font-size:13px;color:#888;letter-spacing:3px;margin-bottom:16px;text-align:center;">INVENTORY</div>
+    <div id="invSlots" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+    </div>
+    <div style="text-align:center;margin-top:14px;font-size:11px;color:#444;letter-spacing:2px;">[B] to close</div>
+  </div>
+</div>
+
+<!-- GUN HUD -->
+<div id="gunHUD" style="display:none;position:fixed;bottom:28px;right:28px;z-index:200;color:white;font-family:monospace;font-size:18px;text-align:right;text-shadow:0 0 8px rgba(0,0,0,0.8);">
+  <span id="ammoDisplay">16/16</span>
+  <div id="reloadMsg" style="font-size:12px;color:#f5c542;display:none;">Reloading...</div>
 </div>
 
 </body>
