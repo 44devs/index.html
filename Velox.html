@@ -166,8 +166,9 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
 .conv-empty{color:rgba(255,255,255,.3);font-size:.82rem;padding:20px;text-align:center}
 
 /* CHAT PANEL */
-.chat-panel{flex:1;display:flex;flex-direction:column;min-width:0}
+.chat-panel{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .chat-placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:.95rem}
+#chat-area{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0}
 .chat-header{display:flex;align-items:center;gap:10px;padding:9px 13px;
   border-bottom:1px solid var(--gui-border);background:var(--gui-bg);backdrop-filter:blur(9px);flex-shrink:0}
 .chat-close{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;
@@ -181,7 +182,7 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
 .user-drop{position:absolute;top:110%;right:0;background:rgba(15,22,50,.96);backdrop-filter:blur(12px);
   border:1px solid var(--gui-border);border-radius:8px;min-width:150px;z-index:500;display:none}
 .user-drop.open{display:block}
-.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:0}
 .msg-group{display:flex;flex-direction:column;max-width:62%}
 .msg-group.theirs{align-self:flex-start}
 .msg-group.mine{align-self:flex-end;align-items:flex-end}
@@ -443,7 +444,7 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
     <div class="conv-list" id="conv-list"><div class="conv-empty">No conversations yet</div></div>
     <div class="chat-panel" id="chat-panel">
       <div class="chat-placeholder" id="chat-placeholder">Select a conversation</div>
-      <div id="chat-area" style="display:none;flex-direction:column;height:100%;position:relative">
+      <div id="chat-area">
         <div class="chat-header">
           <button class="chat-close" onclick="closeChat()">Close</button>
           <div class="pfp" id="ch-pfp" style="font-size:1.1rem">👤</div>
@@ -829,11 +830,15 @@ function searchConvs(q){renderConvList(q);}
 // ==================== CHAT ====================
 function openChat(id){
   const f=friends.find(x=>x.id===id);if(!f)return;
-  // Unsubscribe previous listener
   if(_unsubMessages){_unsubMessages();_unsubMessages=null;}
   activeChat=f;renderConvList();
   document.getElementById('chat-placeholder').style.display='none';
-  const area=document.getElementById('chat-area');area.style.display='flex';
+  const area=document.getElementById('chat-area');
+  area.style.display='flex';
+  area.style.flexDirection='column';
+  area.style.flex='1';
+  area.style.minHeight='0';
+  area.style.overflow='hidden';
   document.getElementById('ch-name').textContent=f.username+(f.phone?' / '+f.phone:'');
   document.getElementById('ch-pfp').innerHTML=f.pfp?('<img src="'+f.pfp+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):(f.isGroup?'👥':'👤');
   const hdr=document.querySelector('.chat-header');
@@ -841,25 +846,25 @@ function openChat(id){
   if(f.isGroup&&f.creatorUsername===currentUser.username){
     if(!gadminBtn){gadminBtn=document.createElement('button');gadminBtn.id='gadmin-btn';gadminBtn.className='icon-btn';gadminBtn.title='Group Settings';gadminBtn.textContent='⚙️';gadminBtn.onclick=()=>openGroupAdmin(f.id);hdr.insertBefore(gadminBtn,hdr.querySelector('.chat-name').nextSibling);}
     gadminBtn.style.display='';
-  } else if(gadminBtn){gadminBtn.style.display='none';}
-  // Real-time Firestore message listener
+  }else if(gadminBtn){gadminBtn.style.display='none';}
   try{
     const {collection,query,orderBy,onSnapshot}=window._fbFns;
     const chatId=f.chatId;
     _unsubMessages=onSnapshot(
       query(collection(window._db,'chats',chatId,'messages'),orderBy('sentAt','asc')),
-      snap=>{
-        activeChat.messages=snap.docs.map(d=>{
+      function(snap){
+        activeChat.messages=snap.docs.map(function(d){
           const data=d.data();
-          const t=data.sentAt?.toDate?.()||new Date();
+          let t=new Date();try{if(data.sentAt&&data.sentAt.toDate)t=data.sentAt.toDate();}catch(e){}
           const time=t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0');
           return{id:d.id,from:data.fromUsername,fromUid:data.from,text:data.text,time,seen:data.seen};
         });
         if(activeChat.messages.length)activeChat.preview=activeChat.messages[activeChat.messages.length-1].text;
         renderMessages();renderConvList();
-      }
+      },
+      function(err){console.warn('Messages listener error:',err);renderMessages();}
     );
-  }catch(e){renderMessages();}
+  }catch(e){console.warn('openChat error:',e);renderMessages();}
 }
 function closeChat(){
   activeChat=null;
