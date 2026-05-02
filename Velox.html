@@ -813,14 +813,16 @@ function renderConvList(filter=''){
   const el=document.getElementById('conv-list');
   const list=friends.filter(f=>!filter||f.username.toLowerCase().includes(filter.toLowerCase()));
   if(!list.length){el.innerHTML='<div class="conv-empty">No conversations yet</div>';return;}
-  el.innerHTML=list.map(f=>`
-    <div class="conv-item${activeChat&&activeChat.id===f.id?' active':''}" onclick="openChat(${JSON.stringify(f.id)})">
-      <div class="pfp">${f.pfp?`<img src="${f.pfp}"/>`:(f.isGroup?'👥':'👤')}</div>
-      <div class="conv-info">
-        <div class="conv-name">${f.isGroup?'#':''} ${f.username}</div>
-        <div class="conv-preview">${f.preview||'No messages yet'}</div>
-      </div>
-    </div>`).join('');
+  el.innerHTML=list.map(function(f){
+    var pfp=f.pfp?('<img src="'+f.pfp+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):(f.isGroup?'👥':'👤');
+    var active=(activeChat&&activeChat.id===f.id)?' active':'';
+    return '<div class="conv-item'+active+'" onclick="openChat('+JSON.stringify(f.id)+')">'
+      +'<div class="pfp">'+pfp+'</div>'
+      +'<div class="conv-info">'
+        +'<div class="conv-name">'+(f.isGroup?'# ':'')+f.username+'</div>'
+        +'<div class="conv-preview">'+(f.preview||'No messages yet')+'</div>'
+      +'</div></div>';
+  }).join('');
 }
 function searchConvs(q){renderConvList(q);}
 
@@ -833,7 +835,7 @@ function openChat(id){
   document.getElementById('chat-placeholder').style.display='none';
   const area=document.getElementById('chat-area');area.style.display='flex';
   document.getElementById('ch-name').textContent=f.username+(f.phone?' / '+f.phone:'');
-  document.getElementById('ch-pfp').innerHTML=f.pfp?`<img src="${f.pfp}"/>`:(f.isGroup?'👥':'👤');
+  document.getElementById('ch-pfp').innerHTML=f.pfp?('<img src="'+f.pfp+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):(f.isGroup?'👥':'👤');
   const hdr=document.querySelector('.chat-header');
   let gadminBtn=document.getElementById('gadmin-btn');
   if(f.isGroup&&f.creatorUsername===currentUser.username){
@@ -1031,26 +1033,37 @@ function openMyProfile(){
   else dateEl.textContent='';
   // pfp
   const box=document.getElementById('my-pfp-box');
-  box.innerHTML=u.pfpUrl?`<img src="${u.pfpUrl}"/>`:'👤';
+  if(box)box.innerHTML=u.pfpUrl?('<img src="'+u.pfpUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):'👤';
   // restore profile style pickers
   const s=u.profileStyle||{};
   if(document.getElementById('prof-bg-color'))document.getElementById('prof-bg-color').value=s.bg||'#0f1632';
   if(document.getElementById('prof-txt-color'))document.getElementById('prof-txt-color').value=s.txt||'#ffffff';
   if(document.getElementById('prof-font'))document.getElementById('prof-font').value=s.font||'Raleway';
 }
-function loadPfp(e){
+async function loadPfp(e){
   const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=async ev=>{
-    currentUser.pfpUrl=ev.target.result;
+  showNotif('Uploading picture...','System','⏳');
+  try{
+    const {sRef,uploadBytes,getDownloadURL,doc,updateDoc}=window._fbFns;
+    const storageRef=sRef(window._storage,'pfps/'+currentUser.uid);
+    await uploadBytes(storageRef,f);
+    const url=await getDownloadURL(storageRef);
+    currentUser.pfpUrl=url;
     const box=document.getElementById('my-pfp-box');
-    box.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
-    try{
-      const {doc,updateDoc}=window._fbFns;
-      await updateDoc(doc(window._db,'users',currentUser.uid),{pfpUrl:ev.target.result});
-    }catch(e){}
-  };
-  r.readAsDataURL(f);
+    if(box)box.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
+    await updateDoc(doc(window._db,'users',currentUser.uid),{pfpUrl:url});
+    showNotif('Profile picture updated!','System','✅');
+  }catch(err){
+    const r=new FileReader();
+    r.onload=async ev=>{
+      const url=ev.target.result;
+      currentUser.pfpUrl=url;
+      const box=document.getElementById('my-pfp-box');
+      if(box)box.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
+      try{const {doc,updateDoc}=window._fbFns;await updateDoc(doc(window._db,'users',currentUser.uid),{pfpUrl:url});}catch(e2){}
+    };
+    r.readAsDataURL(f);
+  }
 }
 async function saveMyBio(){
   const bio=document.getElementById('my-bio').value;
@@ -1074,79 +1087,91 @@ async function saveProfileStyle(){
 
 // ==================== FRIEND REQUESTS ====================
 let _unsubRequests=null;
+window._pendingRequests=[];
+
 function listenForRequests(){
-  if(_unsubRequests)return;
+  if(_unsubRequests){_unsubRequests();_unsubRequests=null;}
   try{
     const {collection,query,where,onSnapshot}=window._fbFns;
     const q=query(collection(window._db,'friendRequests'),where('toUid','==',currentUser.uid),where('status','==','pending'));
     _unsubRequests=onSnapshot(q,snap=>{
-      const count=snap.size;
+      window._pendingRequests=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const count=window._pendingRequests.length;
       const badge=document.getElementById('req-badge');
       const countBadge=document.getElementById('req-count-badge');
       if(badge){badge.textContent=count;badge.classList.toggle('show',count>0);}
       if(countBadge){countBadge.textContent=count;countBadge.style.display=count>0?'inline':'none';}
-      window._pendingRequests=snap.docs.map(d=>({id:d.id,...d.data()}));
-    });
-  }catch(e){}
+    },err=>{console.warn('Requests listener error:',err);});
+  }catch(e){console.warn('listenForRequests failed:',e);}
 }
-async function openRequestsPanel(){
+
+function openRequestsPanel(){
   const body=document.getElementById('requests-body');
+  if(!body)return;
   const reqs=window._pendingRequests||[];
-  if(!reqs.length){body.innerHTML='<div style="color:rgba(255,255,255,.35);text-align:center;padding:20px">No pending requests</div>';return;}
-  body.innerHTML=reqs.map(r=>`
-    <div class="req-item" id="req-${r.id}">
-      <div class="pfp">${r.fromPfp?`<img src="${r.fromPfp}"/>`:'👤'}</div>
-      <div class="req-item-info">
-        <div class="req-item-name">@${r.fromUsername}</div>
-        <div class="req-item-sub">Wants to be friends</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-sm btn-primary" onclick="acceptRequest('${r.id}','${r.fromUid}','${r.fromUsername}')">Accept</button>
-        <button class="btn btn-sm btn-danger" onclick="declineRequest('${r.id}')">Decline</button>
-      </div>
-    </div>`).join('');
+  if(!reqs.length){
+    body.innerHTML='<div style="color:rgba(255,255,255,.35);text-align:center;padding:20px;font-size:.85rem">No pending requests</div>';
+    return;
+  }
+  body.innerHTML=reqs.map(function(r){
+    var pfpHtml=r.fromPfp?('<img src="'+r.fromPfp+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):'👤';
+    return '<div class="req-item" id="req-'+r.id+'">'
+      +'<div class="pfp">'+pfpHtml+'</div>'
+      +'<div class="req-item-info">'
+        +'<div class="req-item-name">@'+r.fromUsername+'</div>'
+        +'<div class="req-item-sub">Wants to be friends</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px">'
+        +'<button class="btn btn-sm btn-primary" onclick="acceptRequest(\''+r.id+'\',\''+r.fromUid+'\',\''+r.fromUsername+'\')">Accept</button>'
+        +'<button class="btn btn-sm btn-danger" onclick="declineRequest(\''+r.id+'\')">Decline</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
 }
-async function acceptRequest(reqId, fromUid, fromUsername){
+
+async function acceptRequest(reqId,fromUid,fromUsername){
   try{
-    const {doc,setDoc,updateDoc,serverTimestamp}=window._fbFns;
-    // Create chat document
+    const {doc,setDoc,updateDoc,getDoc,serverTimestamp}=window._fbFns;
     const chatId=[currentUser.uid,fromUid].sort().join('_');
     await setDoc(doc(window._db,'chats',chatId),{
       members:[currentUser.uid,fromUid],isGroup:false,
       lastMsg:'Start Chatting!',lastTime:serverTimestamp()
     },{merge:true});
-    // Mark request done
     await updateDoc(doc(window._db,'friendRequests',reqId),{status:'accepted'});
-    // Fetch the other user's data
-    const {getDoc}=window._fbFns;
     const uSnap=await getDoc(doc(window._db,'users',fromUid));
     const uData=uSnap.exists()?uSnap.data():{username:fromUsername,pfpUrl:null,phone:''};
-    // Add to local friends list
-    if(!friends.find(f=>f.chatId===chatId)){
-      friends.unshift({id:chatId,chatId,username:'@'+fromUsername,preview:'Start Chatting!',
+    if(!friends.find(function(f){return f.chatId===chatId;})){
+      friends.unshift({id:chatId,chatId:chatId,username:'@'+fromUsername,preview:'Start Chatting!',
         pfp:uData.pfpUrl||null,isGroup:false,memberUids:[currentUser.uid,fromUid],messages:[],phone:uData.phone||''});
       renderConvList();
     }
     showNotif('You and @'+fromUsername+' are now friends!','System','🎉');
-    // Remove from UI
     document.getElementById('req-'+reqId)?.remove();
-    const badge=document.getElementById('req-badge');
-    const reqs=window._pendingRequests||[];
-    window._pendingRequests=reqs.filter(r=>r.id!==reqId);
-    const newCount=window._pendingRequests.length;
+    window._pendingRequests=(window._pendingRequests||[]).filter(function(r){return r.id!==reqId;});
+    var newCount=window._pendingRequests.length;
+    var badge=document.getElementById('req-badge');
+    var countBadge=document.getElementById('req-count-badge');
     if(badge){badge.textContent=newCount;badge.classList.toggle('show',newCount>0);}
-  }catch(e){showNotif('Error: '+e.message,'System','⚠️');}
+    if(countBadge){countBadge.textContent=newCount;countBadge.style.display=newCount>0?'inline':'none';}
+    var body=document.getElementById('requests-body');
+    if(body&&!window._pendingRequests.length)body.innerHTML='<div style="color:rgba(255,255,255,.35);text-align:center;padding:20px;font-size:.85rem">No pending requests</div>';
+  }catch(e){showNotif('Error: '+e.message,'System','⚠️');console.error(e);}
 }
+
 async function declineRequest(reqId){
   try{
     const {doc,updateDoc}=window._fbFns;
     await updateDoc(doc(window._db,'friendRequests',reqId),{status:'declined'});
     document.getElementById('req-'+reqId)?.remove();
-    window._pendingRequests=(window._pendingRequests||[]).filter(r=>r.id!==reqId);
-    const newCount=(window._pendingRequests||[]).length;
-    const badge=document.getElementById('req-badge');
+    window._pendingRequests=(window._pendingRequests||[]).filter(function(r){return r.id!==reqId;});
+    var newCount=window._pendingRequests.length;
+    var badge=document.getElementById('req-badge');
+    var countBadge=document.getElementById('req-count-badge');
     if(badge){badge.textContent=newCount;badge.classList.toggle('show',newCount>0);}
-  }catch(e){}
+    if(countBadge){countBadge.textContent=newCount;countBadge.style.display=newCount>0?'inline':'none';}
+    var body=document.getElementById('requests-body');
+    if(body&&!newCount)body.innerHTML='<div style="color:rgba(255,255,255,.35);text-align:center;padding:20px;font-size:.85rem">No pending requests</div>';
+  }catch(e){console.warn(e);}
 }
 
 // ==================== SOCIAL ====================
@@ -1190,26 +1215,29 @@ async function showSearchProfile(){
   }catch(e){const ul=document.getElementById('user-list');if(ul)ul.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.82rem;padding:10px">Could not load users</div>';}
 }
 function renderUserList(users){
-  if(!users.length)return'<div style="color:rgba(255,255,255,.3);font-size:.82rem;padding:10px 0">No users found</div>';
-  return users.map(u=>`
-    <div class="user-row" onmouseenter="showTip('tip-${u.uid}')" onmouseleave="hideTip('tip-${u.uid}')">
-      <div class="pfp">${u.pfpUrl?`<img src="${u.pfpUrl}"/>`:'👤'}</div>
-      <div class="user-row-info">
-        <div class="user-row-name">@${u.username}</div>
-        <div class="user-row-bio">${u.bio||'No bio'}</div>
-      </div>
-      <div class="tip-bubble" id="tip-${u.uid}">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div class="pfp">${u.pfpUrl?`<img src="${u.pfpUrl}"/>`:'👤'}</div>
-          <div><div style="font-weight:600;font-size:.88rem">@${u.username}</div><div style="font-size:.75rem;color:rgba(255,255,255,.5)">${u.phone||'No number'}</div></div>
-        </div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:10px">${u.bio||'No bio'}</div>
-        <div style="display:flex;gap:7px">
-          <button class="btn btn-sm btn-primary" onclick="viewProfile('${u.uid}','${u.username}')">View Profile</button>
-          <button class="btn btn-sm" onclick="addFriendDirect('${u.uid}','${u.username}')">Add</button>
-        </div>
-      </div>
-    </div>`).join('');
+  if(!users.length)return '<div style="color:rgba(255,255,255,.3);font-size:.82rem;padding:10px 0">No users found</div>';
+  return users.map(function(u){
+    var pfp=u.pfpUrl?('<img src="'+u.pfpUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):'👤';
+    return '<div class="user-row" onmouseenter="showTip(\'tip-'+u.uid+'\')" onmouseleave="hideTip(\'tip-'+u.uid+'\')">'
+      +'<div class="pfp">'+pfp+'</div>'
+      +'<div class="user-row-info">'
+        +'<div class="user-row-name">@'+u.username+'</div>'
+        +'<div class="user-row-bio">'+(u.bio||'No bio')+'</div>'
+      +'</div>'
+      +'<div class="tip-bubble" id="tip-'+u.uid+'">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+          +'<div class="pfp">'+pfp+'</div>'
+          +'<div><div style="font-weight:600;font-size:.88rem">@'+u.username+'</div>'
+          +'<div style="font-size:.75rem;color:rgba(255,255,255,.5)">'+(u.phone||'No number')+'</div></div>'
+        +'</div>'
+        +'<div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:10px">'+(u.bio||'No bio')+'</div>'
+        +'<div style="display:flex;gap:7px">'
+          +'<button class="btn btn-sm btn-primary" onclick="viewProfile(\''+u.uid+'\',\''+u.username+'\')">View Profile</button>'
+          +'<button class="btn btn-sm" onclick="addFriendDirect(\''+u.uid+'\',\''+u.username+'\')">Add</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
 }
 function filterUserList(q){
   const allUsers=(window._allUsersCache||[]).filter(a=>a.username.toLowerCase().includes(q.toLowerCase())||!q);
@@ -1218,43 +1246,53 @@ function filterUserList(q){
 }
 function showTip(id){const el=document.getElementById(id);if(el)el.classList.add('show');}
 function hideTip(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
-async function viewProfile(uid, username){
-  // fetch live data
-  let uData={username,bio:'',phone:'',pfpUrl:null,profileStyle:null,createdAt:null};
+async function viewProfile(uid,username){
+  var uData={uid:uid,username:username,bio:'',phone:'',pfpUrl:null,profileStyle:null,createdAt:null};
   try{
     const {getDoc,doc}=window._fbFns;
-    const snap=await getDoc(doc(window._db,'users',uid));
-    if(snap.exists())uData={uid,...snap.data()};
-  }catch(e){}
-  const isMe=uid===currentUser.uid;
-  const isFriend=friends.some(f=>f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup);
-  const style=uData.profileStyle||{};
-  const bg=style.bg||'#0f1632';const txtCol=style.txt||'#ffffff';const font=style.font||'Raleway';
-  let createdStr=null;try{if(uData.createdAt&&uData.createdAt.toDate){const d=uData.createdAt.toDate();createdStr=(d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);}}catch(e){}
+    var snap=await getDoc(doc(window._db,'users',uid));
+    if(snap.exists())uData=Object.assign({uid:uid},snap.data());
+  }catch(e){console.warn('viewProfile fetch error:',e);}
+
+  var isMe=(uid===currentUser.uid);
+  var isFriend=friends.some(function(f){return f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup;});
+  var ps=uData.profileStyle||{};
+  var bg=ps.bg||'#0f1632';
+  var txtCol=ps.txt||'#ffffff';
+  var font=ps.font||'Raleway';
+
+  var createdStr='';
+  try{if(uData.createdAt&&typeof uData.createdAt.toDate==='function'){var cd=uData.createdAt.toDate();createdStr=(cd.getMonth()+1)+'/'+cd.getDate()+'/'+String(cd.getFullYear()).slice(2)+' (account created)';}}catch(e){}
+
   document.getElementById('pview-title').textContent='@'+(uData.username||username);
-  // build drop menu
-  const drop=document.getElementById('pview-drop');
+
+  // build drop menu without nested template literals
+  var drop=document.getElementById('pview-drop');
   if(isMe){
-    drop.innerHTML=`<div class="drop-item" onclick="closeOverlay('profile-view-overlay');openSection('profile')">Edit My Profile</div>`;
-  } else {
-    drop.innerHTML=`
-      <div class="drop-item" onclick="${isFriend?'removeFriendByUid(\''+uid+'\',\''+uData.username+'\')':'sendRequestByUid(\''+uid+'\',\''+uData.username+'\')'};document.getElementById('pview-drop').classList.remove('open')">${isFriend?'Remove Friend':'Add Friend'}</div>
-      <div class="drop-item" style="color:#ff9999" onclick="blockUserByUid('${uid}','${uData.username}');document.getElementById('pview-drop').classList.remove('open')">Block</div>`;
+    drop.innerHTML='<div class="drop-item" onclick="closeOverlay(\'profile-view-overlay\');openSection(\'profile\')">Edit My Profile</div>';
+  }else{
+    var friendAction=isFriend
+      ?'removeFriendByUid(\''+uid+'\',\''+( uData.username||username)+'\')'
+      :'sendRequestByUid(\''+uid+'\',\''+(uData.username||username)+'\')';
+    var friendLabel=isFriend?'Remove Friend':'Add Friend';
+    drop.innerHTML=
+      '<div class="drop-item" onclick="'+friendAction+';document.getElementById(\'pview-drop\').classList.remove(\'open\')">'+friendLabel+'</div>'
+      +'<div class="drop-item" style="color:#ff9999" onclick="blockUserByUid(\''+uid+'\',\''+(uData.username||username)+'\');document.getElementById(\'pview-drop\').classList.remove(\'open\')">Block</div>';
   }
-  const body=document.getElementById('pview-body');
+
+  var body=document.getElementById('pview-body');
   body.style.background=bg;body.style.color=txtCol;body.style.fontFamily=font;
-  const pfpHtml=uData.pfpUrl?`<img src="${uData.pfpUrl}"/>`:'👤';
-  body.innerHTML=`
-    <div class="profile-card">
-      <div class="profile-card-pfp">${pfpHtml}</div>
-      <div class="profile-card-name" style="color:${txtCol};font-family:${font}">@${uData.username||username}</div>
-      ${uData.phone?`<div class="profile-card-number" style="color:${txtCol};opacity:.6">${uData.phone}</div>`:''}
-      ${createdStr?`<div class="profile-card-date" style="color:${txtCol};opacity:.45">${createdStr} (account created)</div>`:''}
-      <div style="width:100%;margin-top:8px">
-        <div class="profile-card-bio-label" style="color:${txtCol};opacity:.7">Bio</div>
-        <div class="bio-area" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 12px;min-height:80px;font-size:.88rem;font-family:${font};color:${txtCol};white-space:pre-wrap">${uData.bio||''}</div>
-      </div>
-    </div>`;
+  var pfpHtml=uData.pfpUrl?('<img src="'+uData.pfpUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'):'👤';
+  var html='<div class="profile-card">'
+    +'<div class="profile-card-pfp">'+pfpHtml+'</div>'
+    +'<div class="profile-card-name" style="color:'+txtCol+';font-family:'+font+'">@'+(uData.username||username)+'</div>';
+  if(uData.phone)html+='<div class="profile-card-number" style="color:'+txtCol+';opacity:.6">'+uData.phone+'</div>';
+  if(createdStr)html+='<div class="profile-card-date" style="color:'+txtCol+';opacity:.45">'+createdStr+'</div>';
+  html+='<div style="width:100%;margin-top:8px">'
+    +'<div class="profile-card-bio-label" style="color:'+txtCol+';opacity:.7">Bio</div>'
+    +'<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 12px;min-height:80px;font-size:.88rem;font-family:'+font+';color:'+txtCol+';white-space:pre-wrap">'+(uData.bio||'')+'</div>'
+    +'</div></div>';
+  body.innerHTML=html;
   openOverlay('profile-view-overlay');
 }
 function toggleProfileDrop(){const d=document.getElementById('pview-drop');d.classList.toggle('open');}
