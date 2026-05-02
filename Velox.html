@@ -43,7 +43,10 @@ onAuthStateChanged(_auth, async user => {
   if(user && window.location.hash !== '#logout') {
     const snap = await getDoc(doc(_db, 'users', user.uid));
     if(snap.exists()) {
-      window.currentUser = { uid: user.uid, ...snap.data() };
+      const restored = { uid: user.uid, ...snap.data() };
+      window.currentUser = restored;
+      // Sync back to the non-module script's local currentUser
+      if(window._setCurrentUser) window._setCurrentUser(restored);
       window.initApp();
       window.showScreen('app-screen');
     }
@@ -664,6 +667,9 @@ const TAKEN = 'https://i.pinimg.com/736x/5c/78/81/5c788152efc40897d9574afb79944b
 let pendingGroupJoin = null;
 let rgbTxt=null,rgbOutline=null,rgbBg=null,rgbBtnOutline=null,rgbBtnBg=null;
 
+// Bridge: lets the module script (onAuthStateChanged) update the local currentUser
+window._setCurrentUser = function(u){ currentUser = u; };
+
 // DATA STORES — backed by Firebase
 const friends = [];    // loaded from Firestore on login
 const savedMsgs = [];  // loaded from Firestore on login
@@ -684,6 +690,7 @@ function userColor(username){
 
 // ==================== SCREENS ====================
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+window.showScreen = showScreen;
 
 // ==================== LOGIN / REGISTER ====================
 function loginToggle(){
@@ -809,6 +816,7 @@ async function initApp(){
     listenForRequests();
   }catch(e){console.warn('Firestore load error:',e);renderConvList();listenForRequests();}
 }
+window.initApp = initApp;
 // ==================== CONVERSATIONS ====================
 function renderConvList(filter=''){
   const el=document.getElementById('conv-list');
