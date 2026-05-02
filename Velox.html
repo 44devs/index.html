@@ -49,6 +49,7 @@ onAuthStateChanged(_auth, async user => {
       window.currentUser = restored;
       // Sync back to the non-module script's local currentUser
       if(window._setCurrentUser) window._setCurrentUser(restored);
+      if(window.requestFullscreen) window.requestFullscreen();
       window.initApp();
       window.showScreen('app-screen');
     }
@@ -393,6 +394,39 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
 /* RGB animations for settings */
 .rgb-outline-active{animation:rgbBorder 3s linear infinite}
 @keyframes rgbBorder{0%{border-color:hsl(0,100%,70%)}33%{border-color:hsl(120,100%,70%)}66%{border-color:hsl(240,100%,70%)}100%{border-color:hsl(360,100%,70%)}}
+
+/* ====== CALL OVERLAY ====== */
+#call-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,rgba(8,14,35,.97),rgba(5,9,25,.99));
+  display:none;flex-direction:column;align-items:center;justify-content:space-between}
+#call-overlay.open{display:flex}
+.call-video-wrap{position:relative;width:100%;flex:1;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#call-remote-video{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
+#call-local-video{position:absolute;bottom:14px;right:14px;width:110px;height:80px;border-radius:10px;
+  border:2px solid rgba(255,255,255,.5);object-fit:cover;z-index:2;background:#111}
+.call-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:44px 0 10px}
+.call-big-pfp{width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.12);
+  border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:3rem}
+.call-name{font-size:1.3rem;font-weight:600;color:#fff}
+.call-status{font-size:.88rem;color:rgba(255,255,255,.55)}
+.call-controls{display:flex;gap:20px;align-items:center;justify-content:center;padding:20px 0 36px}
+.call-btn{width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.12);color:#fff;font-size:1.4rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s,transform .1s,border-color .2s}
+.call-btn:active{transform:scale(.93)}
+.call-btn:hover{background:rgba(255,255,255,.25)}
+.call-btn.on{background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.8)}
+.call-btn.danger{background:rgba(210,35,35,.8);border-color:rgba(255,80,80,.7)}
+.call-btn.danger:hover{background:rgba(220,40,40,1)}
+
+/* ====== MOBILE LAYOUT ====== */
+@media(max-width:640px){
+  .conv-list{width:100%!important;border-right:none;display:flex;flex-direction:column}
+  .chat-panel{width:100%!important;position:absolute;inset:0;z-index:50;
+    background:linear-gradient(rgba(10,18,40,.55),rgba(10,18,40,.55)),url('https://i.pinimg.com/736x/5f/ab/81/5fab81aaa4f959303ae840b85e016bf3.jpg') center/cover no-repeat fixed}
+  .chat-panel.mobile-hidden{display:none!important}
+  .app-body{position:relative;overflow:hidden}
+  .chat-close-back{display:inline-block!important}
+}
 </style>
 </head>
 <body>
@@ -451,12 +485,13 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
       <div class="chat-placeholder" id="chat-placeholder">Select a conversation</div>
       <div id="chat-area">
         <div class="chat-header">
+          <button class="chat-close chat-close-back" onclick="mobileChatBack()" style="display:none">←</button>
           <button class="chat-close" onclick="closeChat()">Close</button>
           <div class="pfp" id="ch-pfp" style="font-size:1.1rem">👤</div>
           <span class="chat-name" id="ch-name">@User</span>
           <div style="display:flex;align-items:center;gap:5px">
-            <button class="icon-btn" title="Video" onclick="showNotif('📹 Video call started!','System','')">📹</button>
-            <button class="icon-btn" title="Call" onclick="showNotif('📞 Voice call started!','System','')">📞</button>
+            <button class="icon-btn" title="Video" onclick="startCall(true)">📹</button>
+            <button class="icon-btn" title="Call" onclick="startCall(false)">📞</button>
             <div class="user-menu">
               <button class="icon-btn" onclick="toggleDrop('user-drop')">⋮</button>
               <div class="user-drop dropdown" id="user-drop">
@@ -480,6 +515,25 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- CALL OVERLAY -->
+<div id="call-overlay">
+  <div class="call-avatar-wrap" id="call-avatar-section">
+    <div class="call-big-pfp" id="call-pfp">👤</div>
+    <div class="call-name" id="call-name-label">@User</div>
+    <div class="call-status" id="call-status-label">Calling...</div>
+  </div>
+  <div class="call-video-wrap" id="call-video-section" style="display:none">
+    <video id="call-remote-video" autoplay playsinline></video>
+    <video id="call-local-video" autoplay playsinline muted></video>
+  </div>
+  <div class="call-controls">
+    <button class="call-btn" id="call-mute-btn" title="Mute" onclick="toggleCallMute()">🎤</button>
+    <button class="call-btn danger" title="Hang Up" onclick="endCall()">📵</button>
+    <button class="call-btn" id="call-cam-btn" title="Camera" onclick="toggleCallCam()">📷</button>
+    <button class="call-btn" id="call-spk-btn" title="Speaker" onclick="toggleCallSpeaker()">🔊</button>
   </div>
 </div>
 
@@ -626,6 +680,7 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
         <button class="btn btn-danger" onclick="resetSettings()">Reset Settings</button>
         <button class="btn btn-danger" onclick="switchAccount()">Switch Account</button>
         <button class="btn btn-danger" onclick="doLogout()">Log Out</button>
+        <button class="btn btn-danger" onclick="deleteAccount()" style="background:rgba(180,0,0,.3);border-color:rgba(255,50,50,.7)">🗑️ Delete Account</button>
       </div>
     </div>
   </div>
@@ -730,6 +785,7 @@ async function doLogin(){
     const cred=await signInWithEmailAndPassword(window._auth,email,pass);
     const snap=await getDoc(doc(window._db,'users',cred.user.uid));
     currentUser={uid:cred.user.uid,...snap.data()};
+    requestFullscreen();
     initApp();showScreen('app-screen');
   }catch(e){
     const msg=e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'?'Account not found':
@@ -757,6 +813,7 @@ async function doRegister(){
     const userData={username,phone,bio:'',pfpUrl:null,createdAt:serverTimestamp()};
     await setDoc(doc(window._db,'users',cred.user.uid),userData);
     currentUser={uid:cred.user.uid,...userData};
+    requestFullscreen();
     initApp();showScreen('app-screen');
     showNotif('Welcome to Velox!','System','🎉');
   }catch(e){
@@ -1571,6 +1628,201 @@ async function doLogout(){
 
 // Init GIFs on load
 loadGifs('');
+
+// ==================== FULLSCREEN ====================
+function requestFullscreen(){
+  const el=document.documentElement;
+  try{
+    if(el.requestFullscreen)el.requestFullscreen();
+    else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+    else if(el.mozRequestFullScreen)el.mozRequestFullScreen();
+  }catch(e){}
+}
+
+// ==================== MOBILE LAYOUT ====================
+function isMobile(){return window.innerWidth<=640;}
+function mobileChatBack(){
+  // On mobile, hide chat panel and show conv list
+  const cp=document.getElementById('chat-panel');
+  if(cp){cp.classList.add('mobile-hidden');}
+}
+function mobileOpenChat(){
+  // On mobile, show chat panel over conv list
+  const cp=document.getElementById('chat-panel');
+  if(cp){cp.classList.remove('mobile-hidden');}
+}
+
+// Patch openChat to handle mobile
+const _origOpenChat=openChat;
+window.openChat=function(id){
+  _origOpenChat(id);
+  if(isMobile()) mobileOpenChat();
+};
+// Patch closeChat to handle mobile
+const _origCloseChat=closeChat;
+window.closeChat=function(){
+  _origCloseChat();
+  if(isMobile()){
+    const cp=document.getElementById('chat-panel');
+    if(cp)cp.classList.add('mobile-hidden');
+  }
+};
+// Init mobile state
+window.addEventListener('DOMContentLoaded',function(){
+  if(isMobile()){
+    const cp=document.getElementById('chat-panel');
+    if(cp)cp.classList.add('mobile-hidden');
+  }
+});
+window.addEventListener('resize',function(){
+  if(!isMobile()){
+    const cp=document.getElementById('chat-panel');
+    if(cp)cp.classList.remove('mobile-hidden');
+  }
+});
+
+// ==================== DELETE ACCOUNT ====================
+function deleteAccount(){
+  confirmAction('Delete your account?','This is permanent. All your data will be erased.',async function(){
+    try{
+      const {doc,deleteDoc,collection,getDocs,query,where}=window._fbFns;
+      const uid=currentUser.uid;
+      // Delete user doc
+      try{await deleteDoc(doc(window._db,'users',uid));}catch(e){}
+      // Delete saved messages
+      try{
+        const savedSnap=await getDocs(collection(window._db,'users',uid,'saved'));
+        for(const d of savedSnap.docs){await deleteDoc(d.ref);}
+      }catch(e){}
+      // Delete Firebase Auth user
+      try{await window._auth.currentUser.delete();}catch(e){}
+      // Sign out + reset
+      try{await window._fbFns.signOut(window._auth);}catch(e){}
+      currentUser={};activeChat=null;friends.length=0;savedMsgs.length=0;groups.length=0;
+      closeOverlay('settings-overlay');
+      history.replaceState(null,'',window.location.pathname);
+      showScreen('login-screen');
+      showNotif('Account deleted.','System','🗑️');
+    }catch(e){
+      showNotif('Failed to delete: '+e.message,'System','⚠️');
+    }
+  });
+}
+
+// ==================== CALL SYSTEM ====================
+let _callStream=null;
+let _callMuted=false;
+let _callCamOff=false;
+let _callSpeakerOff=false;
+let _callTimer=null;
+let _callSeconds=0;
+let _callIsVideo=false;
+
+function startCall(isVideo){
+  if(!activeChat)return;
+  _callIsVideo=isVideo;
+  _callMuted=false;_callCamOff=false;_callSpeakerOff=false;_callSeconds=0;
+
+  // Update UI labels
+  document.getElementById('call-name-label').textContent=activeChat.username;
+  document.getElementById('call-status-label').textContent=isVideo?'Starting video call...':'Calling...';
+  const pfpEl=document.getElementById('call-pfp');
+  pfpEl.textContent=activeChat.isGroup?'👥':'👤';
+
+  // Reset button states
+  document.getElementById('call-mute-btn').classList.remove('on');
+  document.getElementById('call-cam-btn').classList.remove('on');
+  document.getElementById('call-spk-btn').classList.remove('on');
+  document.getElementById('call-mute-btn').textContent='🎤';
+  document.getElementById('call-cam-btn').textContent='📷';
+  document.getElementById('call-spk-btn').textContent='🔊';
+
+  const videoSection=document.getElementById('call-video-section');
+  const avatarSection=document.getElementById('call-avatar-section');
+
+  if(isVideo){
+    // Try to get camera
+    navigator.mediaDevices.getUserMedia({video:true,audio:true}).then(function(stream){
+      _callStream=stream;
+      const localVid=document.getElementById('call-local-video');
+      localVid.srcObject=stream;
+      videoSection.style.display='flex';
+      avatarSection.style.display='none';
+      document.getElementById('call-status-label').textContent='Video call active';
+    }).catch(function(){
+      // Camera denied — fall back to avatar view
+      videoSection.style.display='none';
+      avatarSection.style.display='flex';
+      document.getElementById('call-status-label').textContent='Camera unavailable';
+      _startCallAudio();
+    });
+  } else {
+    videoSection.style.display='none';
+    avatarSection.style.display='flex';
+    _startCallAudio();
+  }
+
+  // Open overlay
+  document.getElementById('call-overlay').classList.add('open');
+
+  // Start timer
+  _callTimer=setInterval(function(){
+    _callSeconds++;
+    var m=Math.floor(_callSeconds/60).toString().padStart(2,'0');
+    var s=(_callSeconds%60).toString().padStart(2,'0');
+    document.getElementById('call-status-label').textContent=(_callIsVideo?'Video ':'Voice ')+m+':'+s;
+  },1000);
+}
+
+function _startCallAudio(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    _callStream=stream;
+  }).catch(function(){});
+}
+
+function endCall(){
+  clearInterval(_callTimer);_callTimer=null;_callSeconds=0;
+  if(_callStream){_callStream.getTracks().forEach(function(t){t.stop();});_callStream=null;}
+  const localVid=document.getElementById('call-local-video');
+  const remoteVid=document.getElementById('call-remote-video');
+  localVid.srcObject=null;remoteVid.srcObject=null;
+  document.getElementById('call-overlay').classList.remove('open');
+  document.getElementById('call-video-section').style.display='none';
+  document.getElementById('call-avatar-section').style.display='flex';
+}
+
+function toggleCallMute(){
+  _callMuted=!_callMuted;
+  if(_callStream){_callStream.getAudioTracks().forEach(function(t){t.enabled=!_callMuted;});}
+  const btn=document.getElementById('call-mute-btn');
+  btn.textContent=_callMuted?'🔇':'🎤';
+  btn.classList.toggle('on',_callMuted);
+}
+
+function toggleCallCam(){
+  _callCamOff=!_callCamOff;
+  if(_callStream){_callStream.getVideoTracks().forEach(function(t){t.enabled=!_callCamOff;});}
+  const btn=document.getElementById('call-cam-btn');
+  btn.textContent=_callCamOff?'🚫':'📷';
+  btn.classList.toggle('on',_callCamOff);
+  // If turning cam on and it wasn't started (voice call), request video
+  if(!_callCamOff&&_callIsVideo===false){
+    _callIsVideo=true;
+    navigator.mediaDevices.getUserMedia({video:true,audio:true}).then(function(stream){
+      _callStream=stream;
+      document.getElementById('call-local-video').srcObject=stream;
+      document.getElementById('call-video-section').style.display='flex';
+      document.getElementById('call-avatar-section').style.display='none';
+    }).catch(function(){_callCamOff=true;btn.textContent='🚫';});
+  }
+}
+
+function toggleCallSpeaker(){
+  _callSpeakerOff=!_callSpeakerOff;
+  const btn=document.getElementById('call-spk-btn');
+  btn.textContent=_callSpeakerOff?'🔇':'🔊';
+  btn.classList.toggle('on',_callSpeakerOff);
+}
 </script>
 </body>
 </html>
