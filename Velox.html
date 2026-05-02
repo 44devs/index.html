@@ -945,7 +945,7 @@ function openChat(id){
           const data=d.data();
           let t=new Date();try{if(data.sentAt&&data.sentAt.toDate)t=data.sentAt.toDate();}catch(e){}
           const time=t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0');
-          return{id:d.id,from:data.fromUsername,fromUid:data.from,text:data.text,time,seen:data.seen};
+          return{id:d.id,from:data.fromUsername,fromUid:data.from,text:data.text||'',mediaUrl:data.mediaUrl||null,mediaType:data.mediaType||null,time,seen:data.seen};
         });
         if(activeChat.messages.length)activeChat.preview=activeChat.messages[activeChat.messages.length-1].text;
         renderMessages();renderConvList();
@@ -967,25 +967,47 @@ function renderMessages(){
   if(!activeChat.messages||!activeChat.messages.length){
     el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:20px;font-size:.85rem">No messages yet</div>';return;
   }
-  activeChat.messages.forEach(m=>{
+  activeChat.messages.forEach(function(m){
     const isMe=m.from===currentUser.username;
-    const g=document.createElement('div');
-    g.className='msg-group '+(isMe?'mine':'theirs');
     const color=activeChat.isGroup?userColor(m.from):'rgba(255,255,255,.5)';
-    let meta='';
-    if(isMe){meta=`<div class="msg-meta">${m.seen?'<span style="color:rgba(100,220,140,.8)">[Seen]</span>':''}
-      <button class="msg-act" onclick="editMsg('${m.id}')">Edit</button>
-      <button class="msg-act" onclick="deleteMsg('${m.id}')">Delete</button>
-      <span>${m.time}</span></div>`;}
-    else{meta=`<div class="msg-meta"><span>${m.time}</span>
-      <button class="msg-act" onclick="saveMsg('${m.id}')">Save</button>
-      <button class="msg-act" onclick="deleteForMe('${m.id}')">Delete for me</button></div>`;}
-    g.innerHTML=`<div class="msg-sender" style="color:${color}">${isMe?'You':m.from}</div>
-      <div class="msg-bubble">${m.text}</div>${meta}`;
-    el.appendChild(g);
+    // Action buttons — use &apos; so single quotes never break the JS string or HTML attribute
+    var mid=m.id;
+    var meta='';
+    if(isMe){
+      meta='<div class="msg-meta">'+(m.seen?'<span style="color:rgba(100,220,140,.8)">[Seen]</span>':'')+
+        '<button class="msg-act" onclick="editMsg(&apos;'+mid+'&apos;)">Edit</button>'+
+        '<button class="msg-act" onclick="deleteMsg(&apos;'+mid+'&apos;)">Delete</button>'+
+        '<span>'+m.time+'</span></div>';
+    }else{
+      meta='<div class="msg-meta"><span>'+m.time+'</span>'+
+        '<button class="msg-act" onclick="saveMsg(&apos;'+mid+'&apos;)">Save</button>'+
+        '<button class="msg-act" onclick="deleteForMe(&apos;'+mid+'&apos;)">Delete for me</button></div>';
+    }
+    // Bubble content — choose renderer by type
+    var bubbleHTML='';
+    if(m.mediaUrl){
+      if(m.mediaType==='video'){
+        bubbleHTML='<video src="'+m.mediaUrl+'" controls style="max-width:220px;max-height:180px;border-radius:8px;display:block"></video>';
+      }else{
+        // image or gif URL
+        bubbleHTML='<img src="'+m.mediaUrl+'" style="max-width:220px;max-height:220px;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src,&apos;_blank&apos;)"/>';
+      }
+      if(m.text){bubbleHTML+='<div style="margin-top:4px">'+escHtml(m.text)+'</div>';}
+    }else if(m.mediaType==='emoji'){
+      bubbleHTML='<span style="font-size:2rem">'+m.text+'</span>';
+    }else{
+      bubbleHTML=escHtml(m.text||'');
+    }
+    // Build element
+    var wrap=document.createElement('div');
+    wrap.className='msg-group '+(isMe?'mine':'theirs');
+    wrap.innerHTML='<div class="msg-sender" style="color:'+color+'">'+(isMe?'You':m.from)+'</div>'+
+      '<div class="msg-bubble">'+bubbleHTML+'</div>'+meta;
+    el.appendChild(wrap);
   });
   el.scrollTop=el.scrollHeight;
 }
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');}
 async function sendMessage(){
   const inp=document.getElementById('chat-input');
   const txt=inp.value.trim();if(!txt||!activeChat)return;
@@ -1028,16 +1050,45 @@ async function saveMsg(id){
   }catch(e){}
   showNotif('Message saved!','System','💾');
 }
-function attachMedia(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='image/*,video/*';
-  inp.onchange=e=>{const f=e.target.files[0];if(!f||!activeChat)return;
-    const now=new Date();const time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-    const reader=new FileReader();reader.onload=ev=>{
-      if(!activeChat.messages)activeChat.messages=[];
-      activeChat.messages.push({id:'m'+Date.now(),from:currentUser.username,text:`<img src="${ev.target.result}" style="max-width:200px;border-radius:6px"/>`,time,seen:false});
-      activeChat.preview='📎 '+f.name;renderMessages();renderConvList();
-    };reader.readAsDataURL(f);
-  };inp.click();
+async function attachMedia(){
+  if(!activeChat){showNotif('Open a chat first','System','⚠️');return;}
+  const inp=document.createElement('input');
+  inp.type='file';
+  inp.accept='image/*,video/*,image/gif';
+  inp.onchange=async function(e){
+    const f=e.target.files[0];if(!f)return;
+    const isVideo=f.type.startsWith('video/');
+    const isGif=f.type==='image/gif';
+    const msgType=isVideo?'video':isGif?'gif':'image';
+    const chatId=activeChat.chatId;
+    // Show sending indicator
+    showNotif('Uploading '+(isVideo?'video':isGif?'GIF':'photo')+'...','System','⏳');
+    try{
+      const {sRef,uploadBytes,getDownloadURL,addDoc,collection,serverTimestamp,doc,setDoc}=window._fbFns;
+      // Upload to Firebase Storage
+      const ext=f.name.split('.').pop()||'bin';
+      const path='chats/'+chatId+'/'+Date.now()+'_'+currentUser.uid+'.'+ext;
+      const storageRef=sRef(window._storage,path);
+      await uploadBytes(storageRef,f);
+      const url=await getDownloadURL(storageRef);
+      // Save message to Firestore with type field
+      await addDoc(collection(window._db,'chats',chatId,'messages'),{
+        from:currentUser.uid,
+        fromUsername:currentUser.username,
+        text:'',
+        mediaUrl:url,
+        mediaType:msgType,
+        sentAt:serverTimestamp(),
+        seen:false
+      });
+      const preview=isVideo?'📹 Video':isGif?'🎞️ GIF':'📷 Photo';
+      await setDoc(doc(window._db,'chats',chatId),{lastMsg:preview,lastTime:serverTimestamp(),members:activeChat.memberUids||[currentUser.uid]},{merge:true});
+      showNotif('Sent!','System','✅');
+    }catch(err){
+      showNotif('Upload failed: '+err.message,'System','⚠️');
+    }
+  };
+  inp.click();
 }
 function sendVoice(){showNotif('🎤 Voice message feature coming with backend!','System','');}
 function blockUser(){
@@ -1066,14 +1117,22 @@ function loadGifs(query){
 }
 function searchGifs(q){clearTimeout(window._gifT);window._gifT=setTimeout(()=>loadGifs(q),400);}
 function toggleGifPanel(){const p=document.getElementById('gif-panel');p.classList.toggle('open');}
-function sendGif(emoji){
+async function sendGif(emoji){
   if(!activeChat)return;
-  const now=new Date();const time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  if(!activeChat.messages)activeChat.messages=[];
-  activeChat.messages.push({id:'m'+Date.now(),from:currentUser.username,text:`<span style="font-size:2rem">${emoji}</span> <span style="font-size:.72rem;color:rgba(255,255,255,.4)">[GIF]</span>`,time,seen:false});
-  activeChat.preview='[GIF]';
   document.getElementById('gif-panel').classList.remove('open');
-  renderMessages();renderConvList();
+  try{
+    const {addDoc,collection,serverTimestamp,doc,setDoc}=window._fbFns;
+    const chatId=activeChat.chatId;
+    await addDoc(collection(window._db,'chats',chatId,'messages'),{
+      from:currentUser.uid,
+      fromUsername:currentUser.username,
+      text:emoji,
+      mediaType:'emoji',
+      sentAt:serverTimestamp(),
+      seen:false
+    });
+    await setDoc(doc(window._db,'chats',chatId),{lastMsg:'[GIF] '+emoji,lastTime:serverTimestamp(),members:activeChat.memberUids||[currentUser.uid]},{merge:true});
+  }catch(err){showNotif('Failed to send GIF: '+err.message,'System','⚠️');}
 }
 
 // ==================== DROPDOWNS ====================
