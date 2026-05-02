@@ -134,10 +134,10 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
   font-family:'Raleway',sans-serif;font-size:.88rem;font-weight:500;
   border-right:1px solid var(--gui-border);transition:background .2s;white-space:nowrap}
 .topbar-btn:hover{background:rgba(255,255,255,.12)}
-.topbar-dots-btn{padding:10px 16px;cursor:pointer;border:none;background:none;
+.topbar-dots-btn{padding:10px 16px;cursor:pointer;border:none;background:none;color:#fff;
   display:flex;flex-direction:column;gap:3.5px;align-items:center;justify-content:center;transition:background .2s}
 .topbar-dots-btn:hover{background:rgba(255,255,255,.12)}
-.topbar-dots-btn span{display:block;width:4px;height:4px;background:#fff;border-radius:50%}
+.topbar-dots-btn span{display:block;width:4.5px;height:4.5px;background:#fff;border-radius:50%}
 
 /* DROPDOWN */
 .dropdown{position:absolute;top:100%;right:0;background:rgba(15,22,50,0.95);backdrop-filter:blur(12px);
@@ -274,6 +274,37 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
 .bio-area:focus{background:rgba(255,255,255,.13);box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .edit-hint{text-align:center;font-size:.72rem;color:rgba(255,255,255,.4);margin-top:4px}
 
+/* PROFILE CARD */
+.profile-card{display:flex;flex-direction:column;align-items:center;padding:10px 0 16px}
+.profile-card-pfp{width:80px;height:80px;border-radius:50%;border:2px solid var(--gui-border);
+  background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;overflow:hidden;margin-bottom:10px;cursor:pointer}
+.profile-card-pfp img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.profile-card-top{display:flex;align-items:flex-start;width:100%;gap:10px}
+.profile-card-info{flex:1;display:flex;flex-direction:column;align-items:center}
+.profile-card-name{font-size:1rem;font-weight:600;margin-bottom:2px}
+.profile-card-number{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:3px}
+.profile-card-date{font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px}
+.profile-card-bio-label{font-size:.78rem;color:rgba(255,255,255,.55);align-self:flex-start;margin-bottom:4px;font-weight:600;width:100%}
+.profile-dots-wrap{position:relative}
+.profile-dots-btn{background:none;border:none;color:#fff;cursor:pointer;display:flex;
+  flex-direction:column;gap:3px;align-items:center;justify-content:center;padding:6px 8px;
+  border-radius:6px;transition:background .15s;margin-top:2px}
+.profile-dots-btn:hover{background:rgba(255,255,255,.12)}
+.profile-dots-btn span{display:block;width:4px;height:4px;background:#fff;border-radius:50%}
+.profile-drop{position:absolute;top:110%;right:0;background:rgba(15,22,50,.97);backdrop-filter:blur(12px);
+  border:1px solid var(--gui-border);border-radius:8px;min-width:160px;z-index:600;display:none}
+.profile-drop.open{display:block}
+/* REQUEST BADGE on dots button */
+.req-badge{position:absolute;top:5px;right:10px;background:#e05555;color:#fff;border-radius:50%;
+  width:17px;height:17px;font-size:.63rem;font-weight:700;display:none;align-items:center;
+  justify-content:center;pointer-events:none}
+.req-badge.show{display:flex}
+.req-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.req-item-info{flex:1;min-width:0}
+.req-item-name{font-weight:600;font-size:.85rem}
+.req-item-sub{font-size:.76rem;color:rgba(255,255,255,.45)}
+
 /* SETTINGS */
 .s-section{margin-bottom:20px}
 .s-title{font-size:.76rem;font-weight:600;letter-spacing:.06em;color:rgba(255,255,255,.45);
@@ -395,10 +426,12 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
     <div class="topbar-search"><input type="text" placeholder="Search conversations..." oninput="searchConvs(this.value)"/></div>
     <button class="topbar-btn" onclick="openOverlay('settings-overlay')">Settings</button>
     <div style="position:relative">
-      <button class="topbar-dots-btn" onclick="toggleDrop('main-drop')">
+      <button class="topbar-dots-btn" onclick="toggleDrop('main-drop')" style="position:relative">
         <span></span><span></span><span></span>
+        <div class="req-badge" id="req-badge">0</div>
       </button>
       <div class="dropdown" id="main-drop">
+        <div class="drop-item" onclick="openSection('requests')" style="display:flex;align-items:center;justify-content:space-between">Requests <span id="req-count-badge" style="background:#e05555;color:#fff;border-radius:10px;padding:1px 7px;font-size:.7rem;display:none;margin-left:6px">0</span></div>
         <div class="drop-item" onclick="openSection('social')">Social</div>
         <div class="drop-item" onclick="openSection('groups')">Groups</div>
         <div class="drop-item" onclick="openSection('profile')">My Profile</div>
@@ -454,13 +487,46 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
 
 <div class="overlay" id="profile-overlay">
   <div class="panel">
-    <div class="panel-hdr"><button class="panel-back" onclick="closeOverlay('profile-overlay')">Back</button><div class="panel-title">My Profile</div><div class="spacer"></div></div>
-    <div class="panel-body">
-      <div class="prof-pfp" onclick="document.getElementById('pfp-file').click()" id="my-pfp-box">👤</div>
-      <div class="prof-username" id="my-username">@Username</div>
-      <textarea class="bio-area" id="my-bio" placeholder="Write your bio..."></textarea>
-      <div class="edit-hint">Press To Edit</div>
+    <div class="panel-hdr">
+      <button class="panel-back" onclick="closeOverlay('profile-overlay')">Back</button>
+      <div class="panel-title">My Profile</div>
+      <div class="profile-dots-wrap">
+        <button class="profile-dots-btn" onclick="toggleMyProfileDrop()"><span></span><span></span><span></span></button>
+        <div class="profile-drop" id="my-profile-drop">
+          <div class="drop-item" onclick="document.getElementById('pfp-file').click();closeMyProfileDrop()">Change Profile Picture</div>
+          <div class="drop-item" onclick="openMyProfileBgSettings()">Profile Style</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body" id="my-profile-body">
+      <div class="profile-card">
+        <div class="profile-card-pfp" id="my-pfp-box" onclick="document.getElementById('pfp-file').click()">👤</div>
+        <div class="profile-card-top" style="justify-content:center;flex-direction:column;align-items:center">
+          <div class="profile-card-name" id="my-username">@Username</div>
+          <div class="profile-card-number" id="my-number-display"></div>
+          <div class="profile-card-date" id="my-created-date"></div>
+        </div>
+        <div style="width:100%;margin-top:8px">
+          <div class="profile-card-bio-label">Bio</div>
+          <textarea class="bio-area" id="my-bio" placeholder="Write your bio..." onchange="saveMyBio()"></textarea>
+          <div class="edit-hint">Press To Edit</div>
+        </div>
+      </div>
       <input type="file" id="pfp-file" accept="image/*" style="display:none" onchange="loadPfp(event)"/>
+      <div id="profile-style-panel" style="display:none;margin-top:10px">
+        <div class="s-title" style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.45);margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.12)">Profile Style (visible to others)</div>
+        <div class="s-row"><span class="s-label" style="font-size:.84rem">Background Color</span><input type="color" id="prof-bg-color" value="#0f1632" onchange="saveProfileStyle()" style="width:34px;height:24px;background:none;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer"/></div>
+        <div class="s-row"><span class="s-label" style="font-size:.84rem">Text Color</span><input type="color" id="prof-txt-color" value="#ffffff" onchange="saveProfileStyle()" style="width:34px;height:24px;background:none;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer"/></div>
+        <div class="s-row"><span class="s-label" style="font-size:.84rem">Font</span>
+          <select id="prof-font" onchange="saveProfileStyle()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.35);border-radius:5px;color:#fff;padding:4px 7px;font-size:.78rem;font-family:'Raleway',sans-serif;outline:none">
+            <option value="Raleway">Raleway (default)</option>
+            <option value="'Times New Roman',Times,serif">Times New Roman</option>
+            <option value="'Courier New',monospace">Courier New</option>
+            <option value="Georgia,serif">Georgia</option>
+            <option value="Arial,sans-serif">Arial</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -475,6 +541,27 @@ input:focus,textarea:focus{background:rgba(255,255,255,.14);box-shadow:0 0 0 2px
       </div>
       <div id="social-content"></div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="requests-overlay">
+  <div class="panel">
+    <div class="panel-hdr"><button class="panel-back" onclick="closeOverlay('requests-overlay')">Back</button><div class="panel-title">~Requests~</div><div class="spacer"></div></div>
+    <div class="panel-body" id="requests-body"><div style="color:rgba(255,255,255,.35);text-align:center;padding:20px">No pending requests</div></div>
+  </div>
+</div>
+
+<div class="overlay" id="profile-view-overlay">
+  <div class="panel">
+    <div class="panel-hdr">
+      <button class="panel-back" onclick="closeOverlay('profile-view-overlay')">Back</button>
+      <div class="panel-title" id="pview-title">Profile</div>
+      <div class="profile-dots-wrap">
+        <button class="profile-dots-btn" id="pview-dots-btn" onclick="toggleProfileDrop()"><span></span><span></span><span></span></button>
+        <div class="profile-drop" id="pview-drop"></div>
+      </div>
+    </div>
+    <div class="panel-body" id="pview-body"></div>
   </div>
 </div>
 
@@ -678,8 +765,7 @@ function showInputError(msg){
 
 // ==================== APP ====================
 async function initApp(){
-  document.getElementById('my-username').textContent='@'+currentUser.username;
-  document.getElementById('my-bio').value=currentUser.bio||'';
+  // profile fields set when profile overlay opens
   document.getElementById('s-username').value=currentUser.username||'';
   document.getElementById('s-phone').value=currentUser.phone||'';
   document.getElementById('s-bio').value=currentUser.bio||'';
@@ -719,9 +805,9 @@ async function initApp(){
     const groupsSnap=await getDocs(collection(window._db,'groups'));
     groupsSnap.forEach(d=>groups.push({id:d.id,...d.data()}));
     renderConvList();
-  }catch(e){console.warn('Firestore load error:',e);renderConvList();}
+    listenForRequests();
+  }catch(e){console.warn('Firestore load error:',e);renderConvList();listenForRequests();}
 }
-
 // ==================== CONVERSATIONS ====================
 function renderConvList(filter=''){
   const el=document.getElementById('conv-list');
@@ -909,9 +995,10 @@ function closeOverlay(id){document.getElementById(id).classList.remove('open');}
 function openSection(name){
   document.getElementById('main-drop').classList.remove('open');
   if(name==='saved'){renderSaved();openOverlay('saved-overlay');}
-  else if(name==='profile'){openOverlay('profile-overlay');}
+  else if(name==='profile'){openMyProfile();openOverlay('profile-overlay');}
   else if(name==='social'){document.getElementById('social-content').innerHTML='';showSearchProfile();openOverlay('social-overlay');}
   else if(name==='groups'){showJoinGroup();openOverlay('groups-overlay');}
+  else if(name==='requests'){openRequestsPanel();openOverlay('requests-overlay');}
 }
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
@@ -933,28 +1020,156 @@ function renderSaved(){
 function deleteSaved(i){savedMsgs.splice(i,1);renderSaved();}
 
 // ==================== PROFILE ====================
-function loadPfp(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{currentUser.pfp=ev.target.result;const box=document.getElementById('my-pfp-box');box.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;};r.readAsDataURL(f);}
+function openMyProfile(){
+  const u=currentUser;
+  document.getElementById('my-username').textContent='@'+(u.username||'');
+  document.getElementById('my-number-display').textContent=u.phone||'';
+  document.getElementById('my-bio').value=u.bio||'';
+  // created date
+  const dateEl=document.getElementById('my-created-date');
+  if(u.createdAt?.toDate){const d=u.createdAt.toDate();dateEl.textContent=(d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2)+' (account created)';}
+  else dateEl.textContent='';
+  // pfp
+  const box=document.getElementById('my-pfp-box');
+  box.innerHTML=u.pfpUrl?`<img src="${u.pfpUrl}"/>`:'👤';
+  // restore profile style pickers
+  const s=u.profileStyle||{};
+  if(document.getElementById('prof-bg-color'))document.getElementById('prof-bg-color').value=s.bg||'#0f1632';
+  if(document.getElementById('prof-txt-color'))document.getElementById('prof-txt-color').value=s.txt||'#ffffff';
+  if(document.getElementById('prof-font'))document.getElementById('prof-font').value=s.font||'Raleway';
+}
+function loadPfp(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async ev=>{
+    currentUser.pfpUrl=ev.target.result;
+    const box=document.getElementById('my-pfp-box');
+    box.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+    try{
+      const {doc,updateDoc}=window._fbFns;
+      await updateDoc(doc(window._db,'users',currentUser.uid),{pfpUrl:ev.target.result});
+    }catch(e){}
+  };
+  r.readAsDataURL(f);
+}
+async function saveMyBio(){
+  const bio=document.getElementById('my-bio').value;
+  currentUser.bio=bio;
+  try{const {doc,updateDoc}=window._fbFns;await updateDoc(doc(window._db,'users',currentUser.uid),{bio});}catch(e){}
+}
+function toggleMyProfileDrop(){document.getElementById('my-profile-drop').classList.toggle('open');}
+function closeMyProfileDrop(){document.getElementById('my-profile-drop').classList.remove('open');}
+function openMyProfileBgSettings(){
+  closeMyProfileDrop();
+  const panel=document.getElementById('profile-style-panel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+}
+async function saveProfileStyle(){
+  const bg=document.getElementById('prof-bg-color').value;
+  const txt=document.getElementById('prof-txt-color').value;
+  const font=document.getElementById('prof-font').value;
+  currentUser.profileStyle={bg,txt,font};
+  try{const {doc,updateDoc}=window._fbFns;await updateDoc(doc(window._db,'users',currentUser.uid),{profileStyle:{bg,txt,font}});}catch(e){}
+}
+
+// ==================== FRIEND REQUESTS ====================
+let _unsubRequests=null;
+function listenForRequests(){
+  if(_unsubRequests)return;
+  try{
+    const {collection,query,where,onSnapshot}=window._fbFns;
+    const q=query(collection(window._db,'friendRequests'),where('toUid','==',currentUser.uid),where('status','==','pending'));
+    _unsubRequests=onSnapshot(q,snap=>{
+      const count=snap.size;
+      const badge=document.getElementById('req-badge');
+      const countBadge=document.getElementById('req-count-badge');
+      if(badge){badge.textContent=count;badge.classList.toggle('show',count>0);}
+      if(countBadge){countBadge.textContent=count;countBadge.style.display=count>0?'inline':'none';}
+      window._pendingRequests=snap.docs.map(d=>({id:d.id,...d.data()}));
+    });
+  }catch(e){}
+}
+async function openRequestsPanel(){
+  const body=document.getElementById('requests-body');
+  const reqs=window._pendingRequests||[];
+  if(!reqs.length){body.innerHTML='<div style="color:rgba(255,255,255,.35);text-align:center;padding:20px">No pending requests</div>';return;}
+  body.innerHTML=reqs.map(r=>`
+    <div class="req-item" id="req-${r.id}">
+      <div class="pfp">${r.fromPfp?`<img src="${r.fromPfp}"/>`:'👤'}</div>
+      <div class="req-item-info">
+        <div class="req-item-name">@${r.fromUsername}</div>
+        <div class="req-item-sub">Wants to be friends</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-primary" onclick="acceptRequest('${r.id}','${r.fromUid}','${r.fromUsername}')">Accept</button>
+        <button class="btn btn-sm btn-danger" onclick="declineRequest('${r.id}')">Decline</button>
+      </div>
+    </div>`).join('');
+}
+async function acceptRequest(reqId, fromUid, fromUsername){
+  try{
+    const {doc,setDoc,updateDoc,serverTimestamp}=window._fbFns;
+    // Create chat document
+    const chatId=[currentUser.uid,fromUid].sort().join('_');
+    await setDoc(doc(window._db,'chats',chatId),{
+      members:[currentUser.uid,fromUid],isGroup:false,
+      lastMsg:'Start Chatting!',lastTime:serverTimestamp()
+    },{merge:true});
+    // Mark request done
+    await updateDoc(doc(window._db,'friendRequests',reqId),{status:'accepted'});
+    // Fetch the other user's data
+    const {getDoc}=window._fbFns;
+    const uSnap=await getDoc(doc(window._db,'users',fromUid));
+    const uData=uSnap.exists()?uSnap.data():{username:fromUsername,pfpUrl:null,phone:''};
+    // Add to local friends list
+    if(!friends.find(f=>f.chatId===chatId)){
+      friends.unshift({id:chatId,chatId,username:'@'+fromUsername,preview:'Start Chatting!',
+        pfp:uData.pfpUrl||null,isGroup:false,memberUids:[currentUser.uid,fromUid],messages:[],phone:uData.phone||''});
+      renderConvList();
+    }
+    showNotif('You and @'+fromUsername+' are now friends!','System','🎉');
+    // Remove from UI
+    document.getElementById('req-'+reqId)?.remove();
+    const badge=document.getElementById('req-badge');
+    const reqs=window._pendingRequests||[];
+    window._pendingRequests=reqs.filter(r=>r.id!==reqId);
+    const newCount=window._pendingRequests.length;
+    if(badge){badge.textContent=newCount;badge.classList.toggle('show',newCount>0);}
+  }catch(e){showNotif('Error: '+e.message,'System','⚠️');}
+}
+async function declineRequest(reqId){
+  try{
+    const {doc,updateDoc}=window._fbFns;
+    await updateDoc(doc(window._db,'friendRequests',reqId),{status:'declined'});
+    document.getElementById('req-'+reqId)?.remove();
+    window._pendingRequests=(window._pendingRequests||[]).filter(r=>r.id!==reqId);
+    const newCount=(window._pendingRequests||[]).length;
+    const badge=document.getElementById('req-badge');
+    if(badge){badge.textContent=newCount;badge.classList.toggle('show',newCount>0);}
+  }catch(e){}
+}
 
 // ==================== SOCIAL ====================
 function showAddFriend(){
   document.getElementById('social-content').innerHTML=`
-    <div style="margin-bottom:10px;font-size:.85rem;color:rgba(255,255,255,.65)">Send a friend request:</div>
+    <div style="margin-bottom:10px;font-size:.85rem;color:rgba(255,255,255,.65)">Send a friend request by username:</div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <input type="text" id="add-friend-input" placeholder="@Username or +1..." style="flex:1"/>
+      <input type="text" id="add-friend-input" placeholder="@Username" style="flex:1"/>
       <button class="btn btn-sm btn-primary" onclick="sendFriendRequest()">Send</button>
-    </div>
-    <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:8px">Pending requests:</div>
-    <div id="pending-list">
-      <div style="color:rgba(255,255,255,.3);font-size:.8rem;padding:8px 0">No pending requests</div>
     </div>`;
-    // FIREBASE HOOK: load pending friend requests from Firestore
 }
-function sendFriendRequest(){
-  const v=document.getElementById('add-friend-input').value.trim();
-  if(!v){showNotif('Enter a username or number','System','⚠️');return;}
-  // FIREBASE HOOK: write to Firestore friendRequests collection
-  showNotif('Request sent to '+v+'!','System','✉️');
-  document.getElementById('add-friend-input').value='';
+async function sendFriendRequest(){
+  const v=document.getElementById('add-friend-input').value.trim().replace('@','');
+  if(!v){showNotif('Enter a username','System','⚠️');return;}
+  try{
+    const {getDocs,collection,query,where}=window._fbFns;
+    const q=query(collection(window._db,'users'),where('username','==',v));
+    const snap=await getDocs(q);
+    if(snap.empty){showNotif('@'+v+' not found','System','⚠️');return;}
+    const targetDoc=snap.docs[0];
+    await sendRequestByUid(targetDoc.id, v);
+    document.getElementById('add-friend-input').value='';
+  }catch(e){showNotif('Error: '+e.message,'System','⚠️');}
 }
 
 async function showSearchProfile(){
@@ -977,21 +1192,21 @@ async function showSearchProfile(){
 function renderUserList(users){
   if(!users.length)return'<div style="color:rgba(255,255,255,.3);font-size:.82rem;padding:10px 0">No users found</div>';
   return users.map(u=>`
-    <div class="user-row" onmouseenter="showTip('tip-${u.username}')" onmouseleave="hideTip('tip-${u.username}')">
-      <div class="pfp">👤</div>
+    <div class="user-row" onmouseenter="showTip('tip-${u.uid}')" onmouseleave="hideTip('tip-${u.uid}')">
+      <div class="pfp">${u.pfpUrl?`<img src="${u.pfpUrl}"/>`:'👤'}</div>
       <div class="user-row-info">
         <div class="user-row-name">@${u.username}</div>
         <div class="user-row-bio">${u.bio||'No bio'}</div>
       </div>
-      <div class="tip-bubble" id="tip-${u.username}">
+      <div class="tip-bubble" id="tip-${u.uid}">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div class="pfp">👤</div>
+          <div class="pfp">${u.pfpUrl?`<img src="${u.pfpUrl}"/>`:'👤'}</div>
           <div><div style="font-weight:600;font-size:.88rem">@${u.username}</div><div style="font-size:.75rem;color:rgba(255,255,255,.5)">${u.phone||'No number'}</div></div>
         </div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:10px">${u.bio||'No bio'}</div>
         <div style="display:flex;gap:7px">
-          <button class="btn btn-sm btn-primary" onclick="viewProfile('${u.username}')">View Profile</button>
-          <button class="btn btn-sm" onclick="addFriendDirect('${u.username}')">Add</button>
+          <button class="btn btn-sm btn-primary" onclick="viewProfile('${u.uid}','${u.username}')">View Profile</button>
+          <button class="btn btn-sm" onclick="addFriendDirect('${u.uid}','${u.username}')">Add</button>
         </div>
       </div>
     </div>`).join('');
@@ -1003,14 +1218,78 @@ function filterUserList(q){
 }
 function showTip(id){const el=document.getElementById(id);if(el)el.classList.add('show');}
 function hideTip(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
-function viewProfile(username){
-  const u=accounts.find(a=>a.username===username);if(!u)return;
-  openInputModal('Profile: @'+username,`Bio: ${u.bio||'None'}\nPhone: ${u.phone||'None'}`,null,null,true);
+async function viewProfile(uid, username){
+  // fetch live data
+  let uData={username,bio:'',phone:'',pfpUrl:null,profileStyle:null,createdAt:null};
+  try{
+    const {getDoc,doc}=window._fbFns;
+    const snap=await getDoc(doc(window._db,'users',uid));
+    if(snap.exists())uData={uid,...snap.data()};
+  }catch(e){}
+  const isMe=uid===currentUser.uid;
+  const isFriend=friends.some(f=>f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup);
+  const style=uData.profileStyle||{};
+  const bg=style.bg||'#0f1632';const txtCol=style.txt||'#ffffff';const font=style.font||'Raleway';
+  let createdStr=null;try{if(uData.createdAt&&uData.createdAt.toDate){const d=uData.createdAt.toDate();createdStr=(d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);}}catch(e){}
+  document.getElementById('pview-title').textContent='@'+(uData.username||username);
+  // build drop menu
+  const drop=document.getElementById('pview-drop');
+  if(isMe){
+    drop.innerHTML=`<div class="drop-item" onclick="closeOverlay('profile-view-overlay');openSection('profile')">Edit My Profile</div>`;
+  } else {
+    drop.innerHTML=`
+      <div class="drop-item" onclick="${isFriend?'removeFriendByUid(\''+uid+'\',\''+uData.username+'\')':'sendRequestByUid(\''+uid+'\',\''+uData.username+'\')'};document.getElementById('pview-drop').classList.remove('open')">${isFriend?'Remove Friend':'Add Friend'}</div>
+      <div class="drop-item" style="color:#ff9999" onclick="blockUserByUid('${uid}','${uData.username}');document.getElementById('pview-drop').classList.remove('open')">Block</div>`;
+  }
+  const body=document.getElementById('pview-body');
+  body.style.background=bg;body.style.color=txtCol;body.style.fontFamily=font;
+  const pfpHtml=uData.pfpUrl?`<img src="${uData.pfpUrl}"/>`:'👤';
+  body.innerHTML=`
+    <div class="profile-card">
+      <div class="profile-card-pfp">${pfpHtml}</div>
+      <div class="profile-card-name" style="color:${txtCol};font-family:${font}">@${uData.username||username}</div>
+      ${uData.phone?`<div class="profile-card-number" style="color:${txtCol};opacity:.6">${uData.phone}</div>`:''}
+      ${createdStr?`<div class="profile-card-date" style="color:${txtCol};opacity:.45">${createdStr} (account created)</div>`:''}
+      <div style="width:100%;margin-top:8px">
+        <div class="profile-card-bio-label" style="color:${txtCol};opacity:.7">Bio</div>
+        <div class="bio-area" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 12px;min-height:80px;font-size:.88rem;font-family:${font};color:${txtCol};white-space:pre-wrap">${uData.bio||''}</div>
+      </div>
+    </div>`;
+  openOverlay('profile-view-overlay');
 }
-function addFriendDirect(username){
-  if(friends.find(f=>f.username==='@'+username)){showNotif('Already friends!','System','');return;}
-  // FIREBASE HOOK: POST friend request
-  showNotif('Request sent to @'+username+'!','System','✉️');
+function toggleProfileDrop(){const d=document.getElementById('pview-drop');d.classList.toggle('open');}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#pview-dots-btn')&&!e.target.closest('#pview-drop'))document.getElementById('pview-drop')?.classList.remove('open');
+  if(!e.target.closest('.profile-dots-wrap')&&!e.target.closest('#my-profile-drop'))document.getElementById('my-profile-drop')?.classList.remove('open');
+});
+async function sendRequestByUid(uid, username){
+  if(friends.some(f=>f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup)){showNotif('Already friends!','System','');return;}
+  try{
+    const {doc,setDoc,serverTimestamp}=window._fbFns;
+    await setDoc(doc(window._db,'friendRequests',uid+'_from_'+currentUser.uid),{
+      toUid:uid,fromUid:currentUser.uid,fromUsername:currentUser.username,
+      fromPfp:currentUser.pfpUrl||null,sentAt:serverTimestamp(),status:'pending'
+    });
+    showNotif('Request sent to @'+username+'!','System','✉️');
+  }catch(e){showNotif('Failed to send request','System','⚠️');}
+}
+function addFriendDirect(uid, username){sendRequestByUid(uid, username);}
+async function removeFriendByUid(uid, username){
+  confirmAction('Remove @'+username+'?','You will lose your chat.',async()=>{
+    const f=friends.find(x=>x.memberUids&&x.memberUids.includes(uid)&&!x.isGroup);
+    if(f){
+      const idx=friends.indexOf(f);if(idx>-1)friends.splice(idx,1);
+      if(activeChat&&activeChat.id===f.id)closeChat();
+      renderConvList();
+    }
+    showNotif('@'+username+' removed','System','');
+  });
+}
+async function blockUserByUid(uid, username){
+  confirmAction('Block @'+username+'?','They won\'t be able to contact you.',()=>{
+    removeFriendByUid(uid, username);
+    showNotif('@'+username+' blocked','System','🚫');
+  });
 }
 
 // ==================== GROUPS ====================
