@@ -1093,15 +1093,17 @@ function listenForRequests(){
   if(_unsubRequests){_unsubRequests();_unsubRequests=null;}
   try{
     const {collection,query,where,onSnapshot}=window._fbFns;
-    const q=query(collection(window._db,'friendRequests'),where('toUid','==',currentUser.uid),where('status','==','pending'));
-    _unsubRequests=onSnapshot(q,snap=>{
-      window._pendingRequests=snap.docs.map(d=>({id:d.id,...d.data()}));
-      const count=window._pendingRequests.length;
-      const badge=document.getElementById('req-badge');
-      const countBadge=document.getElementById('req-count-badge');
+    const q=query(collection(window._db,'friendRequests'),where('toUid','==',currentUser.uid));
+    _unsubRequests=onSnapshot(q,function(snap){
+      window._pendingRequests=snap.docs
+        .map(function(d){return Object.assign({id:d.id},d.data());})
+        .filter(function(r){return r.status==='pending';});
+      var count=window._pendingRequests.length;
+      var badge=document.getElementById('req-badge');
+      var countBadge=document.getElementById('req-count-badge');
       if(badge){badge.textContent=count;badge.classList.toggle('show',count>0);}
       if(countBadge){countBadge.textContent=count;countBadge.style.display=count>0?'inline':'none';}
-    },err=>{console.warn('Requests listener error:',err);});
+    },function(err){console.warn('Requests listener error:',err);});
   }catch(e){console.warn('listenForRequests failed:',e);}
 }
 
@@ -1301,13 +1303,11 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.profile-dots-wrap')&&!e.target.closest('#my-profile-drop'))document.getElementById('my-profile-drop')?.classList.remove('open');
 });
 async function sendRequestByUid(uid, username){
-  if(friends.some(f=>f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup)){showNotif('Already friends!','System','');return;}
-  // Check if request already sent
+  if(friends.some(function(f){return f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup;})){
+    showNotif('Already friends with @'+username,'System','');return;
+  }
   try{
-    const {addDoc,collection,serverTimestamp,getDocs,query,where}=window._fbFns;
-    const existing=await getDocs(query(collection(window._db,'friendRequests'),
-      where('toUid','==',uid),where('fromUid','==',currentUser.uid),where('status','==','pending')));
-    if(!existing.empty){showNotif('Request already sent to @'+username,'System','✉️');return;}
+    const {addDoc,collection,serverTimestamp}=window._fbFns;
     await addDoc(collection(window._db,'friendRequests'),{
       toUid:uid,
       fromUid:currentUser.uid,
@@ -1317,7 +1317,10 @@ async function sendRequestByUid(uid, username){
       status:'pending'
     });
     showNotif('Request sent to @'+username+'!','System','✉️');
-  }catch(e){showNotif('Failed: '+e.message,'System','⚠️');console.error('sendRequest error:',e);}
+  }catch(e){
+    showNotif('Failed: '+e.message,'System','⚠️');
+    console.error('sendRequest error:',e);
+  }
 }
 function addFriendDirect(uid, username){sendRequestByUid(uid, username);}
 async function removeFriendByUid(uid, username){
