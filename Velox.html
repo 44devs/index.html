@@ -1302,14 +1302,22 @@ document.addEventListener('click',e=>{
 });
 async function sendRequestByUid(uid, username){
   if(friends.some(f=>f.memberUids&&f.memberUids.includes(uid)&&!f.isGroup)){showNotif('Already friends!','System','');return;}
+  // Check if request already sent
   try{
-    const {doc,setDoc,serverTimestamp}=window._fbFns;
-    await setDoc(doc(window._db,'friendRequests',uid+'_from_'+currentUser.uid),{
-      toUid:uid,fromUid:currentUser.uid,fromUsername:currentUser.username,
-      fromPfp:currentUser.pfpUrl||null,sentAt:serverTimestamp(),status:'pending'
+    const {addDoc,collection,serverTimestamp,getDocs,query,where}=window._fbFns;
+    const existing=await getDocs(query(collection(window._db,'friendRequests'),
+      where('toUid','==',uid),where('fromUid','==',currentUser.uid),where('status','==','pending')));
+    if(!existing.empty){showNotif('Request already sent to @'+username,'System','✉️');return;}
+    await addDoc(collection(window._db,'friendRequests'),{
+      toUid:uid,
+      fromUid:currentUser.uid,
+      fromUsername:currentUser.username,
+      fromPfp:currentUser.pfpUrl||null,
+      sentAt:serverTimestamp(),
+      status:'pending'
     });
     showNotif('Request sent to @'+username+'!','System','✉️');
-  }catch(e){showNotif('Failed to send request','System','⚠️');}
+  }catch(e){showNotif('Failed: '+e.message,'System','⚠️');console.error('sendRequest error:',e);}
 }
 function addFriendDirect(uid, username){sendRequestByUid(uid, username);}
 async function removeFriendByUid(uid, username){
