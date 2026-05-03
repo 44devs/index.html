@@ -10,7 +10,6 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .4s;}
 .screen.active{opacity:1;pointer-events:all;}
 
-/* Online Hub */
 #onlineHub{background:#0a0a0a url("https://i.pinimg.com/736x/98/74/49/987449f6748302c90e4cefd19517e894.jpg") center/80% auto no-repeat;align-items:center;justify-content:flex-start;padding-top:40px;}
 #onlineHub::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.65);pointer-events:none;}
 .hub-title{position:relative;z-index:1;font-size:48px;margin-bottom:6px;}
@@ -23,7 +22,6 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
 .back-btn{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);background:transparent;border:1px solid #333;color:#666;font-family:"Georgia",serif;font-size:13px;padding:8px 24px;cursor:pointer;z-index:1;}
 .back-btn:hover{border-color:#666;color:white;}
 
-/* Lobby Screen */
 #lobbyScreen{background:#0d0d0d;flex-direction:column;align-items:stretch;padding:28px 40px;gap:16px;}
 .lobby-header{display:flex;justify-content:space-between;align-items:center;}
 .lobby-header h2{font-size:36px;font-weight:400;}
@@ -55,7 +53,6 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
 .settings-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
 .settings-row select,.settings-row input{background:#111;border:1px solid #333;color:white;font-family:"Georgia",serif;font-size:12px;padding:4px 8px;max-width:120px;}
 
-/* Create lobby modal */
 #createModal{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100;}
 #createModal .modal-box{background:#111;border:1px solid #333;padding:28px;width:360px;display:flex;flex-direction:column;gap:14px;}
 #createModal h2{font-size:24px;font-weight:400;}
@@ -66,7 +63,6 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
 .modal-btn{background:transparent;border:1px solid #444;color:white;font-family:"Georgia",serif;font-size:13px;padding:8px 20px;cursor:pointer;}
 .modal-btn.confirm{border-color:#4cff6e;color:#4cff6e;}
 
-/* In-Lobby waiting room */
 #waitingRoom{background:#0d0d0d;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
 #waitingRoom h2{font-size:32px;font-weight:400;}
 .waiting-players{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
@@ -78,33 +74,28 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
 #waitCode{font-family:monospace;font-size:13px;color:#555;letter-spacing:2px;}
 .waiting-controls{display:flex;gap:12px;}
 
-/* Toast */
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#111;border:1px solid #444;color:white;font-family:monospace;font-size:13px;padding:10px 24px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 </style>
 </head>
 <body>
 
-<!-- ONLINE HUB -->
 <div class="screen active" id="onlineHub">
-  <h1 class="hub-title">The Maze I — Online</h1>
-  <div class="hub-sub">v0.1.0 | ONLINE MODE</div>
+  <h1 class="hub-title">The Maze I </h1>
+  <div class="hub-sub">v0.1.0 | Online</div>
   <div class="mode-cards">
     <div class="mode-card" onclick="enterMode('entity')">
       <h2>Entity</h2>
-      <p>1 player is the Entity.<br>Hunt everyone down.<br>5s kill cooldown.<br>Hide &amp; survive.</p>
     </div>
     <div class="mode-card" onclick="enterMode('escapance')">
       <h2>Escapance</h2>
-      <p>Co-op maze escape.<br>Play with friends.<br>Same speed for all.<br>Find the exit together.</p>
     </div>
   </div>
   <button class="back-btn" onclick="window.location='TheMaze_SP.html'">← Back to Singleplayer</button>
 </div>
 
-<!-- LOBBY BROWSER -->
 <div class="screen" id="lobbyScreen">
   <div class="lobby-header">
-    <h2 id="lobbyModeTitle">Entity — Lobbies</h2>
+    <h2 id="lobbyModeTitle">Entity  Lobbies</h2>
     <div class="lobby-actions">
       <button class="lb-btn" onclick="showScreen('onlineHub')">← Back</button>
       <button class="lb-btn" onclick="refreshLobbies()">⟳ Refresh</button>
@@ -136,7 +127,7 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
           <option>Escapance</option>
         </select>
       </div>
-      <h3 style="margin-top:8px;">PRIVATE LOBBY</h3>
+      <h3 style="margin-top:8px;">Private Lobby</h3>
       <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
         <label style="font-size:11px;color:#555;">Enter Password</label>
         <input id="privateCode" type="text" placeholder="XXXX-XXXX" style="background:#0a0a0a;border:1px solid #2a2a2a;color:white;font-family:monospace;font-size:14px;padding:7px;width:100%;outline:none;">
@@ -146,7 +137,6 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
   </div>
 </div>
 
-<!-- WAITING ROOM -->
 <div class="screen" id="waitingRoom">
   <h2 id="waitTitle">Lobby</h2>
   <div id="waitCode">CODE: ----</div>
@@ -159,12 +149,11 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
   <div style="font-size:12px;color:#333;font-family:monospace;margin-top:8px;">Waiting for players... (2-8)</div>
 </div>
 
-<!-- CREATE MODAL -->
 <div id="createModal">
   <div class="modal-box">
     <h2>Create Lobby</h2>
     <div class="modal-row">
-      <label>LOBBY NAME</label>
+      <label>Lobby Name</label>
       <input id="cLobbyName" type="text" placeholder="My Lobby" maxlength="24">
     </div>
     <div class="modal-row">
@@ -193,7 +182,7 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
       </select>
     </div>
     <div class="modal-row" id="cPasswordRow" style="display:none;">
-      <label>PASSWORD</label>
+      <label>Password</label>
       <input id="cPassword" type="text" placeholder="Set password" maxlength="16">
     </div>
     <div class="modal-btns">
@@ -203,21 +192,17 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
-// ── SHARED AVATAR ──────────────────────────────────────────────────────────
 const AVATAR_URL='https://images.weserv.nl/?url=i.pinimg.com/736x/1d/0b/58/1d0b586b2224a52152624d2e0be15b4e.jpg&bg=transparent';
 
-// ── STATE ──────────────────────────────────────────────────────────────────
 let currentMode='entity';
 let currentLobby=null;
 let isHost=false;
 let isReady=false;
 let myName='Player_'+Math.floor(Math.random()*9000+1000);
 
-// Simulated lobbies (replace with real backend later)
 let lobbies=[
   {id:'l1',name:'Scary Run #1',map:'House I',mode:'entity',players:3,max:5,type:'public',host:'ShadowRun'},
   {id:'l2',name:'Chill Maze',map:'Basement I',mode:'escapance',players:1,max:4,type:'public',host:'MazeKing44'},
@@ -239,7 +224,6 @@ function toast(msg,dur=2500){
   setTimeout(()=>t.style.opacity='0',dur);
 }
 
-// ── MODE SELECT ────────────────────────────────────────────────────────────
 function enterMode(mode){
   currentMode=mode;
   document.getElementById('lobbyModeTitle').textContent=
@@ -249,7 +233,6 @@ function enterMode(mode){
   refreshLobbies();
 }
 
-// ── LOBBIES ────────────────────────────────────────────────────────────────
 function refreshLobbies(){
   const container=document.getElementById('lobbyListContainer');
   const modeFilter=currentMode;
@@ -303,7 +286,6 @@ function joinPrivate(){
   },800);
 }
 
-// ── CREATE LOBBY ───────────────────────────────────────────────────────────
 function showCreateModal(){
   document.getElementById('createModal').style.display='flex';
   document.getElementById('cVisibility').onchange=function(){
@@ -324,7 +306,6 @@ function createLobby(){
   openWaitingRoom();
 }
 
-// ── WAITING ROOM ───────────────────────────────────────────────────────────
 function openWaitingRoom(){
   showScreen('waitingRoom');
   document.getElementById('waitTitle').textContent=(currentLobby.name||'Lobby')+' — '+(currentMode==='entity'?'Entity':'Escapance');
@@ -332,7 +313,6 @@ function openWaitingRoom(){
   document.getElementById('waitCode').textContent=code;
   document.getElementById('startBtn').style.display=isHost?'block':'none';
   renderWaitingPlayers();
-  // Simulate players joining
   if(isHost){
     setTimeout(()=>{
       waitingPlayers.push({name:'Player_'+Math.floor(Math.random()*9000+1000),ready:false,host:false});
@@ -400,7 +380,6 @@ function startOnlineGame(){
   },1000);
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
 refreshLobbies();
 </script>
 </body>
