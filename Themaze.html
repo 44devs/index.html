@@ -168,14 +168,14 @@ body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;
       </select>
     </div>
     <div class="modal-row">
-      <label>MAX PLAYERS</label>
+      <label>Max Players</label>
       <select id="cMaxPlayers">
         <option>2</option><option>3</option><option>4</option>
         <option selected>5</option><option>6</option><option>8</option>
       </select>
     </div>
     <div class="modal-row">
-      <label>VISIBILITY</label>
+      <label>Visibility</label>
       <select id="cVisibility">
         <option value="public">Public</option>
         <option value="private">Private (Password)</option>
@@ -204,10 +204,7 @@ let isReady=false;
 let myName='Player_'+Math.floor(Math.random()*9000+1000);
 
 let lobbies=[
-  {id:'l1',name:'Scary Run #1',map:'House I',mode:'entity',players:3,max:5,type:'public',host:'ShadowRun'},
-  {id:'l2',name:'Chill Maze',map:'Basement I',mode:'escapance',players:1,max:4,type:'public',host:'MazeKing44'},
-  {id:'l3',name:'Pro Only',map:'Backrooms',mode:'entity',players:4,max:4,type:'public',host:'RunFast'},
-  {id:'l4',name:'Secret',map:'The Matrix',mode:'escapance',players:2,max:3,type:'private',host:'???'},
+  {id:'l1',name:'Test Server',map:'House I',mode:'entity',players:21,max:5,type:'public',host:'44devs'}
 ];
 let waitingPlayers=[
   {name:myName,ready:false,host:true},
