@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Maze I — Online</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a0a;color:white;font-family:"Georgia",serif;overflow:hidden;width:100vw;height:100vh;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .4s;}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* Online Hub */
+#onlineHub{background:#0a0a0a url("https://i.pinimg.com/736x/98/74/49/987449f6748302c90e4cefd19517e894.jpg") center/80% auto no-repeat;align-items:center;justify-content:flex-start;padding-top:40px;}
+#onlineHub::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.65);pointer-events:none;}
+.hub-title{position:relative;z-index:1;font-size:48px;margin-bottom:6px;}
+.hub-sub{position:relative;z-index:1;font-size:13px;color:#555;letter-spacing:3px;margin-bottom:40px;}
+.mode-cards{position:relative;z-index:1;display:flex;gap:28px;}
+.mode-card{border:2px solid #333;padding:30px 40px;cursor:pointer;text-align:center;min-width:220px;transition:border-color .2s,background .2s;background:rgba(0,0,0,0.5);}
+.mode-card:hover{border-color:white;background:rgba(255,255,255,0.05);}
+.mode-card h2{font-size:28px;font-weight:400;margin-bottom:12px;}
+.mode-card p{font-size:13px;color:#777;line-height:1.7;}
+.back-btn{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);background:transparent;border:1px solid #333;color:#666;font-family:"Georgia",serif;font-size:13px;padding:8px 24px;cursor:pointer;z-index:1;}
+.back-btn:hover{border-color:#666;color:white;}
+
+/* Lobby Screen */
+#lobbyScreen{background:#0d0d0d;flex-direction:column;align-items:stretch;padding:28px 40px;gap:16px;}
+.lobby-header{display:flex;justify-content:space-between;align-items:center;}
+.lobby-header h2{font-size:36px;font-weight:400;}
+.lobby-actions{display:flex;gap:10px;}
+.lb-btn{background:transparent;border:1px solid #444;color:white;font-family:"Georgia",serif;font-size:14px;padding:8px 20px;cursor:pointer;transition:border-color .2s;}
+.lb-btn:hover{border-color:white;}
+.lb-btn.primary{border-color:#4cff6e;color:#4cff6e;}
+.lb-btn.primary:hover{background:rgba(76,255,110,0.08);}
+.lb-btn.danger{border-color:#ff4444;color:#ff4444;}
+.lobby-list-wrap{flex:1;display:flex;gap:20px;min-height:0;}
+.lobby-list{flex:1;border:1px solid #1a1a1a;overflow-y:auto;padding:8px;}
+.lobby-list h3{font-size:13px;color:#444;letter-spacing:2px;padding:8px;border-bottom:1px solid #1a1a1a;margin-bottom:8px;}
+.lobby-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid #1a1a1a;margin-bottom:6px;cursor:pointer;transition:border-color .2s,background .2s;}
+.lobby-item:hover{border-color:#444;background:rgba(255,255,255,0.03);}
+.lobby-item-info{display:flex;flex-direction:column;gap:3px;}
+.lobby-item-name{font-size:15px;}
+.lobby-item-meta{font-size:11px;color:#555;font-family:monospace;}
+.lobby-item-badge{font-size:11px;padding:2px 8px;border:1px solid #333;}
+.lobby-item-badge.public{border-color:#4cff6e;color:#4cff6e;}
+.lobby-item-badge.private{border-color:#f5c542;color:#f5c542;}
+.lobby-join-btn{background:transparent;border:1px solid #333;color:#ccc;font-family:"Georgia",serif;font-size:12px;padding:5px 14px;cursor:pointer;}
+.lobby-join-btn:hover{border-color:white;color:white;}
+.lobby-panel{width:300px;border:1px solid #1a1a1a;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.lobby-panel h3{font-size:13px;color:#444;letter-spacing:2px;border-bottom:1px solid #1a1a1a;padding-bottom:8px;}
+.player-slot{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #1a1a1a;}
+.player-avatar{width:36px;height:36px;border-radius:2px;object-fit:cover;background:#111;}
+.player-name{font-size:13px;}
+.player-ready{font-size:10px;color:#4cff6e;font-family:monospace;}
+.settings-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+.settings-row select,.settings-row input{background:#111;border:1px solid #333;color:white;font-family:"Georgia",serif;font-size:12px;padding:4px 8px;max-width:120px;}
+
+/* Create lobby modal */
+#createModal{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100;}
+#createModal .modal-box{background:#111;border:1px solid #333;padding:28px;width:360px;display:flex;flex-direction:column;gap:14px;}
+#createModal h2{font-size:24px;font-weight:400;}
+.modal-row{display:flex;flex-direction:column;gap:4px;}
+.modal-row label{font-size:12px;color:#666;letter-spacing:1px;}
+.modal-row input,.modal-row select{background:#0a0a0a;border:1px solid #2a2a2a;color:white;font-family:"Georgia",serif;font-size:14px;padding:8px 10px;outline:none;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+.modal-btn{background:transparent;border:1px solid #444;color:white;font-family:"Georgia",serif;font-size:13px;padding:8px 20px;cursor:pointer;}
+.modal-btn.confirm{border-color:#4cff6e;color:#4cff6e;}
+
+/* In-Lobby waiting room */
+#waitingRoom{background:#0d0d0d;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+#waitingRoom h2{font-size:32px;font-weight:400;}
+.waiting-players{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.waiting-slot{width:90px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid #222;}
+.waiting-slot img{width:52px;height:52px;border-radius:2px;object-fit:cover;}
+.waiting-slot .w-name{font-size:11px;font-family:monospace;text-align:center;}
+.waiting-slot .w-ready{font-size:10px;color:#4cff6e;font-family:monospace;}
+.waiting-slot .w-host{font-size:10px;color:#f5c542;font-family:monospace;}
+#waitCode{font-family:monospace;font-size:13px;color:#555;letter-spacing:2px;}
+.waiting-controls{display:flex;gap:12px;}
+
+/* Toast */
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#111;border:1px solid #444;color:white;font-family:monospace;font-size:13px;padding:10px 24px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- ONLINE HUB -->
+<div class="screen active" id="onlineHub">
+  <h1 class="hub-title">The Maze I — Online</h1>
+  <div class="hub-sub">v0.1.0 | ONLINE MODE</div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="enterMode('entity')">
+      <h2>Entity</h2>
+      <p>1 player is the Entity.<br>Hunt everyone down.<br>5s kill cooldown.<br>Hide &amp; survive.</p>
+    </div>
+    <div class="mode-card" onclick="enterMode('escapance')">
+      <h2>Escapance</h2>
+      <p>Co-op maze escape.<br>Play with friends.<br>Same speed for all.<br>Find the exit together.</p>
+    </div>
+  </div>
+  <button class="back-btn" onclick="window.location='TheMaze_SP.html'">← Back to Singleplayer</button>
+</div>
+
+<!-- LOBBY BROWSER -->
+<div class="screen" id="lobbyScreen">
+  <div class="lobby-header">
+    <h2 id="lobbyModeTitle">Entity — Lobbies</h2>
+    <div class="lobby-actions">
+      <button class="lb-btn" onclick="showScreen('onlineHub')">← Back</button>
+      <button class="lb-btn" onclick="refreshLobbies()">⟳ Refresh</button>
+      <button class="lb-btn primary" onclick="showCreateModal()">+ Create Lobby</button>
+    </div>
+  </div>
+  <div class="lobby-list-wrap">
+    <div class="lobby-list">
+      <h3>PUBLIC LOBBIES</h3>
+      <div id="lobbyListContainer"></div>
+    </div>
+    <div class="lobby-panel">
+      <h3>FILTERS</h3>
+      <div class="settings-row">
+        <span>Map</span>
+        <select id="filterMap">
+          <option value="">All Maps</option>
+          <option>Basement I</option>
+          <option>Garden I</option>
+          <option>House I</option>
+          <option>Backrooms</option>
+          <option>The Matrix</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <span>Mode</span>
+        <select id="filterMode">
+          <option>Entity</option>
+          <option>Escapance</option>
+        </select>
+      </div>
+      <h3 style="margin-top:8px;">PRIVATE LOBBY</h3>
+      <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+        <label style="font-size:11px;color:#555;">Enter Password</label>
+        <input id="privateCode" type="text" placeholder="XXXX-XXXX" style="background:#0a0a0a;border:1px solid #2a2a2a;color:white;font-family:monospace;font-size:14px;padding:7px;width:100%;outline:none;">
+        <button class="lb-btn" style="width:100%;margin-top:4px;" onclick="joinPrivate()">Join Private</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WAITING ROOM -->
+<div class="screen" id="waitingRoom">
+  <h2 id="waitTitle">Lobby</h2>
+  <div id="waitCode">CODE: ----</div>
+  <div class="waiting-players" id="waitingPlayers"></div>
+  <div class="waiting-controls">
+    <button class="lb-btn" id="readyBtn" onclick="toggleReady()">✓ Ready Up</button>
+    <button class="lb-btn" id="startBtn" style="display:none;border-color:#4cff6e;color:#4cff6e;" onclick="startOnlineGame()">▶ Start Game</button>
+    <button class="lb-btn danger" onclick="leaveLobby()">✕ Leave</button>
+  </div>
+  <div style="font-size:12px;color:#333;font-family:monospace;margin-top:8px;">Waiting for players... (2-8)</div>
+</div>
+
+<!-- CREATE MODAL -->
+<div id="createModal">
+  <div class="modal-box">
+    <h2>Create Lobby</h2>
+    <div class="modal-row">
+      <label>LOBBY NAME</label>
+      <input id="cLobbyName" type="text" placeholder="My Lobby" maxlength="24">
+    </div>
+    <div class="modal-row">
+      <label>MAP</label>
+      <select id="cMap">
+        <option>Basement I</option>
+        <option>Garden I</option>
+        <option>The Matrix</option>
+        <option>House I</option>
+        <option>Backrooms</option>
+        <option>Run Place</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label>MAX PLAYERS</label>
+      <select id="cMaxPlayers">
+        <option>2</option><option>3</option><option>4</option>
+        <option selected>5</option><option>6</option><option>8</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label>VISIBILITY</label>
+      <select id="cVisibility">
+        <option value="public">Public</option>
+        <option value="private">Private (Password)</option>
+      </select>
+    </div>
+    <div class="modal-row" id="cPasswordRow" style="display:none;">
+      <label>PASSWORD</label>
+      <input id="cPassword" type="text" placeholder="Set password" maxlength="16">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="document.getElementById('createModal').style.display='none'">Cancel</button>
+      <button class="modal-btn confirm" onclick="createLobby()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ── SHARED AVATAR ──────────────────────────────────────────────────────────
+const AVATAR_URL='https://images.weserv.nl/?url=i.pinimg.com/736x/1d/0b/58/1d0b586b2224a52152624d2e0be15b4e.jpg&bg=transparent';
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let currentMode='entity';
+let currentLobby=null;
+let isHost=false;
+let isReady=false;
+let myName='Player_'+Math.floor(Math.random()*9000+1000);
+
+// Simulated lobbies (replace with real backend later)
+let lobbies=[
+  {id:'l1',name:'Scary Run #1',map:'House I',mode:'entity',players:3,max:5,type:'public',host:'ShadowRun'},
+  {id:'l2',name:'Chill Maze',map:'Basement I',mode:'escapance',players:1,max:4,type:'public',host:'MazeKing44'},
+  {id:'l3',name:'Pro Only',map:'Backrooms',mode:'entity',players:4,max:4,type:'public',host:'RunFast'},
+  {id:'l4',name:'Secret',map:'The Matrix',mode:'escapance',players:2,max:3,type:'private',host:'???'},
+];
+let waitingPlayers=[
+  {name:myName,ready:false,host:true},
+];
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',dur);
+}
+
+// ── MODE SELECT ────────────────────────────────────────────────────────────
+function enterMode(mode){
+  currentMode=mode;
+  document.getElementById('lobbyModeTitle').textContent=
+    (mode==='entity'?'Entity':'Escapance')+' — Lobbies';
+  document.getElementById('filterMode').value=mode==='entity'?'Entity':'Escapance';
+  showScreen('lobbyScreen');
+  refreshLobbies();
+}
+
+// ── LOBBIES ────────────────────────────────────────────────────────────────
+function refreshLobbies(){
+  const container=document.getElementById('lobbyListContainer');
+  const modeFilter=currentMode;
+  const mapFilter=document.getElementById('filterMap').value;
+  container.innerHTML='';
+  const filtered=lobbies.filter(l=>
+    l.mode===modeFilter&&
+    (mapFilter===''||l.map===mapFilter)&&
+    l.type==='public'&&
+    l.players<l.max
+  );
+  if(filtered.length===0){
+    container.innerHTML='<div style="color:#333;font-family:monospace;font-size:13px;padding:20px;text-align:center;">No open lobbies found.<br>Create one!</div>';
+    return;
+  }
+  filtered.forEach(l=>{
+    const div=document.createElement('div');
+    div.className='lobby-item';
+    div.innerHTML=`
+      <div class="lobby-item-info">
+        <div class="lobby-item-name">${l.name}</div>
+        <div class="lobby-item-meta">${l.map} | Host: ${l.host} | ${l.players}/${l.max} players</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="lobby-item-badge ${l.type}">${l.type.toUpperCase()}</span>
+        <button class="lobby-join-btn" onclick="joinLobby('${l.id}')">Join</button>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function joinLobby(id){
+  const l=lobbies.find(x=>x.id===id);
+  if(!l)return;
+  if(l.players>=l.max){toast('Lobby is full!');return;}
+  currentLobby=l;isHost=false;isReady=false;
+  waitingPlayers=[{name:l.host,ready:true,host:true},{name:myName,ready:false,host:false}];
+  for(let i=2;i<l.players;i++)waitingPlayers.push({name:'Player_'+Math.floor(Math.random()*9000+1000),ready:Math.random()>0.4,host:false});
+  openWaitingRoom();
+}
+
+function joinPrivate(){
+  const code=document.getElementById('privateCode').value.trim();
+  if(!code){toast('Enter a lobby code');return;}
+  toast('Joining private lobby: '+code+'...');
+  setTimeout(()=>{
+    currentLobby={id:'priv',name:'Private Lobby',map:'Basement I',mode:currentMode,players:1,max:5,type:'private',host:myName};
+    isHost=true;isReady=false;
+    waitingPlayers=[{name:myName,ready:false,host:true}];
+    openWaitingRoom();
+  },800);
+}
+
+// ── CREATE LOBBY ───────────────────────────────────────────────────────────
+function showCreateModal(){
+  document.getElementById('createModal').style.display='flex';
+  document.getElementById('cVisibility').onchange=function(){
+    document.getElementById('cPasswordRow').style.display=this.value==='private'?'flex':'none';
+  };
+}
+
+function createLobby(){
+  const name=document.getElementById('cLobbyName').value.trim()||'My Lobby';
+  const map=document.getElementById('cMap').value;
+  const max=parseInt(document.getElementById('cMaxPlayers').value);
+  const vis=document.getElementById('cVisibility').value;
+  const pw=document.getElementById('cPassword').value;
+  currentLobby={id:'new_'+Date.now(),name,map,mode:currentMode,players:1,max,type:vis,host:myName,password:pw};
+  isHost=true;isReady=false;
+  waitingPlayers=[{name:myName,ready:false,host:true}];
+  document.getElementById('createModal').style.display='none';
+  openWaitingRoom();
+}
+
+// ── WAITING ROOM ───────────────────────────────────────────────────────────
+function openWaitingRoom(){
+  showScreen('waitingRoom');
+  document.getElementById('waitTitle').textContent=(currentLobby.name||'Lobby')+' — '+(currentMode==='entity'?'Entity':'Escapance');
+  const code=isHost?'CODE: '+Math.random().toString(36).slice(2,6).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase():'CODE: (ask host)';
+  document.getElementById('waitCode').textContent=code;
+  document.getElementById('startBtn').style.display=isHost?'block':'none';
+  renderWaitingPlayers();
+  // Simulate players joining
+  if(isHost){
+    setTimeout(()=>{
+      waitingPlayers.push({name:'Player_'+Math.floor(Math.random()*9000+1000),ready:false,host:false});
+      renderWaitingPlayers();toast('A player joined!');
+    },2000+Math.random()*3000);
+  }
+}
+
+function renderWaitingPlayers(){
+  const container=document.getElementById('waitingPlayers');
+  container.innerHTML='';
+  const max=currentLobby?currentLobby.max:5;
+  for(let i=0;i<max;i++){
+    const p=waitingPlayers[i];
+    const slot=document.createElement('div');
+    slot.className='waiting-slot';
+    if(p){
+      slot.innerHTML=`
+        <img src="${AVATAR_URL}" class="player-avatar" onerror="this.style.background='#333'">
+        <div class="w-name">${p.name.length>10?p.name.slice(0,10)+'…':p.name}</div>
+        ${p.host?'<div class="w-host">HOST</div>':''}
+        <div class="w-ready">${p.ready?'✓ READY':'waiting...'}</div>
+        ${isHost&&!p.host?`<button onclick="kickPlayer(${i})" style="background:transparent;border:none;color:#444;cursor:pointer;font-size:10px;margin-top:2px;">✕ kick</button>`:''}`;
+    } else {
+      slot.innerHTML='<div style="color:#222;font-family:monospace;font-size:11px;">empty</div>';
+      slot.style.borderColor='#111';
+    }
+    container.appendChild(slot);
+  }
+}
+
+function toggleReady(){
+  isReady=!isReady;
+  const p=waitingPlayers.find(x=>x.name===myName);
+  if(p)p.ready=isReady;
+  const btn=document.getElementById('readyBtn');
+  btn.style.borderColor=isReady?'#4cff6e':'#444';
+  btn.style.color=isReady?'#4cff6e':'white';
+  btn.textContent=isReady?'✓ Ready!':'✓ Ready Up';
+  renderWaitingPlayers();
+}
+
+function kickPlayer(idx){
+  if(!isHost)return;
+  if(idx===0)return;
+  waitingPlayers.splice(idx,1);
+  renderWaitingPlayers();
+  toast('Player kicked');
+}
+
+function leaveLobby(){
+  currentLobby=null;isHost=false;isReady=false;
+  showScreen('lobbyScreen');
+}
+
+function startOnlineGame(){
+  if(!isHost){toast('Only the host can start');return;}
+  const ready=waitingPlayers.filter(p=>p.ready||p.host).length;
+  if(ready<waitingPlayers.length&&waitingPlayers.length>1){
+    toast('Not all players are ready!');return;
+  }
+  toast('Starting game...');
+  setTimeout(()=>{
+    alert('Game starting! (Full multiplayer backend required — this is the lobby system UI. Connect a WebSocket server to make it live.)');
+  },1000);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+refreshLobbies();
+</script>
+</body>
+</html>
