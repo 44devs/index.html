@@ -944,20 +944,52 @@ async function loadUserData(){
 }
 
 let _msgUnsubs=[];
-function startRealtimeListeners(){
-  _msgUnsubs.forEach(u=>u());_msgUnsubs=[];
-  Object.keys(_convos).forEach(cid=>{
-    const unsub=onSnapshot(
-      query(collection(db,'convos',cid,'messages'),orderBy('time','asc')),
-      snap=>{
-        _convos[cid]=_convos[cid]||{id:cid,messages:[]};
-        _convos[cid].messages=snap.docs.map(d=>({id:d.id,...d.data()}));
-        renderConvoList();
-        if(activeConvoId===cid)renderMessages(_convos[cid]);
+function subscribeToConvoMessages(cid){
+  // avoid duplicate listeners
+  if(_convos[cid]&&_convos[cid]._subscribed)return;
+  if(_convos[cid])_convos[cid]._subscribed=true;
+  const unsub=onSnapshot(
+    query(collection(db,'convos',cid,'messages'),orderBy('time','asc')),
+    snap=>{
+      if(!_convos[cid])_convos[cid]={id:cid,messages:[],participants:[],_subscribed:true};
+      _convos[cid].messages=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderConvoList();
+      if(activeConvoId===cid){
+        renderMessages(_convos[cid]);
+        document.getElementById('chatHeaderName').textContent=getConvoDisplayName(_convos[cid]);
+        document.getElementById('chatHeaderSub').textContent=getConvoSubline(_convos[cid]);
       }
-    );
-    _msgUnsubs.push(unsub);
-  });
+    }
+  );
+  _msgUnsubs.push(unsub);
+}
+
+let _convoListUnsub=null;
+function startRealtimeListeners(){
+  // unsub old message listeners
+  _msgUnsubs.forEach(u=>u());_msgUnsubs=[];
+  // unsub old convo list listener
+  if(_convoListUnsub){_convoListUnsub();_convoListUnsub=null;}
+
+  // listen for ALL convos this user is in (catches new ones started by others)
+  _convoListUnsub=onSnapshot(
+    query(collection(db,'convos'),where('participants','array-contains',currentUser.id)),
+    snap=>{
+      snap.docChanges().forEach(change=>{
+        const cid=change.doc.id;
+        const data={id:cid,...change.doc.data()};
+        if(change.type==='removed'){
+          delete _convos[cid];return;
+        }
+        // preserve messages already loaded
+        const existing=_convos[cid];
+        _convos[cid]={...data,messages:existing?.messages||[]};
+        // subscribe to messages for this convo if not already
+        subscribeToConvoMessages(cid);
+      });
+      renderConvoList();
+    }
+  );
 }
 
 // ── Login Tabs ───────────────────────────────────────────────────
@@ -1130,14 +1162,37 @@ function getUserConvos(){
     .sort((a,b)=>(b.messages[b.messages.length-1]?.time||0)-(a.messages[a.messages.length-1]?.time||0));
 }
 
+function getConvoDisplayName(conv){
+  // Always show the OTHER person's name, not the stored c.name
+  // (c.name was set by whoever started the convo and may be wrong from the other side)
+  const otherId=conv.participants&&conv.participants.find(p=>p!==currentUser.id);
+  if(otherId&&_users[otherId]){
+    const u=_users[otherId];
+    return u.displayName||(u.username?'@'+u.username:otherId);
+  }
+  // fallback: stored name
+  return conv.name||'Unknown';
+}
+
+function getConvoSubline(conv){
+  const otherId=conv.participants&&conv.participants.find(p=>p!==currentUser.id);
+  if(otherId&&_users[otherId]){
+    const u=_users[otherId];
+    if(u.cnr)return 'CnR: '+u.cnr;
+    if(u.phone)return u.phone;
+  }
+  return conv.sub||'';
+}
+
 function renderConvoList(){
   const list=document.getElementById('convoList');list.innerHTML='';
   getUserConvos().forEach(c=>{
     const last=c.messages[c.messages.length-1];
     const item=document.createElement('div');
     item.className='convo-item'+(c.id===activeConvoId?' active':'');
-    item.innerHTML=`<div class="convo-name">${escHtml(c.name)}</div>
-      <div class="convo-preview"><span class="convo-last">${last?escHtml(last.text):''}</span><span class="convo-time">${last?fmtTime(last.time):''}</span></div>`;
+    const displayName=getConvoDisplayName(c);
+    item.innerHTML=`<div class="convo-name">${escHtml(displayName)}</div>
+      <div class="convo-preview"><span class="convo-last">${last?escHtml(last.text.replace(/\[cemoji:\d+\]/g,'[emoji]').replace(/\[image\]/,'📷').replace(/\[voice\]/,'🎙').replace(/\[file:[^\]]+\]/,'📄')):''}</span><span class="convo-time">${last?fmtTime(last.time):''}</span></div>`;
     item.addEventListener('click',()=>openConvo(c.id));
     list.appendChild(item);
   });
@@ -1152,8 +1207,8 @@ function openConvo(cid){
   }
   document.getElementById('emptyChat').style.display='none';
   const ac=document.getElementById('activeChat');ac.style.display='flex';
-  document.getElementById('chatHeaderName').textContent=c.name;
-  document.getElementById('chatHeaderSub').textContent=c.sub||'';
+  document.getElementById('chatHeaderName').textContent=getConvoDisplayName(c);
+  document.getElementById('chatHeaderSub').textContent=getConvoSubline(c);
   renderMessages(c);renderConvoList();
 }
 
@@ -2095,7 +2150,11 @@ async function startConvoWith(targetUser){
     snap=>{
       _convos[cid].messages=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderConvoList();
-      if(activeConvoId===cid)renderMessages(_convos[cid]);
+      if(activeConvoId===cid){
+        renderMessages(_convos[cid]);
+        document.getElementById('chatHeaderName').textContent=getConvoDisplayName(_convos[cid]);
+        document.getElementById('chatHeaderSub').textContent=getConvoSubline(_convos[cid]);
+      }
     }
   );
   _msgUnsubs.push(unsub);
