@@ -1192,7 +1192,7 @@ function renderConvoList(){
     item.className='convo-item'+(c.id===activeConvoId?' active':'');
     const displayName=getConvoDisplayName(c);
     item.innerHTML=`<div class="convo-name">${escHtml(displayName)}</div>
-      <div class="convo-preview"><span class="convo-last">${last?escHtml(last.text.replace(/\[cemoji:\d+\]/g,'[emoji]').replace(/\[image\]/,'📷').replace(/\[voice\]/,'🎙').replace(/\[file:[^\]]+\]/,'📄')):''}</span><span class="convo-time">${last?fmtTime(last.time):''}</span></div>`;
+      <div class="convo-preview"><span class="convo-last">${last?escHtml(last.text.replace(/\[cemoji-data:[^\]]+\]/g,'[emoji]').replace(/\[cemoji:\d+\]/g,'[emoji]').replace(/\[image\]/,'📷').replace(/\[voice\]/,'🎙').replace(/\[file:[^\]]+\]/,'📄')):''}</span><span class="convo-time">${last?fmtTime(last.time):''}</span></div>`;
     item.addEventListener('click',()=>openConvo(c.id));
     list.appendChild(item);
   });
@@ -1311,7 +1311,7 @@ function sendMsg(){
   const inp=document.getElementById('msgInput');
   let text=inp.value.trim();if(!text&&!inp.dataset.cemojiPending)return;
   const cemojiPending=inp.dataset.cemojiPending||'';
-  // store cemoji tokens in text
+  // strip the visible [emoji] placeholders, append the real embedded tokens
   const finalText=(text.replace(/\[emoji\]/g,'')||'')+cemojiPending;
   inp.value='';inp.dataset.cemojiPending='';
   if(!finalText.trim())return;
@@ -1345,8 +1345,11 @@ function renderCEmojis(){
     const img=document.createElement('img');
     img.src=e.data;img.className='cemoji';img.title=e.name||'emoji';
     img.addEventListener('click',()=>{
-      // insert as [cemoji:i] token into input
-      document.getElementById('msgInput').dataset.cemojiPending=(document.getElementById('msgInput').dataset.cemojiPending||'')+`[cemoji:${i}]`;
+      // embed the actual base64 data so other users can see it
+      // store in a separate data attribute to avoid bloating the visible input
+      const token='[cemoji-data:'+e.data+':'+escHtml(e.name||'emoji')+']';
+      const pending=document.getElementById('msgInput').dataset.cemojiPending||'';
+      document.getElementById('msgInput').dataset.cemojiPending=pending+token;
       document.getElementById('msgInput').value+='[emoji]';
       document.getElementById('stickerPanel').classList.remove('open');
     });
@@ -1376,24 +1379,43 @@ document.getElementById('emojiFileInput').addEventListener('change',e=>{
 document.getElementById('stickerBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('stickerPanel').classList.toggle('open');});
 
 // resolve cemoji tokens in messages
-function resolveCEmojiText(text,pending){
-  const emojis=getCEmojis();
-  if(!pending&&!text.includes('[cemoji:')&&!text.includes('[emoji]'))return escHtml(text);
-  let out=escHtml(text).replace(/\[emoji\]/g,'');
-  if(pending){
-    const tokens=pending.match(/\[cemoji:\d+\]/g)||[];
-    tokens.forEach(tok=>{
-      const idx=parseInt(tok.match(/\d+/)[0]);
-      const em=emojis[idx];
-      if(em)out+=`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}">`;
+function resolveCEmojiText(text){
+  if(!text)return '';
+  // handle new format: [cemoji-data:BASE64DATA:name]
+  // the base64 data can contain colons so we match greedily up to the last :name] part
+  // format is [cemoji-data:<data>:<name>]
+  if(text.includes('[cemoji-data:')){
+    // split on token boundaries carefully
+    let out='';
+    let remaining=text;
+    while(remaining.length>0){
+      const start=remaining.indexOf('[cemoji-data:');
+      if(start===-1){out+=escHtml(remaining);break;}
+      // add text before token
+      out+=escHtml(remaining.slice(0,start));
+      remaining=remaining.slice(start+'[cemoji-data:'.length);
+      // find the closing ] — the name is after the last colon before ]
+      const end=remaining.indexOf(']');
+      if(end===-1){out+='[emoji]';break;}
+      const inner=remaining.slice(0,end);
+      remaining=remaining.slice(end+1);
+      // last colon separates data from name
+      const lastColon=inner.lastIndexOf(':');
+      const data=lastColon>0?inner.slice(0,lastColon):inner;
+      const name=lastColon>0?inner.slice(lastColon+1):'emoji';
+      out+=`<img src="${data}" class="cemoji-msg" title="${escHtml(name)}">`;
+    }
+    return out;
+  }
+  // handle legacy [cemoji:index] tokens using local storage (own device only)
+  if(text.includes('[cemoji:')){
+    const emojis=getCEmojis();
+    return escHtml(text).replace(/\[cemoji:(\d+)\]/g,(m,i)=>{
+      const em=emojis[parseInt(i)];
+      return em?`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}">`:' ';
     });
   }
-  // also resolve stored tokens in msg text
-  out=out.replace(/\[cemoji:(\d+)\]/g,(m,i)=>{
-    const em=emojis[parseInt(i)];
-    return em?`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}">`:m;
-  });
-  return out;
+  return escHtml(text);
 }
 
 // ── Image button (placeholder) ───────────────────────────────────
