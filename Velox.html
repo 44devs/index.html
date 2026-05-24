@@ -232,8 +232,8 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 #voiceBtn.recording{background:rgba(220,40,40,0.7)!important;border-color:rgba(255,80,80,0.5)!important;animation:pulse .6s ease infinite;}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,40,40,0.5);}50%{box-shadow:0 0 0 6px rgba(220,40,40,0);}}
 /* call bar */
-#callBar{position:fixed;top:-90px;left:50%;transform:translateX(-50%);width:420px;background:rgba(15,15,15,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:0 0 16px 16px;padding:14px 20px;z-index:500;transition:top .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
-#callBar.open{top:0;}
+#callBar{position:fixed;top:-90px;left:50%;transform:translateX(-50%);width:420px;background:rgba(15,15,15,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:0 0 16px 16px;padding:14px 20px;z-index:500;transition:top .35s cubic-bezier(.4,0,.2,1);flex-direction:column;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:none!important;}
+#callBar.open{display:flex!important;top:0;}
 .call-status{color:rgba(255,255,255,0.6);font-size:11px;font-family:var(--font);}
 .call-who{color:white;font-size:15px;font-family:var(--font);font-weight:bold;}
 .call-btns{display:flex;gap:12px;}
@@ -243,8 +243,8 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 .call-btn.end:hover{background:rgba(220,40,40,0.9);}
 .call-btn.active-green{background:rgba(30,160,60,0.6)!important;border-color:rgba(80,220,100,0.4)!important;}
 /* big call screen */
-#callScreen{position:fixed;inset:0;background:rgba(8,8,8,0.97);z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;backdrop-filter:blur(12px);}
-#callScreen.open{display:flex;}
+#callScreen{position:fixed;inset:0;background:rgba(8,8,8,0.97);z-index:600;display:none!important;flex-direction:column;align-items:center;justify-content:center;gap:18px;backdrop-filter:blur(12px);}
+#callScreen.open{display:flex!important;}
 .cs-avatar{width:110px;height:110px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);background:rgba(40,40,40,0.9);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden;transition:box-shadow .2s;}
 .cs-avatar.talking{box-shadow:0 0 0 6px rgba(60,220,90,0.5),0 0 0 12px rgba(60,220,90,0.2);}
 .cs-name{color:white;font-size:20px;font-family:var(--font);}
@@ -650,7 +650,7 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 </div>
 
 <!-- Call Bar -->
-<div id="callBar">
+<div id="callBar" style="display:none;">
   <div class="call-status" id="callStatus">Calling...</div>
   <div class="call-who" id="callWho"></div>
   <div class="call-btns">
@@ -661,7 +661,7 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 </div>
 
 <!-- Full Call Screen -->
-<div id="callScreen">
+<div id="callScreen" style="display:none;">
   <video id="csVideoRemote" autoplay playsinline style="width:100%;max-width:380px;border-radius:12px;background:#000;display:none;"></video>
   <video id="csVideoLocal" autoplay playsinline muted style="position:absolute;bottom:110px;right:24px;width:110px;border-radius:8px;background:#111;display:none;"></video>
   <div class="cs-avatar" id="csAvatar">👤</div>
@@ -1447,18 +1447,19 @@ function openCallUI(isFT){
   document.getElementById('callCamBtn').title=isFT?'Disable Camera':'Enable Camera';
   document.getElementById('callBar').classList.add('open');
 
-  // full screen
-  const cs=document.getElementById('callScreen');
+  // populate full call screen but keep hidden until "connected"
   document.getElementById('csName').textContent=other.displayName;
   document.getElementById('csSub').textContent=other.cnr?('CnR: '+other.cnr):(other.phone||'');
   const av=document.getElementById('csAvatar');
   if(other.pfp)av.innerHTML=`<img src="${other.pfp}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
   else av.textContent='👤';
   document.getElementById('csCamBtn').textContent=isFT?'⛶✕':'⛶';
-  cs.classList.add('open');
-
-  // camera if facetime
-  if(isFT)startLocalCam();
+  // simulate "call connected" after 1.5s → open full screen
+  callState.connectTimer=setTimeout(()=>{
+    if(!callState.active)return;
+    document.getElementById('callScreen').classList.add('open');
+    if(isFT)startLocalCam();
+  },1500);
 
   // timer
   callState.callTimer=setInterval(()=>{
@@ -1480,15 +1481,24 @@ async function startLocalCam(){
 
 function endCall(){
   callState.active=false;
-  clearInterval(callState.callTimer);
-  if(callState.localStream)callState.localStream.getTracks().forEach(t=>t.stop());
-  callState.localStream=null;
+  clearInterval(callState.callTimer);callState.callTimer=null;
+  clearTimeout(callState.connectTimer);callState.connectTimer=null;
+  if(callState.localStream){callState.localStream.getTracks().forEach(t=>t.stop());callState.localStream=null;}
+  // close both UIs
   document.getElementById('callBar').classList.remove('open');
   document.getElementById('callScreen').classList.remove('open');
-  document.getElementById('csVideoLocal').style.display='none';
-  document.getElementById('csVideoRemote').style.display='none';
+  // reset video
+  const lv=document.getElementById('csVideoLocal');lv.srcObject=null;lv.style.display='none';
+  const rv=document.getElementById('csVideoRemote');rv.srcObject=null;rv.style.display='none';
+  // reset avatar + timer
   document.getElementById('csAvatar').style.display='flex';
   document.getElementById('csTimer').textContent='00:00';
+  callState.timerSec=0;callState.muted=false;callState.camOn=false;
+  // reset button icons
+  document.getElementById('callMuteBtn').textContent='🕪';
+  document.getElementById('csMuteBtn').textContent='🕪';
+  document.getElementById('callCamBtn').textContent='⛶';
+  document.getElementById('csCamBtn').textContent='⛶';
 }
 
 function toggleMute(){
@@ -1513,14 +1523,14 @@ function toggleCam(){
   document.getElementById('csCamBtn').textContent=icon;
 }
 
-document.getElementById('callBtn').addEventListener('click',()=>openCallUI(false));
-document.getElementById('facetimeBtn').addEventListener('click',()=>openCallUI(true));
-document.getElementById('callMuteBtn').addEventListener('click',toggleMute);
-document.getElementById('csMuteBtn').addEventListener('click',toggleMute);
-document.getElementById('callEndBtn').addEventListener('click',endCall);
-document.getElementById('csEndBtn').addEventListener('click',endCall);
-document.getElementById('callCamBtn').addEventListener('click',toggleCam);
-document.getElementById('csCamBtn').addEventListener('click',toggleCam);
+document.getElementById('callBtn').onclick=()=>openCallUI(false);
+document.getElementById('facetimeBtn').onclick=()=>openCallUI(true);
+document.getElementById('callMuteBtn').onclick=toggleMute;
+document.getElementById('csMuteBtn').onclick=toggleMute;
+document.getElementById('callEndBtn').onclick=endCall;
+document.getElementById('csEndBtn').onclick=endCall;
+document.getElementById('callCamBtn').onclick=toggleCam;
+document.getElementById('csCamBtn').onclick=toggleCam;
 
 // ── Nav Panels ────────────────────────────────────────────────────
 const allPanels=['settingsPanel','newsPanel','socialPanel','savedPanel','storiesPanel','profilePanel','inboxPanel'];
