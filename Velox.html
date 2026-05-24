@@ -216,6 +216,48 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 .sticker-grid{display:flex;flex-wrap:wrap;gap:6px;}
 .stk{font-size:22px;cursor:pointer;padding:4px;border-radius:5px;transition:background .15s,transform .15s;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);}
 .stk:hover{background:rgba(255,255,255,0.18);transform:scale(1.2);}
+/* custom emoji */
+.cemoji{width:28px;height:28px;cursor:pointer;padding:2px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);object-fit:cover;transition:transform .15s;vertical-align:middle;}
+.cemoji:hover{transform:scale(1.25);}
+.cemoji-msg{width:22px;height:22px;vertical-align:middle;border-radius:3px;display:inline;}
+/* voice msg bubble */
+.voice-bubble{display:flex;align-items:center;gap:8px;padding:8px 12px;min-width:160px;}
+.voice-play{background:rgba(255,255,255,0.18);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:13px;flex-shrink:0;transition:background .2s;}
+.voice-play:hover{background:rgba(255,255,255,0.35);}
+.voice-wave{flex:1;height:24px;display:flex;align-items:center;gap:2px;}
+.voice-bar{width:3px;border-radius:2px;background:rgba(255,255,255,0.4);}
+.voice-dur{font-size:10px;color:rgba(255,255,255,0.45);flex-shrink:0;}
+/* voice record btn */
+#voiceBtn{position:relative;user-select:none;}
+#voiceBtn.recording{background:rgba(220,40,40,0.7)!important;border-color:rgba(255,80,80,0.5)!important;animation:pulse .6s ease infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,40,40,0.5);}50%{box-shadow:0 0 0 6px rgba(220,40,40,0);}}
+/* call bar */
+#callBar{position:fixed;top:-90px;left:50%;transform:translateX(-50%);width:420px;background:rgba(15,15,15,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:0 0 16px 16px;padding:14px 20px;z-index:500;transition:top .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+#callBar.open{top:0;}
+.call-status{color:rgba(255,255,255,0.6);font-size:11px;font-family:var(--font);}
+.call-who{color:white;font-size:15px;font-family:var(--font);font-weight:bold;}
+.call-btns{display:flex;gap:12px;}
+.call-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:9px;color:white;cursor:pointer;padding:8px 14px;font-size:18px;transition:background .2s,transform .2s;font-family:var(--font);}
+.call-btn:hover{transform:scale(1.08);}
+.call-btn.end{background:rgba(200,30,30,0.7);border-color:rgba(255,80,80,0.3);}
+.call-btn.end:hover{background:rgba(220,40,40,0.9);}
+.call-btn.active-green{background:rgba(30,160,60,0.6)!important;border-color:rgba(80,220,100,0.4)!important;}
+/* big call screen */
+#callScreen{position:fixed;inset:0;background:rgba(8,8,8,0.97);z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;backdrop-filter:blur(12px);}
+#callScreen.open{display:flex;}
+.cs-avatar{width:110px;height:110px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);background:rgba(40,40,40,0.9);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden;transition:box-shadow .2s;}
+.cs-avatar.talking{box-shadow:0 0 0 6px rgba(60,220,90,0.5),0 0 0 12px rgba(60,220,90,0.2);}
+.cs-name{color:white;font-size:20px;font-family:var(--font);}
+.cs-sub{color:rgba(255,255,255,0.4);font-size:12px;font-family:var(--font);}
+.cs-btns{display:flex;gap:16px;margin-top:12px;}
+.cs-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;font-size:22px;transition:background .2s,transform .2s;}
+.cs-btn:hover{transform:scale(1.1);}
+.cs-btn.end{background:rgba(200,30,30,0.8);}
+.cs-btn.muted,.cs-btn.nocam{background:rgba(80,80,80,0.5);}
+.cs-timer{color:rgba(255,255,255,0.5);font-size:14px;font-family:monospace;}
+/* video elements */
+#csVideo{width:100%;max-width:380px;border-radius:12px;background:#000;display:none;}
+#csVideoSmall{position:absolute;bottom:100px;right:30px;width:100px;border-radius:8px;background:#111;display:none;}
 
 /* Stories */
 .stories-list{display:flex;flex-direction:column;gap:8px;}
@@ -409,16 +451,23 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
         </div>
         <div class="messages-area" id="messagesArea"></div>
         <div class="input-bar">
-          <button class="ibar-btn" id="imgBtn" title="Send Image">🀦</button>
+          <input type="file" id="imgFileInput" accept="image/*,video/*,.pdf,.zip,.txt" style="display:none;">
+          <button class="ibar-btn" id="imgBtn" title="Send File">🀦</button>
           <input type="text" id="msgInput" placeholder="Type Here!">
-          <button class="ibar-btn" id="stickerBtn" title="GIFs & Stickers">☺</button>
+          <button class="ibar-btn" id="voiceBtn" title="Hold to record voice">🎙</button>
+          <button class="ibar-btn" id="stickerBtn" title="Custom Emojis">☺</button>
           <button id="sendBtn" title="Send">⌲</button>
         </div>
       </div>
-      <!-- Sticker panel anchored to chat panel -->
-      <div class="sticker-panel" id="stickerPanel">
-        <h4>Stickers &amp; GIFs</h4>
-        <div class="sticker-grid" id="stickerGrid"></div>
+      <!-- Custom emoji / sticker panel -->
+      <div class="sticker-panel" id="stickerPanel" style="width:260px;right:50px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:rgba(255,255,255,0.6);font-size:11px;">Custom Emojis</span>
+          <button id="addEmojiBtn" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:5px;color:white;cursor:pointer;padding:2px 8px;font-size:13px;">＋</button>
+        </div>
+        <input type="file" id="emojiFileInput" accept="image/*" style="display:none;">
+        <div class="sticker-grid" id="stickerGrid" style="max-height:160px;overflow-y:auto;"></div>
+        <p id="emojiEmpty" style="color:rgba(255,255,255,0.3);font-size:11px;text-align:center;margin-top:8px;">No custom emojis yet.<br>Click ＋ to add one.</p>
       </div>
     </main>
 
@@ -537,6 +586,10 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
       <div class="panel-inner">
         <div class="panel-header">News <button class="panel-close" data-panel="newsPanel">✕</button></div>
         <div class="panel-content">
+          <div class="news-item" style="border-color:rgba(255,255,100,0.4);background:rgba(255,255,80,0.1);">
+            <h4 style="color:#ffe566;">📦 Update 0.0.3 — 12:30 | 24/5/2026</h4>
+            <p style="color:rgba(255,240,140,0.65);">Image sending, voice messages, custom emojis, call UI, Firebase backend live.</p>
+          </div>
           <div class="news-item" style="border-color:rgba(255,255,100,0.3);background:rgba(255,255,80,0.07);">
             <h4 style="color:rgba(255,255,180,0.95);">📦 Update 0.0.2 — 19:11 | 23/5/2026</h4>
             <p style="color:rgba(255,255,180,0.6);">Fixed Icons And Yea</p>
@@ -595,6 +648,33 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
     </aside>
   </div>
 </div>
+
+<!-- Call Bar -->
+<div id="callBar">
+  <div class="call-status" id="callStatus">Calling...</div>
+  <div class="call-who" id="callWho"></div>
+  <div class="call-btns">
+    <button class="call-btn" id="callMuteBtn">🕪</button>
+    <button class="call-btn end" id="callEndBtn">🕻✕</button>
+    <button class="call-btn" id="callCamBtn">⛶</button>
+  </div>
+</div>
+
+<!-- Full Call Screen -->
+<div id="callScreen">
+  <video id="csVideoRemote" autoplay playsinline style="width:100%;max-width:380px;border-radius:12px;background:#000;display:none;"></video>
+  <video id="csVideoLocal" autoplay playsinline muted style="position:absolute;bottom:110px;right:24px;width:110px;border-radius:8px;background:#111;display:none;"></video>
+  <div class="cs-avatar" id="csAvatar">👤</div>
+  <div class="cs-name" id="csName"></div>
+  <div class="cs-sub" id="csSub"></div>
+  <div class="cs-timer" id="csTimer">00:00</div>
+  <div class="cs-btns">
+    <button class="cs-btn" id="csMuteBtn">🕪</button>
+    <button class="cs-btn end" id="csEndBtn">🕻✕</button>
+    <button class="cs-btn" id="csCamBtn">⛶</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="addAccountModal">
   <div class="modal-box">
     <h3>Add An Account</h3>
@@ -1083,9 +1163,16 @@ function renderMessages(c){
     if(m.deletedFor&&m.deletedFor.includes(currentUser.id))return;
     const isMine=m.from===currentUser.id;
     const grp=document.createElement('div');grp.className='msg-group '+(isMine?'mine':'theirs');
-    const txt=m.deleted?'<em style="color:rgba(255,255,255,0.35);">This message was deleted</em>':escHtml(m.text);
+    let bubbleInner;
+    if(m.deleted){bubbleInner='<em style="color:rgba(255,255,255,0.35);">This message was deleted</em>';}
+    else if(m.type==='image'&&m.fileData){bubbleInner=`<img src="${m.fileData}" style="max-width:220px;max-height:180px;border-radius:8px;display:block;cursor:pointer;" onclick="window.open('${m.fileData}')">"`;}
+    else if(m.type==='file'&&m.fileData){bubbleInner=`<a href="${m.fileData}" download="${escHtml(m.fileName||'file')}" style="color:#88ccff;text-decoration:underline;font-size:13px;">📄 ${escHtml(m.fileName||'file')}</a>`;}
+    else if(m.type==='voice'&&m.fileData){
+      const bars=Array.from({length:18},(_,i)=>`<div class="voice-bar" style="height:${6+Math.round(Math.abs(Math.sin(i*0.7)*12))}px;"></div>`).join('');
+      bubbleInner=`<div class="voice-bubble"><button class="voice-play" data-src="${m.fileData}">▶</button><div class="voice-wave">${bars}</div><span class="voice-dur">${m.duration||0}s</span></div>`;
+    } else {bubbleInner=resolveCEmojiText(m.text||'');}
     grp.innerHTML=`<div class="msg-sender" data-uid="${escHtml(m.from)}">${escHtml(m.name)}</div>
-      <div class="msg-bubble">${txt}${m.edited&&!m.deleted?'<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:6px;">✎ edited</span>':''}</div>
+      <div class="msg-bubble">${bubbleInner}${m.edited&&!m.deleted&&!m.type?'<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:6px;">✎ edited</span>':''}</div>
       <div class="msg-meta">
         <span class="msg-time">${fmtTime(m.time)}</span>
         <div class="msg-actions">
@@ -1095,6 +1182,7 @@ function renderMessages(c){
         </div>
       </div>`;
     grp.querySelector('.msg-sender').addEventListener('click',()=>openUserProfile(m.from));
+    grp.querySelector('.voice-play')?.addEventListener('click',function(){new Audio(this.dataset.src).play();});
     if(!m.deleted){
       grp.querySelector('.save-mac')?.addEventListener('click',()=>saveMessage(m));
       grp.querySelector('.edit-mac')?.addEventListener('click',()=>openEditModal(c.id,m));
@@ -1165,17 +1253,20 @@ document.getElementById('sendBtn').addEventListener('click',sendMsg);
 document.getElementById('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
 function sendMsg(){
   if(!activeConvoId)return;
-  const inp=document.getElementById('msgInput'),text=inp.value.trim();if(!text)return;
-  inp.value='';
-  const msg={from:currentUser.id,name:currentUser.displayName,text,time:Date.now()};
-  // optimistic local update
+  const inp=document.getElementById('msgInput');
+  let text=inp.value.trim();if(!text&&!inp.dataset.cemojiPending)return;
+  const cemojiPending=inp.dataset.cemojiPending||'';
+  // store cemoji tokens in text
+  const finalText=(text.replace(/\[emoji\]/g,'')||'')+cemojiPending;
+  inp.value='';inp.dataset.cemojiPending='';
+  if(!finalText.trim())return;
+  const msg={from:currentUser.id,name:currentUser.displayName,text:finalText,time:Date.now()};
   if(_convos[activeConvoId]){
     _convos[activeConvoId].messages=_convos[activeConvoId].messages||[];
     _convos[activeConvoId].messages.push(msg);
     renderMessages(_convos[activeConvoId]);renderConvoList();
   }
-  // persist to Firebase (real-time listener will confirm)
-  fbSendMessage(activeConvoId,msg).catch(e=>showToast('Failed to send message.'));
+  fbSendMessage(activeConvoId,msg).catch(()=>showToast('Failed to send message.'));
 }
 document.getElementById('exitChatBtn').addEventListener('click',()=>{
   activeConvoId=null;document.getElementById('activeChat').style.display='none';
@@ -1184,14 +1275,252 @@ document.getElementById('exitChatBtn').addEventListener('click',()=>{
 
 // ── Stickers ─────────────────────────────────────────────────────
 const stickers=['😀','😂','❤️','😍','🔥','👍','😎','🎉','😢','🤔','👋','🌸','⭐','🎵','💪','✨','🍜','🐉','🌙','🦋','🐾','🌊','🎋','⛩️','🍣','🌺'];
+// ── CUSTOM EMOJIS ─────────────────────────────────────────────────
+const CEMOJI_KEY='velox_cemoji';
+function getCEmojis(){return JSON.parse(localStorage.getItem(CEMOJI_KEY)||'[]');}
+function saveCEmojis(a){localStorage.setItem(CEMOJI_KEY,JSON.stringify(a));}
+
 const sg=document.getElementById('stickerGrid');
-stickers.forEach(s=>{const b=document.createElement('div');b.className='stk';b.textContent=s;b.addEventListener('click',()=>{document.getElementById('msgInput').value+=s;document.getElementById('stickerPanel').classList.remove('open');});sg.appendChild(b);});
+const emojiEmpty=document.getElementById('emojiEmpty');
+function renderCEmojis(){
+  sg.innerHTML='';
+  const emojis=getCEmojis();
+  emojiEmpty.style.display=emojis.length?'none':'block';
+  emojis.forEach((e,i)=>{
+    const img=document.createElement('img');
+    img.src=e.data;img.className='cemoji';img.title=e.name||'emoji';
+    img.addEventListener('click',()=>{
+      // insert as [cemoji:i] token into input
+      document.getElementById('msgInput').dataset.cemojiPending=(document.getElementById('msgInput').dataset.cemojiPending||'')+`[cemoji:${i}]`;
+      document.getElementById('msgInput').value+='[emoji]';
+      document.getElementById('stickerPanel').classList.remove('open');
+    });
+    // long press to delete
+    let lt;img.addEventListener('mousedown',()=>{lt=setTimeout(()=>{if(confirm('Remove this emoji?')){const arr=getCEmojis();arr.splice(i,1);saveCEmojis(arr);renderCEmojis();}},800);});
+    img.addEventListener('mouseup',()=>clearTimeout(lt));
+    sg.appendChild(img);
+  });
+}
+renderCEmojis();
+
+document.getElementById('addEmojiBtn').addEventListener('click',e=>{
+  e.stopPropagation();document.getElementById('emojiFileInput').click();
+});
+document.getElementById('emojiFileInput').addEventListener('change',e=>{
+  const file=e.target.files[0];if(!file)return;
+  const name=prompt('Name this emoji (optional):',file.name.replace(/\.[^.]+$/,''))||'emoji';
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const arr=getCEmojis();arr.push({data:ev.target.result,name});saveCEmojis(arr);
+    renderCEmojis();showToast('Custom emoji added! ☺');
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+});
+
 document.getElementById('stickerBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('stickerPanel').classList.toggle('open');});
 
+// resolve cemoji tokens in messages
+function resolveCEmojiText(text,pending){
+  const emojis=getCEmojis();
+  if(!pending&&!text.includes('[cemoji:')&&!text.includes('[emoji]'))return escHtml(text);
+  let out=escHtml(text).replace(/\[emoji\]/g,'');
+  if(pending){
+    const tokens=pending.match(/\[cemoji:\d+\]/g)||[];
+    tokens.forEach(tok=>{
+      const idx=parseInt(tok.match(/\d+/)[0]);
+      const em=emojis[idx];
+      if(em)out+=`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}">`;
+    });
+  }
+  // also resolve stored tokens in msg text
+  out=out.replace(/\[cemoji:(\d+)\]/g,(m,i)=>{
+    const em=emojis[parseInt(i)];
+    return em?`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}">`:m;
+  });
+  return out;
+}
+
 // ── Image button (placeholder) ───────────────────────────────────
-document.getElementById('imgBtn').addEventListener('click',()=>showToast('Image sharing requires a backend 🀦'));
-document.getElementById('callBtn').addEventListener('click',()=>showToast('Calling... ✆ (requires backend)'));
-document.getElementById('facetimeBtn').addEventListener('click',()=>showToast('Starting FaceTime ⛶ (requires backend)'));
+// ── IMAGE / FILE SEND ─────────────────────────────────────────────
+document.getElementById('imgBtn').addEventListener('click',()=>{
+  if(!activeConvoId){showToast('Open a conversation first.');return;}
+  document.getElementById('imgFileInput').click();
+});
+document.getElementById('imgFileInput').addEventListener('change',async e=>{
+  const file=e.target.files[0];if(!file||!activeConvoId)return;
+  showToast('Uploading...');
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const isImg=file.type.startsWith('image/');
+    const msg={
+      from:currentUser.id,name:currentUser.displayName,
+      time:Date.now(),
+      type:isImg?'image':'file',
+      fileData:ev.target.result,
+      fileName:file.name,
+      text:isImg?'[image]':'[file:'+file.name+']'
+    };
+    if(_convos[activeConvoId]){
+      _convos[activeConvoId].messages=_convos[activeConvoId].messages||[];
+      _convos[activeConvoId].messages.push(msg);
+      renderMessages(_convos[activeConvoId]);renderConvoList();
+    }
+    fbSendMessage(activeConvoId,msg).catch(()=>showToast('Upload failed.'));
+    showToast('Sent! 🀦');
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+});
+
+// ── VOICE MESSAGES ────────────────────────────────────────────────
+let mediaRecorder=null,audioChunks=[],voiceHoldTimer=null,isRecording=false;
+const voiceBtn=document.getElementById('voiceBtn');
+
+voiceBtn.addEventListener('mousedown',()=>{
+  voiceHoldTimer=setTimeout(async()=>{
+    if(!activeConvoId){showToast('Open a conversation first.');return;}
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      audioChunks=[];
+      mediaRecorder=new MediaRecorder(stream);
+      mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
+      mediaRecorder.onstop=()=>{
+        const blob=new Blob(audioChunks,{type:'audio/webm'});
+        const reader=new FileReader();
+        reader.onload=ev=>{
+          const dur=Math.round((Date.now()-recStart)/1000);
+          const msg={from:currentUser.id,name:currentUser.displayName,time:Date.now(),type:'voice',fileData:ev.target.result,duration:dur,text:'[voice]'};
+          if(_convos[activeConvoId]){
+            _convos[activeConvoId].messages=_convos[activeConvoId].messages||[];
+            _convos[activeConvoId].messages.push(msg);
+            renderMessages(_convos[activeConvoId]);renderConvoList();
+          }
+          fbSendMessage(activeConvoId,msg).catch(()=>{});
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t=>t.stop());
+        isRecording=false;voiceBtn.classList.remove('recording');
+      };
+      recStart=Date.now();
+      mediaRecorder.start();isRecording=true;
+      voiceBtn.classList.add('recording');
+      showToast('Recording... release to send 🎙');
+    }catch(e){showToast('Mic access denied.');}
+  },2000);
+});
+
+let recStart=Date.now();
+voiceBtn.addEventListener('mouseup',()=>{
+  clearTimeout(voiceHoldTimer);
+  if(isRecording&&mediaRecorder&&mediaRecorder.state==='recording'){
+    mediaRecorder.stop();
+  }
+});
+voiceBtn.addEventListener('mouseleave',()=>{
+  clearTimeout(voiceHoldTimer);
+  if(isRecording&&mediaRecorder&&mediaRecorder.state==='recording'){
+    mediaRecorder.stop();
+  }
+});
+// touch support
+voiceBtn.addEventListener('touchstart',e=>{e.preventDefault();voiceBtn.dispatchEvent(new MouseEvent('mousedown'));},{passive:false});
+voiceBtn.addEventListener('touchend',e=>{e.preventDefault();voiceBtn.dispatchEvent(new MouseEvent('mouseup'));},{passive:false});
+
+// ── CALL SYSTEM ───────────────────────────────────────────────────
+let callState={active:false,isFaceTime:false,muted:false,camOn:false,callTimer:null,timerSec:0,localStream:null};
+
+function openCallUI(isFT){
+  if(!activeConvoId){showToast('Open a conversation first.');return;}
+  const c=_convos[activeConvoId];if(!c)return;
+  const otherId=c.participants.find(p=>p!==currentUser.id);
+  const other=_users[otherId]||{displayName:otherId,cnr:'',phone:''};
+  const label=other.displayName+(other.cnr?' · CnR:'+other.cnr:other.phone?' · ✆'+other.phone:'');
+
+  callState.active=true;callState.isFaceTime=isFT;callState.muted=false;
+  callState.camOn=isFT;callState.timerSec=0;
+
+  // call bar
+  document.getElementById('callStatus').textContent=isFT?'FaceTiming...':'Calling...';
+  document.getElementById('callWho').textContent=label;
+  document.getElementById('callCamBtn').textContent=isFT?'⛶✕':'⛶';
+  document.getElementById('callCamBtn').title=isFT?'Disable Camera':'Enable Camera';
+  document.getElementById('callBar').classList.add('open');
+
+  // full screen
+  const cs=document.getElementById('callScreen');
+  document.getElementById('csName').textContent=other.displayName;
+  document.getElementById('csSub').textContent=other.cnr?('CnR: '+other.cnr):(other.phone||'');
+  const av=document.getElementById('csAvatar');
+  if(other.pfp)av.innerHTML=`<img src="${other.pfp}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  else av.textContent='👤';
+  document.getElementById('csCamBtn').textContent=isFT?'⛶✕':'⛶';
+  cs.classList.add('open');
+
+  // camera if facetime
+  if(isFT)startLocalCam();
+
+  // timer
+  callState.callTimer=setInterval(()=>{
+    callState.timerSec++;
+    const m=String(Math.floor(callState.timerSec/60)).padStart(2,'0');
+    const s=String(callState.timerSec%60).padStart(2,'0');
+    document.getElementById('csTimer').textContent=m+':'+s;
+  },1000);
+}
+
+async function startLocalCam(){
+  try{
+    callState.localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    const lv=document.getElementById('csVideoLocal');lv.srcObject=callState.localStream;lv.style.display='block';
+    document.getElementById('csVideoRemote').style.display='block';
+    document.getElementById('csAvatar').style.display='none';
+  }catch(e){showToast('Camera access denied.');}
+}
+
+function endCall(){
+  callState.active=false;
+  clearInterval(callState.callTimer);
+  if(callState.localStream)callState.localStream.getTracks().forEach(t=>t.stop());
+  callState.localStream=null;
+  document.getElementById('callBar').classList.remove('open');
+  document.getElementById('callScreen').classList.remove('open');
+  document.getElementById('csVideoLocal').style.display='none';
+  document.getElementById('csVideoRemote').style.display='none';
+  document.getElementById('csAvatar').style.display='flex';
+  document.getElementById('csTimer').textContent='00:00';
+}
+
+function toggleMute(){
+  callState.muted=!callState.muted;
+  if(callState.localStream)callState.localStream.getAudioTracks().forEach(t=>{t.enabled=!callState.muted;});
+  const icon=callState.muted?'🕪✕':'🕪';
+  document.getElementById('callMuteBtn').textContent=icon;
+  document.getElementById('csMuteBtn').textContent=icon;
+  document.getElementById('callMuteBtn').classList.toggle('active-green',!callState.muted);
+}
+
+function toggleCam(){
+  if(!callState.active)return;
+  callState.camOn=!callState.camOn;
+  if(callState.camOn){startLocalCam();}
+  else{
+    if(callState.localStream)callState.localStream.getVideoTracks().forEach(t=>t.stop());
+    document.getElementById('csVideoLocal').style.display='none';
+  }
+  const icon=callState.camOn?'⛶✕':'⛶';
+  document.getElementById('callCamBtn').textContent=icon;
+  document.getElementById('csCamBtn').textContent=icon;
+}
+
+document.getElementById('callBtn').addEventListener('click',()=>openCallUI(false));
+document.getElementById('facetimeBtn').addEventListener('click',()=>openCallUI(true));
+document.getElementById('callMuteBtn').addEventListener('click',toggleMute);
+document.getElementById('csMuteBtn').addEventListener('click',toggleMute);
+document.getElementById('callEndBtn').addEventListener('click',endCall);
+document.getElementById('csEndBtn').addEventListener('click',endCall);
+document.getElementById('callCamBtn').addEventListener('click',toggleCam);
+document.getElementById('csCamBtn').addEventListener('click',toggleCam);
 
 // ── Nav Panels ────────────────────────────────────────────────────
 const allPanels=['settingsPanel','newsPanel','socialPanel','savedPanel','storiesPanel','profilePanel','inboxPanel'];
