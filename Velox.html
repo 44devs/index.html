@@ -217,9 +217,11 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 .stk{font-size:22px;cursor:pointer;padding:4px;border-radius:5px;transition:background .15s,transform .15s;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);}
 .stk:hover{background:rgba(255,255,255,0.18);transform:scale(1.2);}
 /* custom emoji */
+#msgInput:empty::before{content:attr(data-placeholder);color:rgba(255,255,255,0.4);pointer-events:none;}
+#msgInput:focus{border-color:rgba(255,255,255,0.5)!important;background:rgba(255,255,255,0.2)!important;}
 .cemoji{width:28px;height:28px;cursor:pointer;padding:2px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);object-fit:cover;transition:transform .15s;vertical-align:middle;}
 .cemoji:hover{transform:scale(1.25);}
-.cemoji-msg{width:22px;height:22px;vertical-align:middle;border-radius:3px;display:inline;}
+.cemoji-msg{width:22px;height:22px;vertical-align:middle;border-radius:3px;display:inline;image-rendering:auto;filter:none!important;-webkit-filter:none!important;}
 /* voice msg bubble */
 .voice-bubble{display:flex;align-items:center;gap:8px;padding:8px 12px;min-width:160px;}
 .voice-play{background:rgba(255,255,255,0.18);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:13px;flex-shrink:0;transition:background .2s;}
@@ -453,7 +455,7 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
         <div class="input-bar">
           <input type="file" id="imgFileInput" accept="image/*,video/*,.pdf,.zip,.txt" style="display:none;">
           <button class="ibar-btn" id="imgBtn" title="Send File">🀦</button>
-          <input type="text" id="msgInput" placeholder="Type Here!">
+          <div id="msgInput" contenteditable="true" data-placeholder="Type Here!" style="flex:1;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:8px 13px;color:white;font-family:var(--font);font-size:13px;outline:none;transition:border .2s,background .2s;min-height:36px;max-height:100px;overflow-y:auto;display:flex;align-items:center;white-space:pre-wrap;word-break:break-word;cursor:text;position:relative;"></div>
           <button class="ibar-btn" id="voiceBtn" title="Hold to record voice">🎙</button>
           <button class="ibar-btn" id="stickerBtn" title="Custom Emojis">☺</button>
           <button id="sendBtn" title="Send">⌲</button>
@@ -1305,12 +1307,13 @@ document.getElementById('cancelEdit').addEventListener('click',()=>document.getE
 
 // ── Send ─────────────────────────────────────────────────────────
 document.getElementById('sendBtn').addEventListener('click',sendMsg);
-document.getElementById('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+document.getElementById('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 function sendMsg(){
   if(!activeConvoId)return;
   const inp=document.getElementById('msgInput');
-  const finalText=inp.value.trim();if(!finalText)return;
-  inp.value='';
+  // extract text from contenteditable — convert emoji imgs back to tokens
+  const finalText=getMsgInputContent();if(!finalText.trim())return;
+  inp.innerHTML='';
   const msg={from:currentUser.id,name:currentUser.displayName,text:finalText,time:Date.now()};
   if(_convos[activeConvoId]){
     _convos[activeConvoId].messages=_convos[activeConvoId].messages||[];
@@ -1342,13 +1345,27 @@ function renderCEmojis(){
     img.src=e.data;img.className='cemoji';img.title=e.name||'emoji';
     img.addEventListener('click',()=>{
       const inp=document.getElementById('msgInput');
-      const token='[cemoji-data:'+e.data+':'+escHtml(e.name||'emoji')+']';
-      const start=inp.selectionStart??inp.value.length;
-      const end=inp.selectionEnd??inp.value.length;
-      inp.value=inp.value.slice(0,start)+token+inp.value.slice(end);
-      const newPos=start+token.length;
-      inp.setSelectionRange(newPos,newPos);
       inp.focus();
+      // insert an actual <img> at the cursor inside the contenteditable
+      const emojiImg=document.createElement('img');
+      emojiImg.src=e.data;
+      emojiImg.className='cemoji-msg';
+      emojiImg.title=e.name||'emoji';
+      emojiImg.dataset.cemojiData=e.data;
+      emojiImg.dataset.cemojiName=e.name||'emoji';
+      emojiImg.contentEditable='false';
+      const sel=window.getSelection();
+      if(sel&&sel.rangeCount){
+        const range=sel.getRangeAt(0);
+        // make sure we're inside msgInput
+        if(inp.contains(range.commonAncestorContainer)||range.commonAncestorContainer===inp){
+          range.deleteContents();
+          range.insertNode(emojiImg);
+          range.setStartAfter(emojiImg);
+          range.collapse(true);
+          sel.removeAllRanges();sel.addRange(range);
+        } else {inp.appendChild(emojiImg);}
+      } else {inp.appendChild(emojiImg);}
       document.getElementById('stickerPanel').classList.remove('open');
     });
     // long press to delete
@@ -1374,9 +1391,26 @@ document.getElementById('emojiFileInput').addEventListener('change',e=>{
   e.target.value='';
 });
 
-document.getElementById('stickerBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('stickerPanel').classList.toggle('open');});
+document.getElementById('stickerBtn').addEventListener('click',e=>{
+  e.stopPropagation();
+  document.getElementById('stickerPanel').classList.toggle('open');
+});
 
 // resolve cemoji tokens in messages
+// Serialize contenteditable msgInput into sendable text with cemoji tokens
+function getMsgInputContent(){
+  const inp=document.getElementById('msgInput');
+  let out='';
+  inp.childNodes.forEach(node=>{
+    if(node.nodeType===Node.TEXT_NODE){out+=node.textContent;}
+    else if(node.nodeName==='IMG'&&node.dataset.cemojiData){
+      out+='[cemoji-data:'+node.dataset.cemojiData+':'+node.dataset.cemojiName+']';
+    } else if(node.nodeName==='BR'){out+=' ';}
+    else{out+=node.textContent||'';}
+  });
+  return out.trim();
+}
+
 function resolveCEmojiText(text){
   if(!text)return '';
   // handle new format: [cemoji-data:BASE64DATA:name]
