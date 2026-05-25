@@ -1309,12 +1309,8 @@ document.getElementById('msgInput').addEventListener('keydown',e=>{if(e.key==='E
 function sendMsg(){
   if(!activeConvoId)return;
   const inp=document.getElementById('msgInput');
-  let text=inp.value.trim();if(!text&&!inp.dataset.cemojiPending)return;
-  const cemojiPending=inp.dataset.cemojiPending||'';
-  // strip the visible [emoji] placeholders, append the real embedded tokens
-  const finalText=(text.replace(/\[emoji\]/g,'')||'')+cemojiPending;
-  inp.value='';inp.dataset.cemojiPending='';
-  if(!finalText.trim())return;
+  const finalText=inp.value.trim();if(!finalText)return;
+  inp.value='';
   const msg={from:currentUser.id,name:currentUser.displayName,text:finalText,time:Date.now()};
   if(_convos[activeConvoId]){
     _convos[activeConvoId].messages=_convos[activeConvoId].messages||[];
@@ -1345,12 +1341,14 @@ function renderCEmojis(){
     const img=document.createElement('img');
     img.src=e.data;img.className='cemoji';img.title=e.name||'emoji';
     img.addEventListener('click',()=>{
-      // embed the actual base64 data so other users can see it
-      // store in a separate data attribute to avoid bloating the visible input
+      const inp=document.getElementById('msgInput');
       const token='[cemoji-data:'+e.data+':'+escHtml(e.name||'emoji')+']';
-      const pending=document.getElementById('msgInput').dataset.cemojiPending||'';
-      document.getElementById('msgInput').dataset.cemojiPending=pending+token;
-      document.getElementById('msgInput').value+='[emoji]';
+      const start=inp.selectionStart??inp.value.length;
+      const end=inp.selectionEnd??inp.value.length;
+      inp.value=inp.value.slice(0,start)+token+inp.value.slice(end);
+      const newPos=start+token.length;
+      inp.setSelectionRange(newPos,newPos);
+      inp.focus();
       document.getElementById('stickerPanel').classList.remove('open');
     });
     // long press to delete
