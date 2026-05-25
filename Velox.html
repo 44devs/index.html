@@ -1337,42 +1337,105 @@ function saveCEmojis(a){localStorage.setItem(CEMOJI_KEY,JSON.stringify(a));}
 
 const sg=document.getElementById('stickerGrid');
 const emojiEmpty=document.getElementById('emojiEmpty');
+// ── Emoji context menu ───────────────────────────────────────────
+let emojiCtx=null;
+function closeEmojiCtx(){if(emojiCtx){emojiCtx.remove();emojiCtx=null;}}
+
+function openEmojiCtx(e,idx){
+  e.preventDefault();e.stopPropagation();
+  closeEmojiCtx();
+  const menu=document.createElement('div');
+  menu.className='ctx-menu';
+  menu.style.cssText='position:fixed;z-index:9999;min-width:170px;';
+  const items=[
+    {label:'💾 Save To Emoji Group',action:()=>saveEmojiToGroup(idx)},
+    {label:'✎ Rename',action:()=>renameEmoji(idx)},
+    {label:'🗑 Delete',action:()=>deleteEmoji(idx),red:true},
+  ];
+  items.forEach(it=>{
+    const d=document.createElement('div');
+    d.className='ctx-item'+(it.red?' red':'');
+    d.textContent=it.label;
+    d.addEventListener('click',()=>{closeEmojiCtx();it.action();});
+    menu.appendChild(d);
+  });
+  // position near cursor but keep on screen
+  const x=Math.min(e.clientX,window.innerWidth-180);
+  const y=Math.min(e.clientY,window.innerHeight-120);
+  menu.style.left=x+'px';menu.style.top=y+'px';
+  document.body.appendChild(menu);emojiCtx=menu;
+}
+
+function saveEmojiToGroup(idx){
+  const arr=getCEmojis();const em=arr[idx];if(!em)return;
+  const group=prompt('Save to group name:',em.group||'');
+  if(group===null)return;
+  arr[idx].group=group.trim();saveCEmojis(arr);renderCEmojis();showToast('Saved to "'+group+'" ☺');
+}
+function renameEmoji(idx){
+  const arr=getCEmojis();const em=arr[idx];if(!em)return;
+  const name=prompt('Rename emoji:',em.name||'emoji');
+  if(name===null)return;
+  arr[idx].name=name.trim()||'emoji';saveCEmojis(arr);renderCEmojis();showToast('Renamed to "'+name+'" ✎');
+}
+function deleteEmoji(idx){
+  const arr=getCEmojis();arr.splice(idx,1);saveCEmojis(arr);renderCEmojis();showToast('Emoji deleted ⌫');
+}
+
+document.addEventListener('click',e=>{if(emojiCtx&&!emojiCtx.contains(e.target))closeEmojiCtx();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEmojiCtx();});
+
 function renderCEmojis(){
   sg.innerHTML='';
   const emojis=getCEmojis();
   emojiEmpty.style.display=emojis.length?'none':'block';
+
+  // group by group name
+  const groups={};
   emojis.forEach((e,i)=>{
-    const img=document.createElement('img');
-    img.src=e.data;img.className='cemoji';img.title=e.name||'emoji';
-    img.addEventListener('click',()=>{
-      const inp=document.getElementById('msgInput');
-      inp.focus();
-      // insert an actual <img> at the cursor inside the contenteditable
-      const emojiImg=document.createElement('img');
-      emojiImg.src=e.data;
-      emojiImg.className='cemoji-msg';
-      emojiImg.title=e.name||'emoji';
-      emojiImg.dataset.cemojiData=e.data;
-      emojiImg.dataset.cemojiName=e.name||'emoji';
-      emojiImg.contentEditable='false';
-      const sel=window.getSelection();
-      if(sel&&sel.rangeCount){
-        const range=sel.getRangeAt(0);
-        // make sure we're inside msgInput
-        if(inp.contains(range.commonAncestorContainer)||range.commonAncestorContainer===inp){
-          range.deleteContents();
-          range.insertNode(emojiImg);
-          range.setStartAfter(emojiImg);
-          range.collapse(true);
-          sel.removeAllRanges();sel.addRange(range);
+    const g=e.group||'';
+    if(!groups[g])groups[g]=[];
+    groups[g].push({e,i});
+  });
+
+  Object.entries(groups).forEach(([gname,items])=>{
+    if(gname){
+      const lbl=document.createElement('div');
+      lbl.style.cssText='color:rgba(255,255,255,0.35);font-size:10px;width:100%;margin:4px 0 2px;font-family:var(--font);';
+      lbl.textContent=gname;
+      sg.appendChild(lbl);
+    }
+    items.forEach(({e,i})=>{
+      const img=document.createElement('img');
+      img.src=e.data;img.className='cemoji';img.title=e.name||'emoji';
+
+      // left click = insert into message
+      img.addEventListener('click',()=>{
+        const inp=document.getElementById('msgInput');
+        inp.focus();
+        const emojiImg=document.createElement('img');
+        emojiImg.src=e.data;emojiImg.className='cemoji-msg';
+        emojiImg.title=e.name||'emoji';
+        emojiImg.dataset.cemojiData=e.data;
+        emojiImg.dataset.cemojiName=e.name||'emoji';
+        emojiImg.contentEditable='false';
+        const sel=window.getSelection();
+        if(sel&&sel.rangeCount){
+          const range=sel.getRangeAt(0);
+          if(inp.contains(range.commonAncestorContainer)||range.commonAncestorContainer===inp){
+            range.deleteContents();range.insertNode(emojiImg);
+            range.setStartAfter(emojiImg);range.collapse(true);
+            sel.removeAllRanges();sel.addRange(range);
+          } else {inp.appendChild(emojiImg);}
         } else {inp.appendChild(emojiImg);}
-      } else {inp.appendChild(emojiImg);}
-      document.getElementById('stickerPanel').classList.remove('open');
+        document.getElementById('stickerPanel').classList.remove('open');
+      });
+
+      // right click = context menu
+      img.addEventListener('contextmenu',e2=>openEmojiCtx(e2,i));
+
+      sg.appendChild(img);
     });
-    // long press to delete
-    let lt;img.addEventListener('mousedown',()=>{lt=setTimeout(()=>{if(confirm('Remove this emoji?')){const arr=getCEmojis();arr.splice(i,1);saveCEmojis(arr);renderCEmojis();}},800);});
-    img.addEventListener('mouseup',()=>clearTimeout(lt));
-    sg.appendChild(img);
   });
 }
 renderCEmojis();
