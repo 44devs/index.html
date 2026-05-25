@@ -359,6 +359,78 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
 .profile-field-val{font-size:13px;color:rgba(255,255,255,0.85);}
 #sidebarHeader{cursor:pointer;transition:color .2s;}
 #sidebarHeader:hover{color:rgba(255,255,255,0.9);}
+
+/* ═══════════════════════════════════════════
+   MOBILE LAYOUT  (≤ 700px)
+   Same feel as WhatsApp / Telegram mobile
+═══════════════════════════════════════════ */
+@media(max-width:700px){
+  /* Before / Login screens */
+  #beforeScreen{width:92vw;height:auto;padding:32px 20px;}
+  #loginScreen{width:92vw;padding:28px 18px;}
+
+  /* Nav — shrink labels */
+  .top-nav{padding:0 8px;gap:0;}
+  .nav-brand{font-size:14px;margin-right:6px;}
+  .nav-btn{padding:4px 7px;font-size:10px;}
+
+  /* Chat body: full width, views swap via JS */
+  .chat-body{position:relative;overflow:hidden;}
+
+  /* Sidebar takes full screen on mobile */
+  .sidebar{
+    position:absolute;inset:0;width:100%;
+    z-index:10;transition:transform .3s cubic-bezier(.4,0,.2,1);
+  }
+  /* When a chat is open, slide sidebar out left */
+  .sidebar.mobile-hidden{transform:translateX(-100%);}
+
+  /* Chat panel takes full screen */
+  .chat-panel{
+    position:absolute;inset:0;width:100%;
+    z-index:9;transform:translateX(100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+  }
+  /* When a chat is open, slide panel in */
+  .chat-panel.mobile-visible{transform:translateX(0);}
+
+  /* Side panels (settings/news etc) — full width */
+  .side-panel{width:0;}
+  .side-panel.open{width:100%;position:absolute;inset:0;z-index:20;}
+  .panel-inner{width:100%;}
+
+  /* Back button in chat header */
+  #mobileBackBtn{display:flex;}
+
+  /* Input bar tweaks */
+  .input-bar{padding:7px 8px;gap:5px;}
+  #msgInput{font-size:13px;padding:7px 10px;}
+  #sendBtn{padding:7px 10px;font-size:15px;}
+  .ibar-btn{width:30px;height:30px;font-size:14px;}
+
+  /* Messages */
+  .msg-group{max-width:85%;}
+
+  /* Call bar */
+  #callBar{width:96vw;}
+
+  /* Sticker panel */
+  .sticker-panel{right:4px;bottom:54px;width:calc(100vw - 20px);}
+
+  /* Empty chat — hidden on mobile (sidebar is default view) */
+  #emptyChat{display:none!important;}
+}
+
+/* Back button — hidden on desktop */
+#mobileBackBtn{
+  display:none;
+  align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+  border-radius:6px;color:white;cursor:pointer;
+  padding:4px 9px;font-size:17px;margin-right:6px;
+  transition:background .2s;flex-shrink:0;
+}
+#mobileBackBtn:hover{background:rgba(255,255,255,0.18);}
 </style>
 </head>
 <body>
@@ -433,7 +505,8 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
       </div>
       <div id="activeChat" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
         <div class="chat-header">
-          <div class="chat-header-info" style="cursor:pointer;" id="chatHeaderInfoClick">
+          <button id="mobileBackBtn">‹</button>
+          <div class="chat-header-info" style="cursor:pointer;flex:1;overflow:hidden;" id="chatHeaderInfoClick">
             <div class="chat-header-name" id="chatHeaderName"></div>
             <div class="chat-header-sub" id="chatHeaderSub"></div>
           </div>
@@ -1218,6 +1291,7 @@ function openConvo(cid){
   document.getElementById('chatHeaderName').textContent=getConvoDisplayName(c);
   document.getElementById('chatHeaderSub').textContent=getConvoSubline(c);
   renderMessages(c);renderConvoList();
+  mobileOpenChat();
 }
 
 function renderMessages(c){
@@ -1718,6 +1792,10 @@ function togglePanel(id){
   allPanels.forEach(p=>{document.getElementById(p).classList.remove('open');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));});
   if(!wasOpen){
     document.getElementById(id).classList.add('open');
+    // on mobile, panels are full-screen so hide sidebar
+    if(isMobile()){
+      document.querySelector('.sidebar').classList.add('mobile-hidden');
+    }
     const map={settingsPanel:'navSettings',newsPanel:'navNews',socialPanel:'navSocial',savedPanel:'navSaved',inboxPanel:'navInbox'};
     if(map[id])document.getElementById(map[id]).classList.add('active');
     if(id==='savedPanel')renderSavedPanel();
@@ -1732,7 +1810,12 @@ document.getElementById('navNews').addEventListener('click',()=>togglePanel('new
 document.getElementById('navSocial').addEventListener('click',()=>togglePanel('socialPanel'));
 document.getElementById('navSaved').addEventListener('click',()=>togglePanel('savedPanel'));
 document.getElementById('navInbox').addEventListener('click',()=>togglePanel('inboxPanel'));
-document.querySelectorAll('.panel-close').forEach(b=>b.addEventListener('click',()=>{document.getElementById(b.dataset.panel).classList.remove('open');document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));}));
+document.querySelectorAll('.panel-close').forEach(b=>b.addEventListener('click',()=>{
+  document.getElementById(b.dataset.panel).classList.remove('open');
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  // on mobile restore sidebar if no chat is open
+  if(isMobile()&&!activeConvoId){document.querySelector('.sidebar').classList.remove('mobile-hidden');}
+}));
 
 // ── Profile Panel ─────────────────────────────────────────────────
 function renderProfilePanel(u){
@@ -2624,6 +2707,47 @@ function showToast(msg){
   t.textContent=msg;t.style.display='block';
   clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2200);
 }
+
+// ── MOBILE NAVIGATION ────────────────────────────────────────────
+const isMobile=()=>window.innerWidth<=700;
+
+function mobileOpenChat(){
+  if(!isMobile())return;
+  document.querySelector('.sidebar').classList.add('mobile-hidden');
+  document.querySelector('.chat-panel').classList.add('mobile-visible');
+}
+function mobileCloseChat(){
+  if(!isMobile())return;
+  activeConvoId=null;
+  document.querySelector('.chat-panel').classList.remove('mobile-visible');
+  document.querySelector('.sidebar').classList.remove('mobile-hidden');
+  document.getElementById('activeChat').style.display='none';
+  document.getElementById('emptyChat').style.display='flex';
+  renderConvoList();
+}
+
+// back button
+document.getElementById('mobileBackBtn').addEventListener('click',mobileCloseChat);
+
+// also wire exitChatBtn to go back on mobile
+const _origExitChat=document.getElementById('exitChatBtn').onclick;
+document.getElementById('exitChatBtn').addEventListener('click',()=>{
+  if(isMobile()){mobileCloseChat();}
+  else{
+    activeConvoId=null;
+    document.getElementById('activeChat').style.display='none';
+    document.getElementById('emptyChat').style.display='flex';
+    renderConvoList();
+  }
+});
+
+// reset layout on resize
+window.addEventListener('resize',()=>{
+  if(!isMobile()){
+    document.querySelector('.sidebar').classList.remove('mobile-hidden');
+    document.querySelector('.chat-panel').classList.remove('mobile-visible');
+  }
+});
 
 // ── Close dropdowns on outside click ─────────────────────────────
 document.addEventListener('click',e=>{
