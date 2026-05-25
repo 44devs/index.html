@@ -511,6 +511,12 @@ body{font-family:var(--font);background-image:var(--bg-img);background-size:cove
               </div>
               <div class="stg-toggle" id="toggleAllowUnknowns"><div class="stg-toggle-knob"></div></div>
             </div>
+            <div class="stg-row stg-toggle-row">
+              <div>
+                <div class="stg-lbl">Chat Protect</div>
+              </div>
+              <div class="stg-toggle" id="toggleChatProtect"><div class="stg-toggle-knob"></div></div>
+            </div>
           </div>
 
           <!-- ~UI's~ -->
@@ -1827,6 +1833,9 @@ function makeToggle(id,onCb,offCb){
   el.addEventListener('click',()=>{el.classList.toggle('on');el.classList.contains('on')?onCb():offCb();});
 }
 makeToggle('toggleAllowUnknowns',()=>{},()=>{});
+makeToggle('toggleChatProtect',
+  ()=>enableChatProtect(),
+  ()=>disableChatProtect());
 makeToggle('toggleRgbBg',
   ()=>{document.getElementById('chatApp').classList.add('rgb-bg');applyDynStyle();},
   ()=>{document.getElementById('chatApp').classList.remove('rgb-bg');applyDynStyle();});
@@ -1954,6 +1963,8 @@ function applyUiSettings(){
   if(s.rgbBgChat){document.getElementById('toggleRgbBgChat').classList.add('on');document.getElementById('chatApp').classList.add('rgb-bg-chat');}
   else{document.getElementById('toggleRgbBgChat').classList.remove('on');document.getElementById('chatApp').classList.remove('rgb-bg-chat');}
   if(s.allowUnknowns)document.getElementById('toggleAllowUnknowns').classList.add('on');
+  if(s.chatProtect){document.getElementById('toggleChatProtect').classList.add('on');enableChatProtect();}
+  else{document.getElementById('toggleChatProtect').classList.remove('on');disableChatProtect();}
   applyDynStyle();
 }
 
@@ -2016,6 +2027,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click',async()=>{
     rgbText:document.getElementById('toggleRgbText').classList.contains('on'),
     rgbBgChat:document.getElementById('toggleRgbBgChat').classList.contains('on'),
     allowUnknowns:document.getElementById('toggleAllowUnknowns').classList.contains('on'),
+    chatProtect:document.getElementById('toggleChatProtect').classList.contains('on'),
   };
   saveUiSettings(ui);applyDynStyle();
   togglePanel('settingsPanel');showToast('Settings saved! ✓');
@@ -2359,6 +2371,102 @@ document.getElementById('navLogout').addEventListener('click',()=>{
 });
 
 // ── Toast notification ────────────────────────────────────────────
+
+// ── CHAT PROTECT ─────────────────────────────────────────────────
+let _cpActive=false;
+let _cpStyleEl=null;
+let _cpVisHandler=null;
+let _cpCtxHandler=null;
+let _cpKeyHandler=null;
+let _cpPrintHandler=null;
+
+function enableChatProtect(){
+  if(_cpActive)return;
+  _cpActive=true;
+
+  // 1. Inject CSS: block selection, drag, print, and blur on screenshot attempt
+  if(!_cpStyleEl){
+    _cpStyleEl=document.createElement('style');
+    _cpStyleEl.id='chat-protect-style';
+    document.head.appendChild(_cpStyleEl);
+  }
+  _cpStyleEl.textContent=`
+    /* no text selection in chat */
+    .messages-area,.msg-bubble,.convo-list,.sidebar{user-select:none!important;-webkit-user-select:none!important;}
+    /* no drag on images */
+    .messages-area img,.msg-bubble img{-webkit-user-drag:none!important;pointer-events:none;}
+    /* hide everything on print */
+    @media print{body{display:none!important;}}
+    /* blur overlay when tab hidden (applied via JS class) */
+    body.cp-blur #chatApp{filter:blur(20px) brightness(0.1);transition:filter .1s;}
+  `;
+
+  // 2. Blur chat when tab loses focus (screen recorder / share / PrtSc focus loss)
+  _cpVisHandler=()=>{
+    if(document.hidden||document.visibilityState==='hidden'){
+      document.body.classList.add('cp-blur');
+    } else {
+      setTimeout(()=>document.body.classList.remove('cp-blur'),300);
+    }
+  };
+  document.addEventListener('visibilitychange',_cpVisHandler);
+
+  // 3. Block right-click on chat area
+  _cpCtxHandler=e=>{
+    if(e.target.closest('.messages-area,.msg-bubble,.convo-list')){
+      e.preventDefault();return false;
+    }
+  };
+  document.addEventListener('contextmenu',_cpCtxHandler);
+
+  // 4. Block PrintScreen key (Windows) — fires keyup after screenshot
+  _cpKeyHandler=e=>{
+    if(e.key==='PrintScreen'){
+      // immediately black out
+      document.body.classList.add('cp-blur');
+      setTimeout(()=>document.body.classList.remove('cp-blur'),800);
+      // clear clipboard on next tick
+      setTimeout(()=>{try{navigator.clipboard.writeText('');}catch(err){}},100);
+    }
+  };
+  document.addEventListener('keyup',_cpKeyHandler);
+
+  // 5. Block window.print()
+  _cpPrintHandler=()=>{document.body.classList.add('cp-blur');};
+  window.addEventListener('beforeprint',_cpPrintHandler);
+
+  // 6. DevTools size-change detection (devtools open = likely inspecting)
+  startDevToolsWatch();
+}
+
+function disableChatProtect(){
+  _cpActive=false;
+  if(_cpStyleEl){_cpStyleEl.textContent='';}
+  if(_cpVisHandler){document.removeEventListener('visibilitychange',_cpVisHandler);_cpVisHandler=null;}
+  if(_cpCtxHandler){document.removeEventListener('contextmenu',_cpCtxHandler);_cpCtxHandler=null;}
+  if(_cpKeyHandler){document.removeEventListener('keyup',_cpKeyHandler);_cpKeyHandler=null;}
+  if(_cpPrintHandler){window.removeEventListener('beforeprint',_cpPrintHandler);_cpPrintHandler=null;}
+  document.body.classList.remove('cp-blur');
+  stopDevToolsWatch();
+}
+
+let _devToolsTimer=null;
+function startDevToolsWatch(){
+  _devToolsTimer=setInterval(()=>{
+    const threshold=160;
+    if((window.outerWidth-window.innerWidth>threshold)||(window.outerHeight-window.innerHeight>threshold)){
+      if(!document.body.classList.contains('cp-blur')){
+        document.body.classList.add('cp-blur');
+      }
+    } else {
+      document.body.classList.remove('cp-blur');
+    }
+  },800);
+}
+function stopDevToolsWatch(){
+  clearInterval(_devToolsTimer);_devToolsTimer=null;
+  document.body.classList.remove('cp-blur');
+}
 
 // ── ADMIN PANEL (@44devs only) ────────────────────────────────────
 const ADMIN_ID='u:44devs';
