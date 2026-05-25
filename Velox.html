@@ -1320,6 +1320,14 @@ function renderMessages(c){
       </div>`;
     grp.querySelector('.msg-sender').addEventListener('click',()=>openUserProfile(m.from));
     grp.querySelector('.voice-play')?.addEventListener('click',function(){new Audio(this.dataset.src).play();});
+    // wire click on cemoji images inside this bubble to show save option
+    grp.querySelectorAll('.cemoji-msg').forEach(emojiEl=>{
+      emojiEl.style.cursor='pointer';
+      emojiEl.addEventListener('click',e=>{
+        e.stopPropagation();
+        openEmojiSaveMenu(e,emojiEl.dataset.cemojiData||emojiEl.src,emojiEl.title||'emoji');
+      });
+    });
     if(!m.deleted){
       grp.querySelector('.save-mac')?.addEventListener('click',()=>saveMessage(m));
       grp.querySelector('.edit-mac')?.addEventListener('click',()=>openEditModal(c.id,m));
@@ -1417,6 +1425,32 @@ function saveCEmojis(a){localStorage.setItem(CEMOJI_KEY,JSON.stringify(a));}
 
 const sg=document.getElementById('stickerGrid');
 const emojiEmpty=document.getElementById('emojiEmpty');
+// ── Save emoji from message ──────────────────────────────────────
+function openEmojiSaveMenu(e,src,name){
+  closeEmojiCtx();
+  const menu=document.createElement('div');
+  menu.className='ctx-menu';
+  menu.style.cssText='position:fixed;z-index:9999;min-width:140px;';
+  const item=document.createElement('div');
+  item.className='ctx-item';
+  item.textContent='💾 Save Emoji';
+  item.addEventListener('click',()=>{
+    closeEmojiCtx();
+    const arr=getCEmojis();
+    // avoid duplicates by src
+    if(arr.find(em=>em.data===src)){showToast('Already in your emojis!');return;}
+    const label=prompt('Name this emoji:',name)||name;
+    arr.push({data:src,name:label});
+    saveCEmojis(arr);renderCEmojis();
+    showToast('"'+label+'" saved to your emojis ☺');
+  });
+  menu.appendChild(item);
+  const x=Math.min(e.clientX,window.innerWidth-160);
+  const y=Math.min(e.clientY,window.innerHeight-60);
+  menu.style.left=x+'px';menu.style.top=y+'px';
+  document.body.appendChild(menu);emojiCtx=menu;
+}
+
 // ── Emoji context menu ───────────────────────────────────────────
 let emojiCtx=null;
 function closeEmojiCtx(){if(emojiCtx){emojiCtx.remove();emojiCtx=null;}}
@@ -1579,7 +1613,7 @@ function resolveCEmojiText(text){
       const lastColon=inner.lastIndexOf(':');
       const data=lastColon>0?inner.slice(0,lastColon):inner;
       const name=lastColon>0?inner.slice(lastColon+1):'emoji';
-      out+=`<img src="${data}" class="cemoji-msg" title="${escHtml(name)}">`;
+      out+=`<img src="${data}" class="cemoji-msg" title="${escHtml(name)}" data-cemoji-data="${data}" style="cursor:pointer;">`;
     }
     return out;
   }
@@ -1588,7 +1622,7 @@ function resolveCEmojiText(text){
     const emojis=getCEmojis();
     return escHtml(text).replace(/\[cemoji:(\d+)\]/g,(m,i)=>{
       const em=emojis[parseInt(i)];
-      return em?`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}">`:' ';
+      return em?`<img src="${em.data}" class="cemoji-msg" title="${escHtml(em.name||'emoji')}" data-cemoji-data="${em.data}" style="cursor:pointer;">`:' ';
     });
   }
   return escHtml(text);
