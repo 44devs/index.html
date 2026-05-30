@@ -39,7 +39,7 @@ body{font-family:'Times New Roman',Times,serif;background:#000;color:#fff;overfl
 #devs-text{font-size:42px;letter-spacing:8px;color:#fff;opacity:0;}
 
 /* LORE */
-#screen-lore{flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#screen-lore{flex-direction:column;align-items:center;justify-content:center;position:fixed;overflow:hidden;}
 #lore-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(0.35);}
 #lore-box{position:relative;z-index:2;max-width:580px;padding:46px 52px;background:rgba(0,0,0,0.82);border:1px solid rgba(255,255,255,0.13);text-align:center;}
 #lore-speaker{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.35);margin-bottom:18px;text-transform:uppercase;}
@@ -56,7 +56,7 @@ body{font-family:'Times New Roman',Times,serif;background:#000;color:#fff;overfl
 .death-btn:hover{background:rgba(255,255,255,0.11);}
 
 /* MENU */
-#screen-menu{position:relative;overflow:hidden;}
+#screen-menu{position:fixed;overflow:hidden;}
 #menu-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
 #menu-bg::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.58);}
 #menu-title{position:absolute;top:7vh;left:50%;transform:translateX(-50%);font-size:56px;letter-spacing:5px;text-shadow:0 2px 30px rgba(0,0,0,0.9);z-index:2;white-space:nowrap;}
@@ -99,7 +99,7 @@ body{font-family:'Times New Roman',Times,serif;background:#000;color:#fff;overfl
 #ctx-menu div:hover{background:rgba(255,255,255,0.09);}
 
 /* GAME */
-#screen-game{background:#000;position:relative;}
+#screen-game{background:#000;position:fixed;}
 #game-canvas{position:absolute;inset:0;width:100%;height:100%;}
 #shoot-flash{position:absolute;inset:0;background:rgba(255,200,50,0.07);opacity:0;pointer-events:none;transition:opacity 0.05s;}
 #hud{position:absolute;inset:0;pointer-events:none;z-index:100;}
@@ -385,35 +385,31 @@ function enterName(){
 // ===== DEVICE SCREEN =====
 document.querySelectorAll('.device-btn').forEach(b=>b.addEventListener('click',selectDevice));
 function selectDevice(){
-  const fo=document.getElementById('fade-overlay');
-  const dt=document.getElementById('devs-text');
-  // Step 1: go black
-  fo.style.transition='opacity 0.35s'; fo.style.opacity='1'; fo.style.pointerEvents='all';
-  setTimeout(()=>{
-    // Step 2: swap to devs screen while black
+  // Go black → show devs screen → fade in devs screen → show text → fade text → go black → show menu → fade in menu
+  fadeIn(()=>{
     showScreen('devs');
-    dt.style.transition='none'; dt.style.opacity='0';
-    // Step 3: fade from black to show devs screen
-    fo.style.transition='opacity 0.4s'; fo.style.opacity='0'; fo.style.pointerEvents='none';
-    setTimeout(()=>{
-      // Step 4: fade text in
-      dt.style.transition='opacity 0.55s'; dt.style.opacity='1';
-      setTimeout(()=>{
-        // Step 5: fade text out
-        dt.style.transition='opacity 0.45s'; dt.style.opacity='0';
+    const dt=document.getElementById('devs-text');
+    dt.style.transition='none';
+    dt.style.opacity='0';
+    // Small yield so browser applies transition:none before we change opacity
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      dt.style.transition='opacity 0.55s';
+      fadeOut(()=>{
+        // Now devs screen is visible, fade text in
+        dt.style.opacity='1';
         setTimeout(()=>{
-          // Step 6: go black again
-          fo.style.transition='opacity 0.35s'; fo.style.opacity='1'; fo.style.pointerEvents='all';
+          dt.style.opacity='0';
           setTimeout(()=>{
-            // Step 7: swap to menu while black
-            showScreen('menu'); updateMenu();
-            // Step 8: fade from black to reveal menu
-            fo.style.transition='opacity 0.5s'; fo.style.opacity='0'; fo.style.pointerEvents='none';
-          },380);
-        },600);
-      },1600);
-    },460);
-  },380);
+            fadeIn(()=>{
+              showScreen('menu');
+              updateMenu();
+              fadeOut();
+            });
+          },600);
+        },1500);
+      });
+    }));
+  });
 }
 
 // ===== MENU =====
