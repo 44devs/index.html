@@ -248,8 +248,9 @@ body.is-fullscreen .phone{width:100vw;height:100dvh;border-radius:0;box-shadow:n
 #scan-modal.open{display:flex;}
 #scan-video{width:100%;height:100%;object-fit:cover;}
 .scan-ui-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
-.scan-frame{width:220px;height:80px;border:2px solid rgba(124,58,237,0.8);border-radius:10px;box-shadow:0 0 0 2000px rgba(0,0,0,0.55);}
+.scan-frame{width:200px;height:200px;border:3px solid rgba(124,58,237,0.9);border-radius:16px;box-shadow:0 0 0 2000px rgba(0,0,0,0.6);position:relative;}.scan-frame::before,.scan-frame::after{content:'';position:absolute;width:20px;height:20px;border-color:#fff;border-style:solid;}.scan-frame::before{top:-3px;left:-3px;border-width:3px 0 0 3px;border-radius:16px 0 0 0;}.scan-frame::after{bottom:-3px;right:-3px;border-width:0 3px 3px 0;border-radius:0 0 16px 0;}
 .scan-hint{color:#fff;font-size:13px;margin-top:16px;text-align:center;padding:0 30px;}
+.scan-line-anim{width:200px;height:2px;background:rgba(124,58,237,0.9);box-shadow:0 0 8px rgba(124,58,237,0.8);animation:scanAnim 1.5s ease-in-out infinite;margin-top:-100px;}
 #scan-close{position:absolute;top:40px;right:20px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;}
 
 /* inbox badge */
@@ -550,7 +551,8 @@ body.is-fullscreen .phone{width:100vw;height:100dvh;border-radius:0;box-shadow:n
   <video id="scan-video" autoplay playsinline muted></video>
   <div class="scan-ui-overlay">
     <div class="scan-frame"></div>
-    <div class="scan-hint">Point camera at another user's QR code</div>
+    <div class="scan-line-anim"></div>
+      <div class="scan-hint">Point at another user's QR code</div>
   </div>
   <button id="scan-close" onclick="closeScanner()"><i class="ti ti-x"></i></button>
 </div>
@@ -798,10 +800,10 @@ function subscribeUserDoc(){
     const prevBal=userDoc?userDoc.balance:null;
     userDoc=snap.data();
     refreshBalance();
-    if(prevBal!==null && userDoc.balance!==prevBal){
+    if(prevBal!==null&&userDoc.balance!==prevBal){
+      if(_myOwnWrite){_myOwnWrite=false;return;}
       const diff=Math.round((userDoc.balance-prevBal)*100)/100;
-      if(diff>0) flash(document.getElementById('send-result'),`+${fmt(diff)}© received!`,'ok');
-      if(diff<0) flash(document.getElementById('send-result'),`${fmt(diff)}© deducted`,'error');
+      if(diff>0)flash(document.getElementById('send-result'),`+${fmt(diff)}© received!`,'ok');
     }
   });
 }
@@ -899,27 +901,12 @@ function renderTxns(){
 /* Rate limit tracker */
 const _balanceOps = { count:0, windowStart:Date.now() };
 
-async function adjustBalance(uid, delta){
-  // Client-side rate limit: max 30 balance ops per minute
-  const now = Date.now();
-  if(now - _balanceOps.windowStart > 60000){ _balanceOps.count=0; _balanceOps.windowStart=now; }
-  _balanceOps.count++;
-  if(_balanceOps.count > 30){ console.warn('Rate limit hit'); return; }
-
-  // Only allow adjusting own balance or recipient during send (validated server-side by rules)
-  if(uid !== currentUser.uid){
-    // Only permitted during send flows — delta must be positive (adding to recipient)
-    if(delta <= 0){ console.warn('Blocked negative cross-user balance write'); return; }
-  }
-
-  // Hard cap: single operation cannot exceed 10000©
-  if(Math.abs(delta) > 10000){ console.warn('Blocked oversized delta'); return; }
-
-  await FB.updateDoc(FB.doc(FB.db,'users',uid),{ balance: FB.increment(delta) });
-  if(uid===currentUser.uid){
-    userDoc.balance=(userDoc.balance||0)+delta;
-    refreshBalance();
-  }
+let _myOwnWrite=false;
+async function adjustBalance(uid,delta){
+  if(!Number.isFinite(delta)||Math.abs(delta)>10000||Math.abs(delta)<0.001)return;
+  if(uid!==currentUser.uid&&delta<=0)return;
+  if(uid===currentUser.uid)_myOwnWrite=true;
+  await FB.updateDoc(FB.doc(FB.db,'users',uid),{balance:FB.increment(delta)});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -960,24 +947,42 @@ function lookupRecipient(){
 
 async function doLookup(val){
   if(!FB||!currentUser)return;
-  // Search by username OR lapizId
   let snap=null;
-  // try username
-  const q1=FB.query(FB.collection(FB.db,'users'),FB.where('username','==',val.toLowerCase()));
-  const r1=await FB.getDocs(q1);
-  if(!r1.empty){ snap=r1.docs[0].data(); }
-  else {
-    // try lapizId
-    const q2=FB.query(FB.collection(FB.db,'users'),FB.where('lapizId','==',val.toUpperCase()));
-    const r2=await FB.getDocs(q2);
-    if(!r2.empty) snap=r2.docs[0].data();
+  const clean=val.toLowerCase().replace(/^@/,'');
+  // 1. try exact username match
+  try{
+    const r=await FB.getDocs(FB.query(FB.collection(FB.db,'users'),FB.where('username','==',clean)));
+    if(!r.empty) snap=r.docs[0].data();
+  }catch(e){}
+  // 2. try lapizId
+  if(!snap){
+    try{
+      const r=await FB.getDocs(FB.query(FB.collection(FB.db,'users'),FB.where('lapizId','==',val.trim().toUpperCase())));
+      if(!r.empty) snap=r.docs[0].data();
+    }catch(e){}
   }
-  if(snap && snap.uid!==currentUser.uid){
+  // 3. scan ALL users for partial username match (fallback for small user base)
+  if(!snap){
+    try{
+      const all=await FB.getDocs(FB.collection(FB.db,'users'));
+      all.forEach(d=>{
+        if(snap)return;
+        const u=d.data();
+        if(u.uid===currentUser.uid)return;
+        if((u.username||'').toLowerCase().includes(clean)||(u.displayName||'').toLowerCase().includes(clean))
+          snap=u;
+      });
+    }catch(e){}
+  }
+  const preview=document.getElementById('profile-preview');
+  const res=document.getElementById('send-result');
+  if(snap&&snap.uid!==currentUser.uid){
     foundRecipient=snap;
     showProfilePreview(snap);
   } else {
-    document.getElementById('profile-preview').classList.remove('visible');
+    preview.classList.remove('visible');
     foundRecipient=null;
+    if(clean.length>2) flash(res,'User not found','error');
   }
 }
 
