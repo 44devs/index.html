@@ -16,7 +16,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile }
   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, increment, getDocs }
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, increment, getDocs, runTransaction, writeBatch }
   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
@@ -42,7 +42,7 @@ const functions = getFunctions(app, "europe-west1"); // adjust region if needed
 /* ── fire a custom event when Firebase is ready ── */
 const _lcRefs = { auth, db, storage, functions, doc, setDoc, getDoc, updateDoc,
   collection, addDoc, query, where, onSnapshot, serverTimestamp, increment,
-  getDocs, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  getDocs, runTransaction, writeBatch, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, onAuthStateChanged, updateProfile, httpsCallable, sRef,
   uploadBytes, getDownloadURL };
 window.dispatchEvent(new CustomEvent('lcfbready', { detail: _lcRefs }));
@@ -115,10 +115,10 @@ body.is-fullscreen .phone{width:100vw;height:100dvh;border-radius:0;box-shadow:n
 .txn-list{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;scrollbar-width:none;}
 .txn-list::-webkit-scrollbar{display:none;}
 .txn-empty{text-align:center;color:rgba(255,255,255,0.3);font-size:13px;padding:16px 0;}
-.txn-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:12px;position:relative;cursor:default;transition:background .15s;}
+.txn-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:12px;position:relative;cursor:default;transition:background .15s;gap:8px;}
 .txn-item:hover{background:rgba(255,255,255,0.12);}
 .txn-desc{flex:1;line-height:1.4;}
-.txn-amt{font-size:13px;white-space:nowrap;margin-left:10px;position:relative;}
+.txn-amt{font-size:13px;white-space:nowrap;position:relative;text-align:right;flex-shrink:0;line-height:1.4;}
 .txn-amt.out{color:var(--red);}
 .txn-amt.in{color:var(--green);}
 .euro-tip{display:none;position:absolute;bottom:calc(100% + 6px);right:0;background:rgba(20,20,30,0.95);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:5px 10px;font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;backdrop-filter:blur(10px);z-index:50;}
@@ -888,11 +888,35 @@ function renderTxns(){
       const item=document.createElement('div'); item.className='txn-item';
       const desc=document.createElement('div'); desc.className='txn-desc';
       const amt=document.createElement('div');
-      if(t.type==='out'){ amt.className='txn-amt out'; desc.textContent=`You Sent ${fmt(t.amt)}© to @${t.to}`; amt.innerHTML=`-${fmt(t.amt)} ©<span class="euro-tip">-${fmtEuro(t.amt)}</span>`; }
-      else if(t.type==='in'){ amt.className='txn-amt in'; desc.textContent=`@${t.from} Sent You ${fmt(t.amt)}©`; amt.innerHTML=`+${fmt(t.amt)} ©<span class="euro-tip">+${fmtEuro(t.amt)}</span>`; }
-      else if(t.type==='game-win'){ amt.className='txn-amt in'; desc.textContent=`${t.game}: Won ${fmt(t.amt)}©`; amt.innerHTML=`+${fmt(t.amt)} ©<span class="euro-tip">+${fmtEuro(t.amt)}</span>`; }
-      else if(t.type==='game-loss'){ amt.className='txn-amt out'; desc.textContent=`${t.game}: Lost ${fmt(t.amt)}©`; amt.innerHTML=`-${fmt(t.amt)} ©<span class="euro-tip">-${fmtEuro(t.amt)}</span>`; }
-      else if(t.type==='pack'){ amt.className='txn-amt in'; desc.textContent=`Bought ${fmt(t.amt)}© pack`; amt.innerHTML=`+${fmt(t.amt)} ©<span class="euro-tip">+${fmtEuro(t.amt)}</span>`; }
+      if(t.type==='out'){
+        amt.className='txn-amt out';
+        const toName=t.toDisplay||t.to||'?';
+        const toUser=t.to||'?';
+        desc.innerHTML=`<span style="color:rgba(255,255,255,0.5);font-size:11px">YOU</span><br>Sent to <b>@${toUser}</b>`;
+        amt.innerHTML=`<span style="font-size:15px">-${fmt(t.amt)} ©</span><br><span style="font-size:10px;opacity:0.7">-${fmtEuro(t.amt)}</span>`;
+      }
+      else if(t.type==='in'){
+        amt.className='txn-amt in';
+        const fromName=t.fromDisplay||t.from||'?';
+        const fromUser=t.from||'?';
+        desc.innerHTML=`<span style="color:rgba(255,255,255,0.5);font-size:11px">RECEIVED</span><br><b>@${fromUser}</b> sent you`;
+        amt.innerHTML=`<span style="font-size:15px">+${fmt(t.amt)} ©</span><br><span style="font-size:10px;opacity:0.7">+${fmtEuro(t.amt)}</span>`;
+      }
+      else if(t.type==='game-win'){
+        amt.className='txn-amt in';
+        desc.innerHTML=`<span style="color:rgba(255,255,255,0.5);font-size:11px">GAME WIN</span><br>${t.game||'Game'}`;
+        amt.innerHTML=`<span style="font-size:15px">+${fmt(t.amt)} ©</span><br><span style="font-size:10px;opacity:0.7">+${fmtEuro(t.amt)}</span>`;
+      }
+      else if(t.type==='game-loss'){
+        amt.className='txn-amt out';
+        desc.innerHTML=`<span style="color:rgba(255,255,255,0.5);font-size:11px">GAME LOSS</span><br>${t.game||'Game'}`;
+        amt.innerHTML=`<span style="font-size:15px">-${fmt(t.amt)} ©</span><br><span style="font-size:10px;opacity:0.7">-${fmtEuro(t.amt)}</span>`;
+      }
+      else if(t.type==='pack'){
+        amt.className='txn-amt in';
+        desc.innerHTML=`<span style="color:rgba(255,255,255,0.5);font-size:11px">PURCHASE</span><br>Bought ${fmt(t.amt)}© pack`;
+        amt.innerHTML=`<span style="font-size:15px">+${fmt(t.amt)} ©</span><br><span style="font-size:10px;opacity:0.7">+${fmtEuro(t.amt)}</span>`;
+      }
       item.appendChild(desc); item.appendChild(amt); list.appendChild(item);
     });
   });
@@ -1013,15 +1037,27 @@ async function doSend(){
 
   if(currentSendMode==='send'){
     if(getBalance()<amt)return flash(res,'Not enough ©.','error');
-    await adjustBalance(currentUser.uid,-amt);
-    await adjustBalance(foundRecipient.uid,amt);
-    await addTxnFirestore('out',{to:foundRecipient.username,amt});
-    // add txn to recipient
-    await FB.addDoc(FB.collection(FB.db,'users',foundRecipient.uid,'transactions'),{
-      type:'in',from:userDoc.username,amt,ts:FB.serverTimestamp()
-    });
-    document.getElementById('send-amt').value='';
-    flash(res,`Sent ${fmt(amt)}© to @${foundRecipient.username}!`,'ok');
+    try{
+      // Atomic batch: debit sender, credit recipient, write both txns
+      const batch = FB.writeBatch(FB.db);
+      const senderRef = FB.doc(FB.db,'users',currentUser.uid);
+      const recipRef  = FB.doc(FB.db,'users',foundRecipient.uid);
+      const senderTxnRef = FB.doc(FB.collection(FB.db,'users',currentUser.uid,'transactions'));
+      const recipTxnRef  = FB.doc(FB.collection(FB.db,'users',foundRecipient.uid,'transactions'));
+
+      _myOwnWrite = true;
+      batch.update(senderRef, {balance: FB.increment(-amt)});
+      batch.update(recipRef,  {balance: FB.increment(amt)});
+      batch.set(senderTxnRef, {type:'out', to:foundRecipient.username,   toDisplay:foundRecipient.displayName||foundRecipient.username, amt, ts:FB.serverTimestamp()});
+      batch.set(recipTxnRef,  {type:'in',  from:userDoc.username, fromDisplay:userDoc.displayName||userDoc.username, amt, ts:FB.serverTimestamp()});
+
+      await batch.commit();
+      document.getElementById('send-amt').value='';
+      flash(res,`Sent ${fmt(amt)}© to @${foundRecipient.username}!`,'ok');
+    }catch(e){
+      _myOwnWrite=false;
+      flash(res,'Send failed: '+e.message,'error');
+    }
   } else {
     // REQUEST
     if(foundRecipient.disableRequests)return flash(res,'This user has disabled requests.','error');
