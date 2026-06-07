@@ -6,6 +6,7 @@
 <title>Lapiz Capital</title>
 <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 <!-- ═══════════════════════════════════════════
@@ -664,66 +665,38 @@ function drawBarcode(canvasId, idStr){
   if(!wrap){ setTimeout(()=>drawBarcode(canvasId,idStr),200); return; }
   wrap.innerHTML = '';
 
-  const SIZE = 21; // 21x21 grid like QR version 1
-  const CELL = 6;  // px per cell
-  const QUIET = 2; // quiet zone cells
-  const TOTAL = (SIZE + QUIET*2) * CELL;
+  try{
+    // qrcode-generator: typeNumber 0 = auto, error correction H
+    const qr = qrcode(0, 'H');
+    qr.addData(idStr);
+    qr.make();
 
-  const canvas = document.createElement('canvas');
-  canvas.width = TOTAL;
-  canvas.height = TOTAL;
-  canvas.style.cssText = 'border-radius:8px;display:block;image-rendering:pixelated;';
-  wrap.appendChild(canvas);
+    // Draw onto canvas manually for color control
+    const moduleCount = qr.getModuleCount();
+    const CELL = Math.floor(150 / moduleCount);
+    const SIZE = moduleCount * CELL;
 
-  const ctx = canvas.getContext('2d');
+    const canvas = document.createElement('canvas');
+    canvas.width  = SIZE + 20;
+    canvas.height = SIZE + 20;
+    canvas.style.cssText = 'display:block;border-radius:6px;';
+    wrap.appendChild(canvas);
 
-  // White background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, TOTAL, TOTAL);
+    const ctx = canvas.getContext('2d');
+    // White bg
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Build bit matrix from idStr hash
-  const matrix = [];
-  for(let r=0;r<SIZE;r++){
-    matrix[r]=[];
-    for(let c=0;c<SIZE;c++) matrix[r][c]=0;
-  }
-
-  // Seed from idStr
-  let seed = 0;
-  for(let i=0;i<idStr.length;i++) seed = ((seed<<5)-seed + idStr.charCodeAt(i)) | 0;
-  function rand(){ seed = (seed * 1664525 + 1013904223) | 0; return (seed>>>0) / 0xffffffff; }
-
-  // Fill data area (avoid corners where finder patterns go)
-  for(let r=0;r<SIZE;r++){
-    for(let c=0;c<SIZE;c++){
-      // Reserve 7x7 corners for finder patterns
-      const inTL = r<8 && c<8;
-      const inTR = r<8 && c>=SIZE-8;
-      const inBL = r>=SIZE-8 && c<8;
-      if(!inTL && !inTR && !inBL) matrix[r][c] = rand() > 0.5 ? 1 : 0;
+    // Draw modules
+    for(let row=0; row<moduleCount; row++){
+      for(let col=0; col<moduleCount; col++){
+        ctx.fillStyle = qr.isDark(row,col) ? '#1a0533' : '#ffffff';
+        ctx.fillRect(col*CELL+10, row*CELL+10, CELL, CELL);
+      }
     }
-  }
-
-  // Draw finder pattern helper
-  function drawFinder(row, col){
-    // Outer 7x7 black
-    for(let r=0;r<7;r++) for(let c=0;c<7;c++) matrix[row+r][col+c]=1;
-    // Inner 5x5 white
-    for(let r=1;r<6;r++) for(let c=1;c<6;c++) matrix[row+r][col+c]=0;
-    // Inner 3x3 black
-    for(let r=2;r<5;r++) for(let c=2;c<5;c++) matrix[row+r][col+c]=1;
-  }
-
-  drawFinder(0,0);
-  drawFinder(0,SIZE-7);
-  drawFinder(SIZE-7,0);
-
-  // Render cells
-  for(let r=0;r<SIZE;r++){
-    for(let c=0;c<SIZE;c++){
-      ctx.fillStyle = matrix[r][c] ? '#1a0533' : '#ffffff';
-      ctx.fillRect((c+QUIET)*CELL, (r+QUIET)*CELL, CELL, CELL);
-    }
+  } catch(e){
+    // fallback: show ID as text
+    wrap.innerHTML = `<div style="background:#fff;color:#1a0533;padding:12px;border-radius:8px;font-size:11px;word-break:break-all;text-align:center;max-width:160px">${idStr}</div>`;
   }
 }
 
@@ -752,10 +725,15 @@ function doRegister(){
       .then(async cred=>{
         const uid=cred.user.uid;
         const lapizId=genLapizId(uid);
-        const username='user_'+uid.slice(0,6).toLowerCase();
+        // Derive username from email: take part before @, strip invalid chars
+        const rawName = email.split('@')[0].toLowerCase();
+        const baseUsername = rawName.replace(/[^a-z0-9,._-]/g,'').slice(0,20) || 'user';
+        // Ensure unique by appending short uid suffix if needed
+        const username = baseUsername + (baseUsername.length < 3 ? uid.slice(0,4) : '');
+        const displayName = email.split('@')[0]; // raw before @ as display name
         await FB.setDoc(FB.doc(FB.db,'users',uid),{
           uid, email, lapizId, username,
-          displayName:'New User',
+          displayName,
           bio:'', pfp:'', balance:50,
           disableRequests:false,
           createdAt:FB.serverTimestamp()
