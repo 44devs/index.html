@@ -422,7 +422,7 @@ body.is-fullscreen .phone{width:100vw;height:100dvh;border-radius:0;box-shadow:n
       <div class="myid-row">
         <div class="myid-label">My Lapiz ID</div>
         <div class="myid-string" id="my-id-string">—</div>
-        <div class="barcode-wrap"><canvas class="barcode-canvas" id="barcode-canvas"></canvas><div class="scan-line"></div></div>
+        <div class="barcode-wrap"><div id="barcode-wrap-inner"></div></div>
         <div class="myid-btns">
           <button class="myid-btn" onclick="copyMyId()"><i class="ti ti-copy"></i> Copy</button>
           <button class="myid-btn" onclick="openScanner()"><i class="ti ti-scan"></i> Scan</button>
@@ -659,7 +659,7 @@ function genLapizId(uid){
 ══════════════════════════════════════════════════════════ */
 function drawBarcode(canvasId, idStr){
   const wrap = document.getElementById('barcode-wrap-inner');
-  if(!wrap) return;
+  if(!wrap){ setTimeout(()=>drawBarcode(canvasId,idStr),200); return; }
   wrap.innerHTML = '';
 
   const SIZE = 21; // 21x21 grid like QR version 1
@@ -821,7 +821,7 @@ function enterApp(){
   subscribeInbox();
   subscribeUserDoc();
   switchTab(document.querySelector('.nav-item'),'home');
-  setTimeout(()=>drawBarcode('barcode-canvas',userDoc.lapizId||'LC-XXXX-XXXX-XXXX'),200);
+  // QR drawn when user opens Send tab
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -933,7 +933,10 @@ function switchTab(btn,tab){
   if(tab!=='home'){ const p=document.getElementById('tab-'+tab); if(p) p.classList.add('active'); }
   if(tab==='home'){ refreshBalance(); }
   if(tab==='games') initCrashCanvas();
-  if(tab==='send') setTimeout(()=>drawBarcode('barcode-wrap-inner',userDoc?.lapizId||genLapizId(currentUser.uid)),150);
+  if(tab==='send'){
+    const _lid = userDoc?.lapizId || genLapizId(currentUser?.uid||'LC000000');
+    setTimeout(()=>drawBarcode('barcode-wrap-inner', _lid), 250);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
